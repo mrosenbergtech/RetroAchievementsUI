@@ -59,7 +59,7 @@ struct AchievementDetailView: View {
                     .padding(.horizontal)
             }
             
-        }
+        }.alignmentGuide(.listRowSeparatorLeading) { _ in -20 }
         
     }
         

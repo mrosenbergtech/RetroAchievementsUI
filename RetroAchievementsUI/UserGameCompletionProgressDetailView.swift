@@ -48,7 +48,7 @@ struct UserGameCompletionProgressDetailView: View {
                 }
                 
             }
-        }
+        }.alignmentGuide(.listRowSeparatorLeading) { _ in -20 }
     }
 }
 
