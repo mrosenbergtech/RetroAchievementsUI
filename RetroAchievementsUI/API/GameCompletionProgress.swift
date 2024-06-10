@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct GameDetails: Codable, Identifiable {
+struct GameCompletionProgress: Codable, Identifiable {
     let id: Int
     let title: String
     let imageIcon: String
@@ -35,10 +35,10 @@ struct GameDetails: Codable, Identifiable {
     }
 }
 
-struct UserGameCompletionProgress: Codable {
+struct UsersGamesCompletionProgress: Codable {
     let count: Int
     let total: Int
-    let results: [GameDetails]
+    let results: [GameCompletionProgress]
     
     enum CodingKeys: String, CodingKey {
         case count = "Count"

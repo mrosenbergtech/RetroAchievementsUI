@@ -10,7 +10,7 @@ import SwiftUI
 
 class Network: ObservableObject {
     @Published var profile: Profile? = nil
-    @Published var userGameCompletionProgress: UserGameCompletionProgress? = nil
+    @Published var userGameCompletionProgress: UsersGamesCompletionProgress? = nil
     @Published var consoles: [Console] = []
     @Published var gameSummaries: [GameSummary] = []
     @Published var initialWebAPIAuthenticationCheckComplete: Bool = false
@@ -99,7 +99,7 @@ class Network: ObservableObject {
     
     func getUserGameCompletionProgress() {
         guard let url = URL(string: "https://retroachievements.org/API/API_GetUserCompletionProgress.php?\(buildAuthenticationString())&u=\(self.authenticatedWebAPIUsername)&c=500") else { fatalError("Missing URL") }
-
+        
         let urlRequest = URLRequest(url: url)
 
         let dataTask = URLSession.shared.dataTask(with: urlRequest) { (data, response, error) in
@@ -114,7 +114,7 @@ class Network: ObservableObject {
                 guard let data = data else { return }
                 DispatchQueue.main.async {
                     do {
-                        let decodedUserGameCompletionProgress = try JSONDecoder().decode(UserGameCompletionProgress.self, from: data)
+                        let decodedUserGameCompletionProgress = try JSONDecoder().decode(UsersGamesCompletionProgress.self, from: data)
                         self.userGameCompletionProgress = decodedUserGameCompletionProgress
                     } catch let error {
                         print("Error decoding: ", error)
@@ -129,7 +129,7 @@ class Network: ObservableObject {
     
     func getRAGameSummary(gameID: Int) {
         guard let url = URL(string: "https://retroachievements.org/API/API_GetGameInfoAndUserProgress.php?\(buildAuthenticationString())&g=\(gameID)&u=\(self.authenticatedWebAPIUsername)") else { fatalError("Missing URL") }
-
+        
         let urlRequest = URLRequest(url: url)
 
         let dataTask = URLSession.shared.dataTask(with: urlRequest) { (data, response, error) in

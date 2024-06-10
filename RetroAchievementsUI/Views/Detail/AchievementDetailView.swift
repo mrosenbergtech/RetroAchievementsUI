@@ -8,10 +8,8 @@
 import SwiftUI
 
 struct AchievementDetailView: View {
-    @EnvironmentObject var network: Network
     @Binding var hardcoreMode: Bool
     var achievement: Achievement
-    
     
     var body: some View {
         HStack{
@@ -66,7 +64,7 @@ struct AchievementDetailView: View {
 }
 
 #Preview {
-    Text("Hello World!")
-//    GameSummaryView()
-//        .environmentObject(Network())
+    @State var hardcoreMode: Bool = true
+    let previewAchievement = Achievement(id: 48643, numAwarded: 2709, numAwardedHardcore: 2180, title: "Full Power", description: "Grab 120 Power Stars.", points: 25, trueRatio: 0, author: "SamuraiGoroh", dateModified: "06 Dec, 2021 23:01", dateCreated: "25 May, 2017 17:37", badgeName: "84225", displayOrder: 1, memAddr: "N/A", type: "N/A", dateEarnedHardcore: "27 Jan, 2024, 19:45", dateEarned: "27 Jan, 2024, 19:45")
+    return AchievementDetailView(hardcoreMode: $hardcoreMode, achievement: previewAchievement).padding()
 }
