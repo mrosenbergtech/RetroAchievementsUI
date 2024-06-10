@@ -80,15 +80,11 @@ struct SettingsView: View {
 }
 
 #Preview {
-    struct BindingViewExamplePreviewContainer : View {
-        @State private var webAPIUsername = "username"
-        @State private var webAPIKey = "api_key"
-        @State private var hardcoreMode = true
-
-       var body: some View {
-           SettingsView(webAPIUsername: $webAPIUsername, webAPIKey: $webAPIKey, hardcoreMode: $hardcoreMode)
-       }
-    }
-
-    return BindingViewExamplePreviewContainer()
+    @State var webAPIUsername = debugWebAPIUsername
+    @State var webAPIKey = debugWebAPIKey
+    @State var hardcoreMode = true
+    let network = Network()
+    network.authenticateRACredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
+    return SettingsView(webAPIUsername: $webAPIUsername, webAPIKey: $webAPIKey, hardcoreMode: $hardcoreMode)
+        .environmentObject(network)
 }

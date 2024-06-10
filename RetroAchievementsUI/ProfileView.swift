@@ -38,6 +38,8 @@ struct ProfileView: View {
 }
 
 #Preview {
-    ProfileView()
-        .environmentObject(Network())
+    let network = Network()
+    network.authenticateRACredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
+    return ProfileView()
+        .environmentObject(network)
 }

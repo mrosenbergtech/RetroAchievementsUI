@@ -7,6 +7,10 @@
 
 import SwiftUI
 
+// Debug Credentials
+let debugWebAPIUsername: String = "username"
+let debugWebAPIKey: String = "api_key"
+
 @main
 struct RetroAchievementsUIApp: App {
     @AppStorage("webAPIUsername") var webAPIUsername: String = ""

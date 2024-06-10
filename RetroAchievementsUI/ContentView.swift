@@ -63,17 +63,12 @@ struct ContentView: View {
 }
 
 #Preview {
-    struct BindingViewExamplePreviewContainer : View {
-        @State private var webAPIUsername = "username"
-        @State private var webAPIKey = "api_key"
-        @State private var hardcoreMode = true
-
-       var body: some View {
-           ContentView(webAPIUsername: $webAPIUsername, webAPIKey: $webAPIKey,
-           hardcoreMode: $hardcoreMode)
-               .environmentObject(Network())
-       }
-    }
-
-    return BindingViewExamplePreviewContainer()
+    @State var webAPIUsername = debugWebAPIUsername
+    @State var webAPIKey = debugWebAPIKey
+    @State var hardcoreMode = true
+    let network = Network()
+    network.authenticateRACredentials(webAPIUsername: webAPIUsername, webAPIKey: webAPIKey)
+    return ContentView(webAPIUsername: $webAPIUsername, webAPIKey: $webAPIKey,
+    hardcoreMode: $hardcoreMode)
+        .environmentObject(network)
 }

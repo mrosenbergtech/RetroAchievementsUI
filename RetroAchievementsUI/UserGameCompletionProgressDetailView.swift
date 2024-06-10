@@ -1,5 +1,5 @@
 //
-//  GameSummaryView.swift
+//  UserGameCompletionDetailView.swift
 //  RetroAchievementsUI
 //
 //  Created by Michael Rosenberg on 6/7/24.
@@ -28,30 +28,24 @@ struct UserGameCompletionProgressDetailView: View {
             .clipShape(.rect(cornerRadius: 10))
             .frame(maxHeight: .infinity)
             .scaleEffect(0.75)
-            
-            Spacer()
-            
+                        
             VStack(alignment: .center){
-                Spacer()
-                Text(game.title)
-                    .bold()
-                    .lineLimit(1)
+                ScrollingText(text: game.title, font: .boldSystemFont(ofSize: 15), leftFade: 15, rightFade: 15, startDelay: 1, alignment: .center)
+                    .padding(.horizontal)
                 
                 Text(game.consoleName)
-                    .bold()
                     .lineLimit(1)
+                    .font(.footnote)
                     .foregroundColor(.gray)
                 
-                Spacer()
-                
                 VStack{
-                    Text("Unlocked: " + (hardcoreMode ? String(game.numAwardedHardcore) : String(game.numAwarded)) + " | " + String(game.maxPossible)).multilineTextAlignment(.center)
+                    Text("Unlocked: " + (hardcoreMode ? String(game.numAwardedHardcore) : String(game.numAwarded)) + " | " + String(game.maxPossible))
+                        .multilineTextAlignment(.center)
+                        .font(.footnote)
+
                     ProgressView(value: Float(hardcoreMode ? game.numAwardedHardcore : game.numAwarded) / Float(game.maxPossible))
-                    .padding(.horizontal)
-                    .frame(maxHeight: .infinity)
+                        .padding(.horizontal)
                 }
-                
-                Spacer()
                 
             }
         }
@@ -59,7 +53,11 @@ struct UserGameCompletionProgressDetailView: View {
 }
 
 #Preview {
-    let previewGame = GameDetails(id: 1, title: "Test", imageIcon: "test", consoleID: 1, consoleName: "Test", maxPossible: 99, numAwarded: 2, numAwardedHardcore: 1, mostRecentAwardedDate: "test", highestAwardKind: "test", highestAwardDate: "test")
+    @ObservedObject var network = Network()
+    network.authenticateRACredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
+    let previewGame = network.userGameCompletionProgress?.results.first ?? GameDetails(id: 1, title: "Test", imageIcon: "Test", consoleID: 1, consoleName: "Test", maxPossible: 99, numAwarded: 3, numAwardedHardcore: 2, mostRecentAwardedDate: "Test", highestAwardKind: nil, highestAwardDate: nil)
+
     @State var hardcoreMode: Bool = true
     return UserGameCompletionProgressDetailView(game: previewGame, hardcoreMode: $hardcoreMode)
+        .environmentObject(network)
 }
