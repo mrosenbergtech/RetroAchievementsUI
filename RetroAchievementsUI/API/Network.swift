@@ -10,11 +10,13 @@ import SwiftUI
 
 class Network: ObservableObject {
     @Published var profile: Profile? = nil
-    @Published var userGameCompletionProgress: UsersGamesCompletionProgress? = nil
+    @Published var userGameCompletionProgress: UserGamesCompletionProgressResult? = nil
     @Published var consoles: [Console] = []
-    @Published var gameSummaries: [GameSummary] = []
+    @Published var consoleGamesCache: [Int : [ConsoleGameInfo]] = [:]
+    @Published var gameSummaryCache: [Int: GameSummary] = [:]
     @Published var initialWebAPIAuthenticationCheckComplete: Bool = false
     @Published var webAPIAuthenticated: Bool = false
+    @Published var consolesCache: Consoles = Consoles()
     private var authenticatedWebAPIUsername: String = ""
     private var authenticatedWebAPIKey: String = ""
     
@@ -22,7 +24,7 @@ class Network: ObservableObject {
         return "z=\(authenticatedWebAPIUsername)&y=\(authenticatedWebAPIKey)"
     }
         
-    func authenticateRACredentials(webAPIUsername: String, webAPIKey: String) {
+    func authenticateCredentials(webAPIUsername: String, webAPIKey: String) {
         guard let url = URL(string: "https://retroachievements.org/API/API_GetUserProfile.php?z=\(webAPIUsername)&y=\(webAPIKey)&u=\(webAPIUsername)") else { fatalError("Missing URL") }
         
         let urlRequest = URLRequest(url: url)
@@ -44,9 +46,8 @@ class Network: ObservableObject {
                     self.webAPIAuthenticated = true
                     self.authenticatedWebAPIUsername = webAPIUsername
                     self.authenticatedWebAPIKey = webAPIKey
-                    self.getRAGameConsoles()
                     self.getUserGameCompletionProgress()
-                    
+                                        
                     do {
                         let decodedProfile = try JSONDecoder().decode(Profile.self, from: data)
                         self.profile = decodedProfile
@@ -67,7 +68,7 @@ class Network: ObservableObject {
         dataTask.resume()
     }
     
-    func getRAProfile() {
+    func getProfile() {
         guard let url = URL(string: "https://retroachievements.org/API/API_GetUserProfile.php?\(buildAuthenticationString())&u=\(self.authenticatedWebAPIUsername)") else { fatalError("Missing URL") }
 
         let urlRequest = URLRequest(url: url)
@@ -114,7 +115,7 @@ class Network: ObservableObject {
                 guard let data = data else { return }
                 DispatchQueue.main.async {
                     do {
-                        let decodedUserGameCompletionProgress = try JSONDecoder().decode(UsersGamesCompletionProgress.self, from: data)
+                        let decodedUserGameCompletionProgress = try JSONDecoder().decode(UserGamesCompletionProgressResult.self, from: data)
                         self.userGameCompletionProgress = decodedUserGameCompletionProgress
                     } catch let error {
                         print("Error decoding: ", error)
@@ -127,7 +128,7 @@ class Network: ObservableObject {
         dataTask.resume()
     }
     
-    func getRAGameSummary(gameID: Int) {
+    func getGameSummary(gameID: Int) {
         guard let url = URL(string: "https://retroachievements.org/API/API_GetGameInfoAndUserProgress.php?\(buildAuthenticationString())&g=\(gameID)&u=\(self.authenticatedWebAPIUsername)") else { fatalError("Missing URL") }
         
         let urlRequest = URLRequest(url: url)
@@ -145,7 +146,7 @@ class Network: ObservableObject {
                 DispatchQueue.main.async {
                     do {
                         let decodedGameSummary = try JSONDecoder().decode(GameSummary.self, from: data)
-                        self.gameSummaries.append(decodedGameSummary)
+                        self.gameSummaryCache[decodedGameSummary.id] = decodedGameSummary
                     } catch let error {
                         print("Error decoding: ", error)
                     }
@@ -157,7 +158,7 @@ class Network: ObservableObject {
         dataTask.resume()
     }
     
-    func getRAGameConsoles() {
+    func getGameConsoles() {
         guard let url = URL(string: "https://retroachievements.org/API/API_GetConsoleIDs.php?\(buildAuthenticationString())") else { fatalError("Missing URL") }
 
         let urlRequest = URLRequest(url: url)
@@ -176,6 +177,36 @@ class Network: ObservableObject {
                     do {
                         let decodedConsoleSummary = try JSONDecoder().decode([Console].self, from: data)
                         self.consoles = decodedConsoleSummary
+                    } catch let error {
+                        print("Error decoding: ", error)
+                    }
+                }
+            } else {
+                print("Bad Response Code: " + String(response.statusCode))
+            }
+        }
+        dataTask.resume()
+    }
+    
+    func getGameForConsole(consoleID: Int) {
+        guard let url = URL(string: "https://retroachievements.org/API/API_GetGameList.php?\(buildAuthenticationString())&i=\(String(consoleID))&f=1)") else { fatalError("Missing URL") }
+
+        let urlRequest = URLRequest(url: url)
+
+        let dataTask = URLSession.shared.dataTask(with: urlRequest) { (data, response, error) in
+            if let error = error {
+                print("Request error: ", error)
+                return
+            }
+
+            guard let response = response as? HTTPURLResponse else { return }
+            print("RA Console Games API Call Returned Code: " + String(response.statusCode))
+            if response.statusCode == 200 {
+                guard let data = data else { return }
+                DispatchQueue.main.async {
+                    do {
+                        let decodedConsoleGames = try JSONDecoder().decode([ConsoleGameInfo].self, from: data)
+                        self.consoleGamesCache[consoleID] = decodedConsoleGames
                     } catch let error {
                         print("Error decoding: ", error)
                     }

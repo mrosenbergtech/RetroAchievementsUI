@@ -25,6 +25,10 @@
 		2757FA8B2C142571008A8B7A /* MyGamesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2757FA8A2C142571008A8B7A /* MyGamesView.swift */; };
 		2757FA8D2C14315C008A8B7A /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2757FA8C2C14315C008A8B7A /* Launch Screen.storyboard */; };
 		276B9A872C15099C00B42EA8 /* UserGameCompletionProgressDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 276B9A862C15099C00B42EA8 /* UserGameCompletionProgressDetailView.swift */; };
+		27ED59FD2C17FA9A00D4167F /* ConsoleDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27ED59FC2C17FA9A00D4167F /* ConsoleDetailView.swift */; };
+		27ED59FF2C17FCE200D4167F /* ConsolesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27ED59FE2C17FCE200D4167F /* ConsolesView.swift */; };
+		27ED5A012C18041100D4167F /* ConsoleGamesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27ED5A002C18041100D4167F /* ConsoleGamesView.swift */; };
+		27ED5A032C1807E100D4167F /* ConsoleGameDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27ED5A022C1807E100D4167F /* ConsoleGameDetailView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -47,6 +51,10 @@
 		2757FA8A2C142571008A8B7A /* MyGamesView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MyGamesView.swift; sourceTree = "<group>"; };
 		2757FA8C2C14315C008A8B7A /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
 		276B9A862C15099C00B42EA8 /* UserGameCompletionProgressDetailView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserGameCompletionProgressDetailView.swift; sourceTree = "<group>"; };
+		27ED59FC2C17FA9A00D4167F /* ConsoleDetailView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConsoleDetailView.swift; sourceTree = "<group>"; };
+		27ED59FE2C17FCE200D4167F /* ConsolesView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConsolesView.swift; sourceTree = "<group>"; };
+		27ED5A002C18041100D4167F /* ConsoleGamesView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConsoleGamesView.swift; sourceTree = "<group>"; };
+		27ED5A022C1807E100D4167F /* ConsoleGameDetailView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConsoleGameDetailView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -81,7 +89,6 @@
 			isa = PBXGroup;
 			children = (
 				2757FA652C138FDE008A8B7A /* RetroAchievementsUIApp.swift */,
-				2757FA672C138FDE008A8B7A /* ContentView.swift */,
 				2757FA692C138FE1008A8B7A /* Assets.xcassets */,
 				2757FA872C1420DB008A8B7A /* API */,
 				276E50B62C16DFC800CDB015 /* Views */,
@@ -101,11 +108,11 @@
 		2757FA872C1420DB008A8B7A /* API */ = {
 			isa = PBXGroup;
 			children = (
-				2757FA732C138FF1008A8B7A /* Network.swift */,
-				2757FA7F2C13F79E008A8B7A /* GameSummary.swift */,
 				2757FA852C141DBA008A8B7A /* Console.swift */,
-				2757FA752C13905A008A8B7A /* Profile.swift */,
 				2757FA882C142233008A8B7A /* GameCompletionProgress.swift */,
+				2757FA7F2C13F79E008A8B7A /* GameSummary.swift */,
+				2757FA732C138FF1008A8B7A /* Network.swift */,
+				2757FA752C13905A008A8B7A /* Profile.swift */,
 			);
 			path = API;
 			sourceTree = "<group>";
@@ -113,6 +120,7 @@
 		276E50B62C16DFC800CDB015 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				2757FA672C138FDE008A8B7A /* ContentView.swift */,
 				276E50B72C16DFFB00CDB015 /* Detail */,
 				276E50B82C16E09200CDB015 /* Pages */,
 			);
@@ -122,9 +130,11 @@
 		276E50B72C16DFFB00CDB015 /* Detail */ = {
 			isa = PBXGroup;
 			children = (
-				2752C88C2C16922B002E25E2 /* ScrollingText.swift */,
 				2752C88A2C167BA6002E25E2 /* AchievementDetailView.swift */,
 				2752C8882C166D81002E25E2 /* AchievementsView.swift */,
+				27ED5A022C1807E100D4167F /* ConsoleGameDetailView.swift */,
+				27ED59FC2C17FA9A00D4167F /* ConsoleDetailView.swift */,
+				2752C88C2C16922B002E25E2 /* ScrollingText.swift */,
 				276B9A862C15099C00B42EA8 /* UserGameCompletionProgressDetailView.swift */,
 			);
 			path = Detail;
@@ -133,9 +143,11 @@
 		276E50B82C16E09200CDB015 /* Pages */ = {
 			isa = PBXGroup;
 			children = (
+				27ED59FE2C17FCE200D4167F /* ConsolesView.swift */,
+				27ED5A002C18041100D4167F /* ConsoleGamesView.swift */,
 				2757FA812C140D93008A8B7A /* GameSummaryView.swift */,
-				2757FA772C13A951008A8B7A /* ProfileView.swift */,
 				2757FA8A2C142571008A8B7A /* MyGamesView.swift */,
+				2757FA772C13A951008A8B7A /* ProfileView.swift */,
 				2757FA792C13AB57008A8B7A /* SettingsView.swift */,
 			);
 			path = Pages;
@@ -214,15 +226,19 @@
 			files = (
 				2757FA892C142233008A8B7A /* GameCompletionProgress.swift in Sources */,
 				2757FA682C138FDE008A8B7A /* ContentView.swift in Sources */,
+				27ED5A012C18041100D4167F /* ConsoleGamesView.swift in Sources */,
 				2757FA762C13905A008A8B7A /* Profile.swift in Sources */,
+				27ED59FD2C17FA9A00D4167F /* ConsoleDetailView.swift in Sources */,
 				276B9A872C15099C00B42EA8 /* UserGameCompletionProgressDetailView.swift in Sources */,
 				2757FA782C13A951008A8B7A /* ProfileView.swift in Sources */,
 				2757FA8B2C142571008A8B7A /* MyGamesView.swift in Sources */,
 				2757FA822C140D93008A8B7A /* GameSummaryView.swift in Sources */,
+				27ED59FF2C17FCE200D4167F /* ConsolesView.swift in Sources */,
 				2757FA7A2C13AB57008A8B7A /* SettingsView.swift in Sources */,
 				2757FA862C141DBA008A8B7A /* Console.swift in Sources */,
 				2752C8892C166D81002E25E2 /* AchievementsView.swift in Sources */,
 				2757FA802C13F79E008A8B7A /* GameSummary.swift in Sources */,
+				27ED5A032C1807E100D4167F /* ConsoleGameDetailView.swift in Sources */,
 				2752C88B2C167BA6002E25E2 /* AchievementDetailView.swift in Sources */,
 				2757FA662C138FDE008A8B7A /* RetroAchievementsUIApp.swift in Sources */,
 				2752C88D2C16922B002E25E2 /* ScrollingText.swift in Sources */,

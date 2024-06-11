@@ -39,7 +39,7 @@ struct SettingsView: View {
                             .multilineTextAlignment(.center)
                             .onSubmit {
                                 storedWebAPIUsername = webAPIUsername
-                                network.authenticateRACredentials(webAPIUsername: storedWebAPIUsername, webAPIKey: storedWebAPIKey)
+                                network.authenticateCredentials(webAPIUsername: storedWebAPIUsername, webAPIKey: storedWebAPIKey)
                             }
                     }
                     
@@ -49,7 +49,7 @@ struct SettingsView: View {
                             .multilineTextAlignment(.center)
                             .onSubmit {
                                 storedWebAPIKey = webAPIKey
-                                network.authenticateRACredentials(webAPIUsername: storedWebAPIUsername, webAPIKey: storedWebAPIKey)
+                                network.authenticateCredentials(webAPIUsername: storedWebAPIUsername, webAPIKey: storedWebAPIKey)
                             }
                     }
                     
@@ -84,7 +84,7 @@ struct SettingsView: View {
     @State var webAPIKey = debugWebAPIKey
     @State var hardcoreMode = true
     let network = Network()
-    network.authenticateRACredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
+    network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
     return SettingsView(webAPIUsername: $webAPIUsername, webAPIKey: $webAPIKey, hardcoreMode: $hardcoreMode)
         .environmentObject(network)
 }

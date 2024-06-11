@@ -35,7 +35,7 @@ struct GameCompletionProgress: Codable, Identifiable {
     }
 }
 
-struct UsersGamesCompletionProgress: Codable {
+struct UserGamesCompletionProgressResult: Codable {
     let count: Int
     let total: Int
     let results: [GameCompletionProgress]
@@ -45,4 +45,8 @@ struct UsersGamesCompletionProgress: Codable {
         case total = "Total"
         case results = "Results"
     }
+}
+
+func getUserGamesForConsole(consoleName: String, userGamesCompletionProgress: [GameCompletionProgress]) -> [GameCompletionProgress]{
+    return userGamesCompletionProgress.filter {$0.consoleName == consoleName}
 }

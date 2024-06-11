@@ -19,7 +19,7 @@ struct RetroAchievementsUIApp: App {
     @ObservedObject var network = Network()
     
     init() {
-        network.authenticateRACredentials(webAPIUsername: webAPIUsername, webAPIKey: webAPIKey)
+        network.authenticateCredentials(webAPIUsername: webAPIUsername, webAPIKey: webAPIKey)
     }
     
     var body: some Scene {

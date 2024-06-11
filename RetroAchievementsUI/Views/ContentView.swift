@@ -41,6 +41,19 @@ struct ContentView: View {
                         selectedTab = 2
                     }
                 
+                ConsolesView(hardcoreMode: $hardcoreMode)
+                    .tabItem {
+                        Label(
+                            title: { Text("Consoles") },
+                            icon: { Image(systemName: "arcade.stick.console") }
+                        )
+                    }
+                    .tag(3)
+                    .onAppear {
+                        selectedTab = 3
+                    }
+                
+                // TODO: Move to Sheet
                 SettingsView(webAPIUsername: $webAPIUsername, webAPIKey: $webAPIKey, hardcoreMode: $hardcoreMode)
                     .tabItem {
                         Label(
@@ -48,13 +61,13 @@ struct ContentView: View {
                             icon: { Image(systemName: "gear.circle") }
                         )
                     }
-                    .tag(3)
+                    .tag(4)
                     .onAppear {
-                        selectedTab = 3
+                        selectedTab = 4
                     }
             }
             .onAppear(){
-                if !network.webAPIAuthenticated { selectedTab = 3 }
+                if !network.webAPIAuthenticated { selectedTab = 4 }
             }
         } else {
             ProgressView()
@@ -67,7 +80,7 @@ struct ContentView: View {
     @State var webAPIKey = debugWebAPIKey
     @State var hardcoreMode = true
     let network = Network()
-    network.authenticateRACredentials(webAPIUsername: webAPIUsername, webAPIKey: webAPIKey)
+    network.authenticateCredentials(webAPIUsername: webAPIUsername, webAPIKey: webAPIKey)
     return ContentView(webAPIUsername: $webAPIUsername, webAPIKey: $webAPIKey,
     hardcoreMode: $hardcoreMode)
         .environmentObject(network)

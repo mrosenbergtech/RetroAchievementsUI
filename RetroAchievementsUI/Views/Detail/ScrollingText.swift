@@ -131,5 +131,5 @@ extension String {
 }
 
 #Preview {
-    ScrollingText(text: "Hello World! This is a very long text string to scoll through... Enjoy the preview!", font: .preferredFont(forTextStyle: .headline), leftFade: 15, rightFade: 15, startDelay: 5, alignment: .center).padding()
+    ScrollingText(text: "Hello World! This is a very long text string to scoll through... Enjoy the preview!", font: .preferredFont(forTextStyle: .headline), leftFade: 15, rightFade: 15, startDelay: 1, alignment: .center).padding()
 }

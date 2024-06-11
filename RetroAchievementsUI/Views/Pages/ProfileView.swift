@@ -32,6 +32,9 @@ struct ProfileView: View {
             }
         } else {
             ProgressView()
+                .onAppear {
+                    network.getProfile()
+                }
         }
         
     }
@@ -39,7 +42,7 @@ struct ProfileView: View {
 
 #Preview {
     let network = Network()
-    network.authenticateRACredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
+    network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
     return ProfileView()
         .environmentObject(network)
 }
