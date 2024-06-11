@@ -37,7 +37,7 @@ struct ConsoleGamesView: View {
 
 // Preview Bug Likely From Use of Dictionary (Empty Dictionary Lieral?)
 #Preview {
-    var network = Network()
+    let network = Network()
     network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
     network.getGameForConsole(consoleID: 2)
     @State var hardcoreMode: Bool = true
