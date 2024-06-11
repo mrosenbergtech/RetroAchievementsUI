@@ -6,6 +6,7 @@
 //  Based on MarqueeText by Joe Kennedy © 2020
 
 import SwiftUI
+import Combine
 
 public struct ScrollingText : View {
     public var text: String
@@ -60,10 +61,10 @@ public struct ScrollingText : View {
                             .fixedSize(horizontal: true, vertical: false)
                             .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity, alignment: .topLeading)
                     }
-                    .onChange(of: self.text) {
-                        self.animate = geo.size.width < stringWidth
-                    }
-                    
+                    .onValueChanged(of: self.text, perform: {text in
+                                            self.animate = geo.size.width < stringWidth
+                                        })
+                                        
                     .offset(x: leftFade)
                     .mask(
                         HStack(spacing:0) {
@@ -84,9 +85,9 @@ public struct ScrollingText : View {
                 } else {
                     Text(self.text)
                         .font(.init(font))
-                        .onChange(of: self.text){
-                            self.animate = geo.size.width < stringWidth
-                        }
+                        .onValueChanged(of: self.text, perform: {text in
+                                                    self.animate = geo.size.width < stringWidth
+                                                })
                         .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity, alignment: alignment)
                 }
             }
@@ -127,6 +128,19 @@ extension String {
         let fontAttributes = [NSAttributedString.Key.font: font]
         let size = self.size(withAttributes: fontAttributes)
         return size.height
+    }
+}
+
+extension View {
+    /// A backwards compatible wrapper for iOS 14 `onChange`
+    @ViewBuilder func onValueChanged<T: Equatable>(of value: T, perform onChange: @escaping (T) -> Void) -> some View {
+        if #available(iOS 14.0, *) {
+            self.onChange(of: value, perform: onChange)
+        } else {
+            self.onReceive(Just(value)) { (value) in
+                onChange(value)
+            }
+        }
     }
 }
 
