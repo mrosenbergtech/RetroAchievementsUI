@@ -13,6 +13,7 @@ struct ContentView: View {
     @Binding var webAPIKey: String
     @Binding var hardcoreMode: Bool
     @State var selectedTab: Int = 1
+    @State var shouldShowLoginSheet: Bool = false
     
     var body: some View {
         if network.initialWebAPIAuthenticationCheckComplete {
@@ -54,7 +55,7 @@ struct ContentView: View {
                     }
                 
                 // TODO: Move to Sheet
-                SettingsView(webAPIUsername: $webAPIUsername, webAPIKey: $webAPIKey, hardcoreMode: $hardcoreMode)
+                SettingsView(webAPIUsername: $webAPIUsername, webAPIKey: $webAPIKey, hardcoreMode: $hardcoreMode, shouldShowLoginSheet: $shouldShowLoginSheet)
                     .tabItem {
                         Label(
                             title: { Text("Settings") },
@@ -66,11 +67,36 @@ struct ContentView: View {
                         selectedTab = 4
                     }
             }
+            .sheet(isPresented: $shouldShowLoginSheet) {
+                print("Login Sheet Dismissed!")
+                shouldShowLoginSheet = false
+            } content: {
+                VStack{
+                    if network.webAPIAuthenticated{
+                        HStack{
+                            
+                            Spacer()
+                            
+                            Button("Done") {
+                                shouldShowLoginSheet = false
+                            }
+                            .padding()
+                            
+                        }
+                    }
+                    
+                    RetroAchievementsLoginView(webAPIUsername: $webAPIUsername, webAPIKey: $webAPIKey, shouldShowLoginSheet: $shouldShowLoginSheet)
+
+                }
+            }
             .onAppear(){
-                if !network.webAPIAuthenticated { selectedTab = 4 }
+                if !network.webAPIAuthenticated {
+                    shouldShowLoginSheet = true
+                }
             }
         } else {
             ProgressView()
+            
         }
     }
 }

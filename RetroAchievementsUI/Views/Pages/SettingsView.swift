@@ -12,50 +12,53 @@ struct SettingsView: View {
     @Binding var webAPIUsername: String
     @Binding var webAPIKey: String
     @Binding var hardcoreMode: Bool
+    @Binding var shouldShowLoginSheet: Bool
     @State var storedWebAPIUsername: String = ""
     @State var storedWebAPIKey: String = ""
     @State var blankCredentials: Bool = false
     
+    
+    
     var body: some View {
         Form{
-            Section(
-                header: Text("RetroAchievements Login"), content: {
-                    HStack {
-                        Text("Authenticated:")
-                        Spacer()
-                        if network.webAPIAuthenticated {
-                            Image(systemName: "checkmark.circle")
-                                .foregroundColor(.green)
-                        } else {
-                            Image(systemName: "x.circle")
-                                .foregroundColor(.red)
+            Section(header: Text("RetroAchievements Login"), 
+                    content: {
+                        HStack {
+                            Spacer()
+                            
+                            Text("Login Status:")
+                                .bold()
+                            
+                            Spacer()
+                            
+                            if network.webAPIAuthenticated {
+                                Image(systemName: "checkmark.circle")
+                                    .foregroundColor(.green)
+                            } else {
+                                Image(systemName: "x.circle")
+                                    .foregroundColor(.red)
+                            }
+                            
+                            Spacer()
                         }
-                        Spacer()
-                    }
-                    
-                    HStack{
-                        Text("Username: ")
-                        TextField("Enter Username", text: $webAPIUsername)
-                            .multilineTextAlignment(.center)
-                            .onSubmit {
-                                storedWebAPIUsername = webAPIUsername
-                                network.authenticateCredentials(webAPIUsername: storedWebAPIUsername, webAPIKey: storedWebAPIKey)
+                
+                        Button {
+                            shouldShowLoginSheet = true
+                        } label: {
+                            HStack {
+                                Spacer()
+                                
+                                Text("Enter Credentials")
+                                    .foregroundStyle(.cyan)
+                                
+                                Spacer()
                             }
+                        }
                     }
-                    
-                    HStack{
-                        Text("Web API Key: ")
-                        SecureField("Enter Web API Key", text: $webAPIKey)
-                            .multilineTextAlignment(.center)
-                            .onSubmit {
-                                storedWebAPIKey = webAPIKey
-                                network.authenticateCredentials(webAPIUsername: storedWebAPIUsername, webAPIKey: storedWebAPIKey)
-                            }
-                    }
-                    
-                }
-            )
-            
+                )                    
+            .alignmentGuide(.listRowSeparatorLeading) { _ in -20 }
+
+                
             Section(
                 header: Text("Achievement Settings"),
                 content: {
@@ -73,9 +76,7 @@ struct SettingsView: View {
                 blankCredentials = false
             }
         }
-        .alert("Please Enter RetroAchievement Credentials!", isPresented: $blankCredentials) {
-            Button("OK", role: .cancel) { }
-        }
+
     }
 }
 
@@ -83,8 +84,9 @@ struct SettingsView: View {
     @State var webAPIUsername = debugWebAPIUsername
     @State var webAPIKey = debugWebAPIKey
     @State var hardcoreMode = true
+    @State var shouldShowLoginSheet = false
     let network = Network()
     network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
-    return SettingsView(webAPIUsername: $webAPIUsername, webAPIKey: $webAPIKey, hardcoreMode: $hardcoreMode)
+    return SettingsView(webAPIUsername: $webAPIUsername, webAPIKey: $webAPIKey, hardcoreMode: $hardcoreMode, shouldShowLoginSheet: $shouldShowLoginSheet)
         .environmentObject(network)
 }

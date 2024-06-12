@@ -29,6 +29,7 @@
 		27ED59FF2C17FCE200D4167F /* ConsolesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27ED59FE2C17FCE200D4167F /* ConsolesView.swift */; };
 		27ED5A012C18041100D4167F /* ConsoleGamesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27ED5A002C18041100D4167F /* ConsoleGamesView.swift */; };
 		27ED5A032C1807E100D4167F /* ConsoleGameDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27ED5A022C1807E100D4167F /* ConsoleGameDetailView.swift */; };
+		27FCD0C32C193DD1008C54AF /* RetroAchievementsLoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27FCD0C22C193DD1008C54AF /* RetroAchievementsLoginView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -55,6 +56,7 @@
 		27ED59FE2C17FCE200D4167F /* ConsolesView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConsolesView.swift; sourceTree = "<group>"; };
 		27ED5A002C18041100D4167F /* ConsoleGamesView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConsoleGamesView.swift; sourceTree = "<group>"; };
 		27ED5A022C1807E100D4167F /* ConsoleGameDetailView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConsoleGameDetailView.swift; sourceTree = "<group>"; };
+		27FCD0C22C193DD1008C54AF /* RetroAchievementsLoginView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RetroAchievementsLoginView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -149,6 +151,7 @@
 				2757FA8A2C142571008A8B7A /* MyGamesView.swift */,
 				2757FA772C13A951008A8B7A /* ProfileView.swift */,
 				2757FA792C13AB57008A8B7A /* SettingsView.swift */,
+				27FCD0C22C193DD1008C54AF /* RetroAchievementsLoginView.swift */,
 			);
 			path = Pages;
 			sourceTree = "<group>";
@@ -226,6 +229,7 @@
 			files = (
 				2757FA892C142233008A8B7A /* GameCompletionProgress.swift in Sources */,
 				2757FA682C138FDE008A8B7A /* ContentView.swift in Sources */,
+				27FCD0C32C193DD1008C54AF /* RetroAchievementsLoginView.swift in Sources */,
 				27ED5A012C18041100D4167F /* ConsoleGamesView.swift in Sources */,
 				2757FA762C13905A008A8B7A /* Profile.swift in Sources */,
 				27ED59FD2C17FA9A00D4167F /* ConsoleDetailView.swift in Sources */,
@@ -391,7 +395,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mrosenbergtech.RetroAchievementsUI;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -423,7 +427,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mrosenbergtech.RetroAchievementsUI;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
