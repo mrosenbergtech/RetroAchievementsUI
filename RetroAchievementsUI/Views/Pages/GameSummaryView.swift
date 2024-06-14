@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Kingfisher
 
 struct GameSummaryView: View {
     @EnvironmentObject var network: Network
@@ -22,18 +23,7 @@ struct GameSummaryView: View {
                     .lineLimit(1)
                     .padding(.horizontal)
                 
-                AsyncImage(url: URL(string: "https://retroachievements.org/" + (network.gameSummaryCache[gameID]!.imageIcon)))
-                { phase in
-                    switch phase {
-                    case .failure:
-                        Image(systemName: "photo")
-                            .font(.largeTitle)
-                    case .success(let image):
-                        image
-                    default:
-                        ProgressView()
-                    }
-                }
+                KFImage(URL(string: "https://retroachievements.org/" + (network.gameSummaryCache[gameID]!.imageIcon)))
                 .clipShape(.rect(cornerRadius: 10))
                 .padding(.bottom)
                 

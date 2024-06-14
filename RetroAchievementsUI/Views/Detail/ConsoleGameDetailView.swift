@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Kingfisher
 
 struct ConsoleGameDetailView: View {
     var consoleGame: ConsoleGameInfo
@@ -13,18 +14,7 @@ struct ConsoleGameDetailView: View {
     
     var body: some View {
         HStack{
-            AsyncImage(url: URL(string: "https://retroachievements.org/" + (consoleGame.imageIcon)))
-            { phase in
-                switch phase {
-                case .failure:
-                    Image(systemName: "photo")
-                        .font(.largeTitle)
-                case .success(let image):
-                    image
-                default:
-                    ProgressView()
-                }
-            }
+            KFImage(URL(string: "https://retroachievements.org/" + (consoleGame.imageIcon)))
             .clipShape(.rect(cornerRadius: 10))
             .scaleEffect(0.75)
                         

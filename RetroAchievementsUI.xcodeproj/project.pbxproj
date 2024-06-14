@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		27503B292C1BC4690010B0A2 /* Achievement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27503B282C1BC4690010B0A2 /* Achievement.swift */; };
+		27503B2E2C1D024C0010B0A2 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 27503B2D2C1D024C0010B0A2 /* Kingfisher */; };
 		2752C8892C166D81002E25E2 /* AchievementsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2752C8882C166D81002E25E2 /* AchievementsView.swift */; };
 		2752C88B2C167BA6002E25E2 /* AchievementDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2752C88A2C167BA6002E25E2 /* AchievementDetailView.swift */; };
 		2752C88D2C16922B002E25E2 /* ScrollingText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2752C88C2C16922B002E25E2 /* ScrollingText.swift */; };
@@ -66,6 +67,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				27503B2E2C1D024C0010B0A2 /* Kingfisher in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -175,6 +177,9 @@
 			dependencies = (
 			);
 			name = RetroAchievementsUI;
+			packageProductDependencies = (
+				27503B2D2C1D024C0010B0A2 /* Kingfisher */,
+			);
 			productName = RetroAchievementsUI;
 			productReference = 2757FA622C138FDE008A8B7A /* RetroAchievementsUI.app */;
 			productType = "com.apple.product-type.application";
@@ -203,6 +208,9 @@
 				Base,
 			);
 			mainGroup = 2757FA592C138FDE008A8B7A;
+			packageReferences = (
+				27503B2C2C1D024C0010B0A2 /* XCRemoteSwiftPackageReference "Kingfisher" */,
+			);
 			productRefGroup = 2757FA632C138FDE008A8B7A /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -394,7 +402,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = "Launch Screen.storyboard";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -426,7 +434,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = "Launch Screen.storyboard";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -462,6 +470,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		27503B2C2C1D024C0010B0A2 /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/onevcat/Kingfisher.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 7.12.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		27503B2D2C1D024C0010B0A2 /* Kingfisher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 27503B2C2C1D024C0010B0A2 /* XCRemoteSwiftPackageReference "Kingfisher" */;
+			productName = Kingfisher;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 2757FA5A2C138FDE008A8B7A /* Project object */;
 }

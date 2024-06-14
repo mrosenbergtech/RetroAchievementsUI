@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Kingfisher
 
 struct ConsoleDetailView: View {
     var console: Console
@@ -13,18 +14,7 @@ struct ConsoleDetailView: View {
     
     var body: some View {
         HStack{
-            AsyncImage(url: URL(string: console.iconURL))
-            { phase in
-                switch phase {
-                case .failure:
-                    Image(systemName: "photo")
-                        .font(.largeTitle)
-                case .success(let image):
-                    image
-                default:
-                    ProgressView()
-                }
-            }
+            KFImage(URL(string: console.iconURL))
             .clipShape(.rect(cornerRadius: 10))
             .frame(maxHeight: .infinity)
             .scaleEffect(0.75)

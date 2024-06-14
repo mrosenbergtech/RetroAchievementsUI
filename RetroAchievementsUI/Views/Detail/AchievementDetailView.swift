@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Kingfisher
 
 struct AchievementDetailView: View {
     @Binding var hardcoreMode: Bool
@@ -13,19 +14,7 @@ struct AchievementDetailView: View {
     
     var body: some View {
         HStack{
-            AsyncImage(url: URL(string: "https://retroachievements.org/Badge/" + (achievement.badgeName) + ".png"))
-            { phase in
-                switch phase {
-                case .failure:
-                    Image(systemName: "photo")
-                        .font(.largeTitle)
-                case .success(let image):
-                    image
-                default:
-                    ProgressView()
-                }
-            }
-            .clipShape(.rect(cornerRadius: 10))
+            KFImage(URL(string: "https://retroachievements.org/Badge/" + (achievement.badgeName) + ".png"))
             
             VStack(alignment: .center) {
                 // Achievement Title

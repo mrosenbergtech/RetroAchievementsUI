@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Kingfisher
 
 struct ProfileView: View {
     @EnvironmentObject var network: Network
@@ -16,18 +17,7 @@ struct ProfileView: View {
                 Text(network.profile!.user)
                     .font(.title)
                     .bold()
-                AsyncImage(url: URL(string: "https://retroachievements.org/" + (network.profile?.userPic ?? "UserPic/mrosen97")))
-                { phase in
-                    switch phase {
-                    case .failure:
-                        Image(systemName: "photo")
-                            .font(.largeTitle)
-                    case .success(let image):
-                        image
-                    default:
-                        ProgressView()
-                    }
-                }
+                KFImage(URL(string: "https://retroachievements.org/" + (network.profile?.userPic ?? "UserPic/mrosen97")))
                 .clipShape(.rect(cornerRadius: 25))
             }
         } else {

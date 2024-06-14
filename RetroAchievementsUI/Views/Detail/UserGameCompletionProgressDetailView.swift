@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Kingfisher
 
 struct UserGameCompletionProgressDetailView: View {
     var game: GameCompletionProgress
@@ -13,18 +14,7 @@ struct UserGameCompletionProgressDetailView: View {
     
     var body: some View {
         HStack{
-            AsyncImage(url: URL(string: "https://retroachievements.org/" + (game.imageIcon)))
-            { phase in
-                switch phase {
-                case .failure:
-                    Image(systemName: "photo")
-                        .font(.largeTitle)
-                case .success(let image):
-                    image
-                default:
-                    ProgressView()
-                }
-            }
+            KFImage(URL(string: "https://retroachievements.org/" + (game.imageIcon)))
             .clipShape(.rect(cornerRadius: 10))
             .frame(maxHeight: .infinity)
             .scaleEffect(0.75)
