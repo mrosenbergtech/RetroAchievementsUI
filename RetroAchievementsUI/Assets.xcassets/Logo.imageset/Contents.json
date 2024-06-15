@@ -1,16 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "512.png",
+      "filename" : "RetroAchievementsLogo@1x.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "1024.png",
+      "filename" : "RetroAchievementsLogo@2x.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
+      "filename" : "RetroAchievementsLogo@3x.png",
       "idiom" : "universal",
       "scale" : "3x"
     }

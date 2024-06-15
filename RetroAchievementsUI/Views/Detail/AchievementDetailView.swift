@@ -15,6 +15,7 @@ struct AchievementDetailView: View {
     var body: some View {
         HStack{
             KFImage(URL(string: "https://retroachievements.org/Badge/" + (achievement.badgeName) + ".png"))
+                .frame(width: 64, height: 64)
             
             VStack(alignment: .center) {
                 // Achievement Title
@@ -42,11 +43,12 @@ struct AchievementDetailView: View {
                 }
                 
                 ScrollingText(text: achievement.description, font: .preferredFont(forTextStyle: .caption1), leftFade: 15, rightFade: 15, startDelay: 3, alignment: .center)
-                    .frame(maxWidth: .infinity)
                     .padding(.horizontal)
             }
             
-        }.alignmentGuide(.listRowSeparatorLeading) { _ in -20 }
+        }
+        .frame(maxWidth: .infinity)
+        .alignmentGuide(.listRowSeparatorLeading) { _ in -20 }
         
     }
         

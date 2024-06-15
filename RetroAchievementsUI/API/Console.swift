@@ -33,7 +33,7 @@ struct ConsoleGameInfo: Codable, Identifiable {
     let numLeaderboards: Int
     let points: Int
     let dateModified: String
-    let forumTopicID: Int
+    let forumTopicID: Int?
     let hashes: [String]?
 
     enum CodingKeys: String, CodingKey {

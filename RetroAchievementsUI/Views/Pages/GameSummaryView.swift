@@ -25,7 +25,7 @@ struct GameSummaryView: View {
                 
                 KFImage(URL(string: "https://retroachievements.org/" + (network.gameSummaryCache[gameID]!.imageIcon)))
                 .clipShape(.rect(cornerRadius: 10))
-                .padding(.bottom)
+                .frame(width: 96, height: 96)
                 
                 Text("Unlocked: " + String(hardcoreMode ? network.gameSummaryCache[gameID]!.numAwardedToUserHardcore : network.gameSummaryCache[gameID]!.numAwardedToUser) + " | " + String(network.gameSummaryCache[gameID]!.numAchievements))
                     .multilineTextAlignment(.center)

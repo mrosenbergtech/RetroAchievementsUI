@@ -16,6 +16,7 @@ struct ConsoleGameDetailView: View {
         HStack{
             KFImage(URL(string: "https://retroachievements.org/" + (consoleGame.imageIcon)))
             .clipShape(.rect(cornerRadius: 10))
+            .frame(width: 64, height: 64)
             .scaleEffect(0.75)
                         
             VStack(alignment: .center){
