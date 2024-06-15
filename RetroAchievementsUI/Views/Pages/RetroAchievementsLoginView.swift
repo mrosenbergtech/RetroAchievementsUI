@@ -57,11 +57,6 @@ struct RetroAchievementsLoginView: View {
                             }
                     }
                     
-                }
-            )
-            
-            Section(
-                header: Text("Get Login Credentials"), content: {
                     Button {
                         guard let url = URL(string: "https://api-docs.retroachievements.org/getting-started.html#get-your-web-api-key") else {
                              return
@@ -75,19 +70,13 @@ struct RetroAchievementsLoginView: View {
                         HStack {
                             Spacer()
                             
-                            Image(systemName: "safari")
-                                .font(/*@START_MENU_TOKEN@*/.title/*@END_MENU_TOKEN@*/)
-                                .padding(/*@START_MENU_TOKEN@*/EdgeInsets()/*@END_MENU_TOKEN@*/)
+                            Text("Get Login Credentials")
                             
                             Spacer()
                         }
                     }
                 }
             )
-            
-        }
-        .alert("Please Enter RetroAchievement Credentials!", isPresented: $blankCredentials) {
-            Button("OK", role: .cancel) { }
         }
     }
 }

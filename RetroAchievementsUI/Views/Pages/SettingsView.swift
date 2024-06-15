@@ -28,9 +28,7 @@ struct SettingsView: View {
                             
                             Text("Login Status:")
                                 .bold()
-                            
-                            Spacer()
-                            
+                                                        
                             if network.webAPIAuthenticated {
                                 Image(systemName: "checkmark.circle")
                                     .foregroundColor(.green)

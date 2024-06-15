@@ -71,8 +71,9 @@ struct ContentView: View {
                 print("Login Sheet Dismissed!")
                 shouldShowLoginSheet = false
             } content: {
-                VStack{
-                    if network.webAPIAuthenticated{
+                if network.webAPIAuthenticated {
+                    VStack{
+                        
                         HStack{
                             
                             Spacer()
@@ -83,10 +84,16 @@ struct ContentView: View {
                             .padding()
                             
                         }
+                        RetroAchievementsLoginView(webAPIUsername: $webAPIUsername, webAPIKey: $webAPIKey, shouldShowLoginSheet: $shouldShowLoginSheet)
                     }
-                    
-                    RetroAchievementsLoginView(webAPIUsername: $webAPIUsername, webAPIKey: $webAPIKey, shouldShowLoginSheet: $shouldShowLoginSheet)
-
+                } else {
+                    VStack{
+                        RetroAchievementsLoginView(webAPIUsername: $webAPIUsername, webAPIKey: $webAPIKey, shouldShowLoginSheet: $shouldShowLoginSheet)
+                            .alert("Unable to Login:\n Tap \"Get Login Credentials\" For More Information!", isPresented: $network.webAPIAuthenticated.inverted) {
+                                Button("OK", role: .cancel) { }
+                            }
+                    }
+                    .interactiveDismissDisabled()
                 }
             }
             .onAppear(){
@@ -99,6 +106,13 @@ struct ContentView: View {
             
         }
     }
+}
+
+extension Bool {
+  var inverted: Self {
+    get { !self }
+    set { }
+  }
 }
 
 #Preview {
