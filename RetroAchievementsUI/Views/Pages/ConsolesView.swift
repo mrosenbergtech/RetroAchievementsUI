@@ -12,19 +12,20 @@ struct ConsolesView: View {
     @Binding var hardcoreMode: Bool
         
     var body: some View {
-            NavigationView {
-                Form(){
-                    ForEach(network.consolesCache.consoles.sorted { $0.name.lowercased() < $1.name.lowercased()}) { console in
-                        NavigationLink(destination: ConsoleGamesView(hardcoreMode: $hardcoreMode, consoleID: console.id))
-                        {
-                            ConsoleDetailView(console: console, hardcoreMode: $hardcoreMode)
+        NavigationView {
+            Form(){
+                ForEach(network.consolesCache.consolesSortedByKind.sorted {$0.id.lowercased() < $1.id.lowercased()}) { consoleKind in
+                    Section(header: Text(consoleKind.id)){
+                        ForEach(consoleKind.consoleIDList, id: \.self) { consoleID in
+                            NavigationLink(destination: ConsoleGamesView(hardcoreMode: $hardcoreMode, consoleID: consoleID)) {
+                                ConsoleDetailView(console: network.consolesCache.getConsoleDataByID(consoleID: consoleID), hardcoreMode: $hardcoreMode)
+                            }
                         }
-                        
                     }
-                        
                 }
             }
         }
+    }
 }
 
 #Preview {

@@ -27,6 +27,7 @@
 		2757FA8B2C142571008A8B7A /* MyGamesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2757FA8A2C142571008A8B7A /* MyGamesView.swift */; };
 		2757FA8D2C14315C008A8B7A /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2757FA8C2C14315C008A8B7A /* Launch Screen.storyboard */; };
 		276B9A872C15099C00B42EA8 /* UserGameCompletionProgressDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 276B9A862C15099C00B42EA8 /* UserGameCompletionProgressDetailView.swift */; };
+		27CFC3372C1F3D550014E22E /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = 27CFC3362C1F3D550014E22E /* LICENSE */; };
 		27ED59FD2C17FA9A00D4167F /* ConsoleDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27ED59FC2C17FA9A00D4167F /* ConsoleDetailView.swift */; };
 		27ED59FF2C17FCE200D4167F /* ConsolesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27ED59FE2C17FCE200D4167F /* ConsolesView.swift */; };
 		27ED5A012C18041100D4167F /* ConsoleGamesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27ED5A002C18041100D4167F /* ConsoleGamesView.swift */; };
@@ -55,6 +56,7 @@
 		2757FA8A2C142571008A8B7A /* MyGamesView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MyGamesView.swift; sourceTree = "<group>"; };
 		2757FA8C2C14315C008A8B7A /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
 		276B9A862C15099C00B42EA8 /* UserGameCompletionProgressDetailView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserGameCompletionProgressDetailView.swift; sourceTree = "<group>"; };
+		27CFC3362C1F3D550014E22E /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		27ED59FC2C17FA9A00D4167F /* ConsoleDetailView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConsoleDetailView.swift; sourceTree = "<group>"; };
 		27ED59FE2C17FCE200D4167F /* ConsolesView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConsolesView.swift; sourceTree = "<group>"; };
 		27ED5A002C18041100D4167F /* ConsoleGamesView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConsoleGamesView.swift; sourceTree = "<group>"; };
@@ -77,6 +79,7 @@
 		2757FA592C138FDE008A8B7A = {
 			isa = PBXGroup;
 			children = (
+				27CFC3362C1F3D550014E22E /* LICENSE */,
 				2757FA8C2C14315C008A8B7A /* Launch Screen.storyboard */,
 				2757FA642C138FDE008A8B7A /* RetroAchievementsUI */,
 				2757FA632C138FDE008A8B7A /* Products */,
@@ -228,6 +231,7 @@
 				2757FA8D2C14315C008A8B7A /* Launch Screen.storyboard in Resources */,
 				2757FA6D2C138FE1008A8B7A /* Preview Assets.xcassets in Resources */,
 				2757FA6A2C138FE1008A8B7A /* Assets.xcassets in Resources */,
+				27CFC3372C1F3D550014E22E /* LICENSE in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
