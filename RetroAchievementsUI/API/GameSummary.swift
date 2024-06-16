@@ -11,7 +11,7 @@ struct GameSummary: Codable {
     let id: Int
     let title: String
     let consoleID: Int
-    let forumTopicID: Int
+    let forumTopicID: Int?
     let flags: Int? // Note: Use Optional<Int> instead of Int if flags can be null
     let imageIcon: String
     let imageTitle: String
