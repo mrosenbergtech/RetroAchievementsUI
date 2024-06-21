@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Kingfisher
 
 struct SettingsView: View {
     @EnvironmentObject var network: Network
@@ -52,15 +53,32 @@ struct SettingsView: View {
                                 Spacer()
                             }
                         }
+                
                     }
                 )                    
             .alignmentGuide(.listRowSeparatorLeading) { _ in -20 }
 
                 
             Section(
-                header: Text("Achievement Settings"),
+                header: Text("Other Settings"),
                 content: {
-                    Toggle("Hardcode Mode", isOn: $hardcoreMode)
+                    VStack{
+                        Toggle("Hardcode Mode", isOn: $hardcoreMode)
+                        
+                        Button {
+                            let cache = ImageCache.default
+                            cache.clearMemoryCache()
+                            cache.clearDiskCache { print("Image Cache Cleared!") }
+                        } label: {
+                            HStack {
+                                Spacer()
+                                Text("Clear Image Cache")
+                                    .foregroundStyle(.cyan)
+                                Spacer()
+                            }
+                        }
+                    }
+                    
                 }
             )
         }

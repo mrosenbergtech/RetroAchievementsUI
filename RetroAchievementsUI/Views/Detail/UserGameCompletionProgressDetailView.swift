@@ -15,6 +15,7 @@ struct UserGameCompletionProgressDetailView: View {
     var body: some View {
         HStack{
             KFImage(URL(string: "https://retroachievements.org/" + (game.imageIcon)))
+            .resizable()
             .clipShape(.rect(cornerRadius: 10))
             .frame(width: 96, height: 96)
             .scaleEffect(0.75)

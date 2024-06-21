@@ -10,6 +10,8 @@ import SwiftUI
 
 class Network: ObservableObject {
     @Published var profile: Profile? = nil
+    @Published var awards: Awards? = nil
+    @Published var userRecentlyPlayedGames: [RecentGame] = []
     @Published var userGameCompletionProgress: UserGamesCompletionProgressResult? = nil
     @Published var consoles: [Console] = []
     @Published var consoleGamesCache: [Int : [ConsoleGameInfo]] = [:]
@@ -46,7 +48,10 @@ class Network: ObservableObject {
                     self.webAPIAuthenticated = true
                     self.authenticatedWebAPIUsername = webAPIUsername
                     self.authenticatedWebAPIKey = webAPIKey
+                    self.getProfile()
+                    self.getAwards()
                     self.getUserGameCompletionProgress()
+                    self.getUserRecentGames()
                                         
                     do {
                         let decodedProfile = try JSONDecoder().decode(Profile.self, from: data)
@@ -87,6 +92,66 @@ class Network: ObservableObject {
                     do {
                         let decodedProfile = try JSONDecoder().decode(Profile.self, from: data)
                         self.profile = decodedProfile
+                    } catch let error {
+                        print("Error decoding: ", error)
+                    }
+                }
+            } else {
+                print("Bad Response Code: " + String(response.statusCode))
+            }
+        }
+        dataTask.resume()
+    }
+    
+    func getAwards() {
+        guard let url = URL(string: "https://retroachievements.org/API/API_GetUserAwards.php?\(buildAuthenticationString())&u=\(self.authenticatedWebAPIUsername)") else { fatalError("Missing URL") }
+
+        let urlRequest = URLRequest(url: url)
+
+        let dataTask = URLSession.shared.dataTask(with: urlRequest) { (data, response, error) in
+            if let error = error {
+                print("Request error: ", error)
+                return
+            }
+
+            guard let response = response as? HTTPURLResponse else { return }
+            print("RA Awards API Call Returned Code: " + String(response.statusCode))
+            if response.statusCode == 200 {
+                guard let data = data else { return }
+                DispatchQueue.main.async {
+                    do {
+                        let decodedAwards = try JSONDecoder().decode(Awards.self, from: data)
+                        self.awards = decodedAwards
+                    } catch let error {
+                        print("Error decoding: ", error)
+                    }
+                }
+            } else {
+                print("Bad Response Code: " + String(response.statusCode))
+            }
+        }
+        dataTask.resume()
+    }
+    
+    func getUserRecentGames() {
+        guard let url = URL(string: "https://retroachievements.org/API/API_GetUserRecentlyPlayedGames.php?\(buildAuthenticationString())&u=\(self.authenticatedWebAPIUsername)&c=3") else { fatalError("Missing URL") }
+        
+        let urlRequest = URLRequest(url: url)
+
+        let dataTask = URLSession.shared.dataTask(with: urlRequest) { (data, response, error) in
+            if let error = error {
+                print("Request error: ", error)
+                return
+            }
+
+            guard let response = response as? HTTPURLResponse else { return }
+            print("RA Get User Recent Games API Call Returned Code: " + String(response.statusCode))
+            if response.statusCode == 200 {
+                guard let data = data else { return }
+                DispatchQueue.main.async {
+                    do {
+                        let decodedUserRecentlyPlayedGames = try JSONDecoder().decode([RecentGame].self, from: data)
+                        self.userRecentlyPlayedGames = decodedUserRecentlyPlayedGames
                     } catch let error {
                         print("Error decoding: ", error)
                     }
@@ -140,7 +205,7 @@ class Network: ObservableObject {
             }
 
             guard let response = response as? HTTPURLResponse else { return }
-            print("RA Game Summary API Call Returned Code: " + String(response.statusCode))
+            print("RA Game Summary (Game ID = '\(gameID)') API Call Returned Code: " + String(response.statusCode))
             if response.statusCode == 200 {
                 guard let data = data else { return }
                 DispatchQueue.main.async {

@@ -18,7 +18,7 @@ struct ContentView: View {
     var body: some View {
         if network.initialWebAPIAuthenticationCheckComplete {
             TabView(selection: $selectedTab) {
-                ProfileView(network: _network)
+                ProfileView(network: _network, hardcoreMode: $hardcoreMode)
                     .tabItem {
                         Label(
                             title: { Text("Profile") },
