@@ -9,11 +9,9 @@ import SwiftUI
 
 struct RetroAchievementsLoginView: View {
     @EnvironmentObject var network: Network
+    @Binding var shouldShowLoginSheet: Bool
     @Binding var webAPIUsername: String
     @Binding var webAPIKey: String
-    @Binding var shouldShowLoginSheet: Bool
-    @State var storedWebAPIUsername: String = ""
-    @State var storedWebAPIKey: String = ""
     @State var blankCredentials: Bool = false
     
     var body: some View {
@@ -21,40 +19,28 @@ struct RetroAchievementsLoginView: View {
             Section(
                 header: Text("RetroAchievements Login"), content: {
                     HStack {
-                        Text("Authenticated:")
                         Spacer()
-                        if network.webAPIAuthenticated {
-                            Image(systemName: "checkmark.circle")
-                                .foregroundColor(.green)
-                        } else {
-                            Image(systemName: "x.circle")
-                                .foregroundColor(.red)
-                        }
+                        Text("Authenticated:")
+                        Image(systemName: "x.circle")
+                            .foregroundColor(.red)
                         Spacer()
                     }                    
                     .alignmentGuide(.listRowSeparatorLeading) { _ in -20 }
-
                     
-                    HStack{
-                        Text("Username: ")
-                        TextField("Enter Username", text: $webAPIUsername)
-                            .multilineTextAlignment(.center)
-                            .onSubmit {
-                                storedWebAPIUsername = webAPIUsername
-                                network.authenticateCredentials(webAPIUsername: storedWebAPIUsername, webAPIKey: storedWebAPIKey)
-                            }
-                    }        
-                    .alignmentGuide(.listRowSeparatorLeading) { _ in -20 }
-
+                    TextField("Username", text: $webAPIUsername)
+                        .multilineTextAlignment(.center)
+      
+                    SecureField("Web API Key", text: $webAPIKey)
+                        .multilineTextAlignment(.center)
                     
-                    HStack{
-                        Text("Web API Key: ")
-                        SecureField("Enter Web API Key", text: $webAPIKey)
-                            .multilineTextAlignment(.center)
-                            .onSubmit {
-                                storedWebAPIKey = webAPIKey
-                                network.authenticateCredentials(webAPIUsername: storedWebAPIUsername, webAPIKey: storedWebAPIKey)
-                            }
+                    Button {
+                        network.authenticateCredentials(webAPIUsername: webAPIUsername, webAPIKey: webAPIKey)
+                    } label: {
+                        HStack{
+                            Spacer()
+                            Text("Login")
+                            Spacer()
+                        }
                     }
                     
                     Button {
@@ -69,9 +55,7 @@ struct RetroAchievementsLoginView: View {
                     } label: {
                         HStack {
                             Spacer()
-                            
                             Text("Get Login Credentials")
-                            
                             Spacer()
                         }
                     }
@@ -87,6 +71,6 @@ struct RetroAchievementsLoginView: View {
     @State var shouldShowLoginSheet = false
     let network = Network()
     network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
-    return RetroAchievementsLoginView(webAPIUsername: $webAPIUsername, webAPIKey: $webAPIKey, shouldShowLoginSheet: $shouldShowLoginSheet)
+    return RetroAchievementsLoginView(shouldShowLoginSheet: $shouldShowLoginSheet, webAPIUsername: $webAPIUsername, webAPIKey: $webAPIKey)
         .environmentObject(network)
 }

@@ -19,11 +19,26 @@ class Network: ObservableObject {
     @Published var initialWebAPIAuthenticationCheckComplete: Bool = false
     @Published var webAPIAuthenticated: Bool = false
     @Published var consolesCache: Consoles = Consoles()
-    private var authenticatedWebAPIUsername: String = ""
+    @Published var authenticatedWebAPIUsername: String = ""
     private var authenticatedWebAPIKey: String = ""
     
     func buildAuthenticationString() -> String {
         return "z=\(authenticatedWebAPIUsername)&y=\(authenticatedWebAPIKey)"
+    }
+    
+    func logout() {
+        // Clear All But Console Cache
+        DispatchQueue.main.async {
+            self.authenticatedWebAPIUsername = ""
+            self.authenticatedWebAPIKey = ""
+            self.webAPIAuthenticated = false
+            self.gameSummaryCache = [:]
+            self.userGameCompletionProgress = nil
+            self.userRecentlyPlayedGames = []
+            self.awards = nil
+            self.profile = nil
+            print("Data Cache Cleared")
+        }
     }
         
     func authenticateCredentials(webAPIUsername: String, webAPIKey: String) {

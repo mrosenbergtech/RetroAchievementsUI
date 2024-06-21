@@ -13,10 +13,10 @@ struct ContentView: View {
     @Binding var webAPIKey: String
     @Binding var hardcoreMode: Bool
     @State var selectedTab: Int = 1
-    @State var shouldShowLoginSheet: Bool = false
+    @State var shouldShowLoginSheet: Bool = true
     
     var body: some View {
-        if network.initialWebAPIAuthenticationCheckComplete {
+        if network.webAPIAuthenticated {
             TabView(selection: $selectedTab) {
                 ProfileView(network: _network, hardcoreMode: $hardcoreMode)
                     .tabItem {
@@ -67,43 +67,21 @@ struct ContentView: View {
                         selectedTab = 4
                     }
             }
-            .sheet(isPresented: $shouldShowLoginSheet) {
-                print("Login Sheet Dismissed!")
-                shouldShowLoginSheet = false
-            } content: {
-                if network.webAPIAuthenticated {
+        } else if !network.initialWebAPIAuthenticationCheckComplete {
+            ProgressView()
+        } else {
+            ProgressView()
+                .onAppear(){
+                    shouldShowLoginSheet = true
+                }
+                .sheet(isPresented: $shouldShowLoginSheet) {
+                    print("RA Login Sheet Dismissed!")
+                } content: {
                     VStack{
-                        
-                        HStack{
-                            
-                            Spacer()
-                            
-                            Button("Done") {
-                                shouldShowLoginSheet = false
-                            }
-                            .padding()
-                            
-                        }
-                        RetroAchievementsLoginView(webAPIUsername: $webAPIUsername, webAPIKey: $webAPIKey, shouldShowLoginSheet: $shouldShowLoginSheet)
-                    }
-                } else {
-                    VStack{
-                        RetroAchievementsLoginView(webAPIUsername: $webAPIUsername, webAPIKey: $webAPIKey, shouldShowLoginSheet: $shouldShowLoginSheet)
-                            .alert("Unable to Login:\n Tap \"Get Login Credentials\" For More Information!", isPresented: $network.webAPIAuthenticated.inverted) {
-                                Button("OK", role: .cancel) { }
-                            }
+                        RetroAchievementsLoginView(shouldShowLoginSheet: $shouldShowLoginSheet, webAPIUsername: $webAPIUsername, webAPIKey: $webAPIKey)
                     }
                     .interactiveDismissDisabled()
                 }
-            }
-            .onAppear(){
-                if !network.webAPIAuthenticated {
-                    shouldShowLoginSheet = true
-                }
-            }
-        } else {
-            ProgressView()
-            
         }
     }
 }

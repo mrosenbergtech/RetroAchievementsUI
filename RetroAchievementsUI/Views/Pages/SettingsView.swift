@@ -14,33 +14,43 @@ struct SettingsView: View {
     @Binding var webAPIKey: String
     @Binding var hardcoreMode: Bool
     @Binding var shouldShowLoginSheet: Bool
-    @State var storedWebAPIUsername: String = ""
-    @State var storedWebAPIKey: String = ""
     @State var blankCredentials: Bool = false
-    
-    
     
     var body: some View {
         Form{
             Section(header: Text("RetroAchievements Login"), 
-                    content: {
-                        HStack {
-                            Spacer()
-                            
-                            Text("Login Status:")
-                                .bold()
-                                                        
-                            if network.webAPIAuthenticated {
-                                Image(systemName: "checkmark.circle")
-                                    .foregroundColor(.green)
-                            } else {
-                                Image(systemName: "x.circle")
-                                    .foregroundColor(.red)
-                            }
-                            
-                            Spacer()
+                content: {
+                    HStack {
+                        Spacer()
+                        
+                        Text("Login Status:")
+                            .bold()
+                                                    
+                        if network.webAPIAuthenticated {
+                            Image(systemName: "checkmark.circle")
+                                .foregroundColor(.green)
+                        } else {
+                            Image(systemName: "x.circle")
+                                .foregroundColor(.red)
                         }
+                        
+                        Spacer()
+                    }
                 
+                    if network.webAPIAuthenticated {
+                        Button {
+                            webAPIUsername = ""
+                            webAPIKey = ""
+                            network.logout()
+                            shouldShowLoginSheet = true
+                        } label: {
+                            HStack{
+                                Spacer()
+                                Text("Logout " + network.authenticatedWebAPIUsername)
+                                Spacer()
+                            }
+                        }
+                    } else {
                         Button {
                             shouldShowLoginSheet = true
                         } label: {
@@ -53,11 +63,10 @@ struct SettingsView: View {
                                 Spacer()
                             }
                         }
-                
                     }
-                )                    
+                }
+            )
             .alignmentGuide(.listRowSeparatorLeading) { _ in -20 }
-
                 
             Section(
                 header: Text("Other Settings"),
@@ -83,13 +92,14 @@ struct SettingsView: View {
             )
         }
         .onAppear {
-            storedWebAPIUsername = webAPIUsername
-            storedWebAPIKey = webAPIKey
-            
             if webAPIUsername == "" && webAPIKey == "" {
                 blankCredentials = true
             } else {
                 blankCredentials = false
+            }
+            
+            if !network.webAPIAuthenticated {
+                shouldShowLoginSheet = true
             }
         }
 
