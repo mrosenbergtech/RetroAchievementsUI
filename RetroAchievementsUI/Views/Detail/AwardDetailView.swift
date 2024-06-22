@@ -14,14 +14,14 @@ struct AwardDetailView: View {
     
     var body: some View {
         HStack{
-            KFImage(URL(string: "https://retroachievements.org" + (award.imageIcon)))
+            KFImage(URL(string: "https://retroachievements.org" + (award.imageIcon ?? "/UserPic/retroachievementsUI")))
                 .resizable()
                 .frame(width: 64, height: 64)
                 .clipShape(.rect(cornerRadius: 10))
             
             VStack(alignment: .center) {
                 // Achievement Title
-                ScrollingText(text: award.id, font: .boldSystemFont(ofSize: 15), leftFade: 15, rightFade: 15, startDelay: 3, alignment: .center)
+                ScrollingText(text: award.id ?? "Title", font: .boldSystemFont(ofSize: 15), leftFade: 15, rightFade: 15, startDelay: 3, alignment: .center)
                     .frame(maxWidth: .infinity)
                     .padding(.horizontal)
                 

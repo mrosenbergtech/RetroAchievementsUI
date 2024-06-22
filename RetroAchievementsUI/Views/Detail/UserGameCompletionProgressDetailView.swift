@@ -30,16 +30,19 @@ struct UserGameCompletionProgressDetailView: View {
                             .lineLimit(1)
                             .font(.footnote)
                             .foregroundColor(.gray)
-                        
-                        
-                        Text("Unlocked: " + (hardcoreMode ? String(game.numAwardedHardcore) : String(game.numAwarded)) + " | " + String(game.maxPossible))
-                            .multilineTextAlignment(.center)
-                            .font(.footnote)
                     }
                 }
                 
-                ProgressView(value: Float(hardcoreMode ? game.numAwardedHardcore : game.numAwarded) / Float(game.maxPossible))
-                    .padding(.horizontal)
+                if game.maxPossible == 0 {
+                    Text("No Achievements!")
+                } else {
+                    Text("Unlocked: " + (hardcoreMode ? String(game.numAwardedHardcore) : String(game.numAwarded)) + " | " + String(game.maxPossible))
+                        .multilineTextAlignment(.center)
+                        .font(.footnote)
+                    
+                    ProgressView(value: Float(hardcoreMode ? game.numAwardedHardcore : game.numAwarded) / Float(game.maxPossible))
+                        .padding(.horizontal)
+                }
             }
             
             Image(systemName: "checkmark.circle")

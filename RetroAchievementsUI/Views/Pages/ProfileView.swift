@@ -17,7 +17,7 @@ struct ProfileView: View {
             NavigationView {
                 VStack {
                     HStack {
-                        KFImage(URL(string: "https://retroachievements.org/" + (network.profile?.userPic ?? "UserPic/MaxMilyin")))
+                        KFImage(URL(string: "https://retroachievements.org/" + (network.profile?.userPic ?? "UserPic/retroachievementsUI")))
                             .resizable()
                             .clipShape(.rect(cornerRadius: 10))
                             .scaleEffect(0.75)
@@ -37,10 +37,6 @@ struct ProfileView: View {
                     }
                     
                     Form {
-                        Section(header: Text("Awards")) {
-                            AwardsView(network: _network, hardcoreMode: $hardcoreMode)
-                        }
-                        
                         Section(header: Text("Recently Played Games")) {
                             ForEach(network.userRecentlyPlayedGames) { recentlyPlayedGame in
                                 NavigationLink(destination: GameSummaryView(hardcoreMode: $hardcoreMode, gameID: recentlyPlayedGame.id)){
@@ -48,6 +44,12 @@ struct ProfileView: View {
                                 }
                             }
                         }
+                        
+                        Section(header: Text("Awards")) {
+                            AwardsView(network: _network, hardcoreMode: $hardcoreMode)
+                        }
+                        
+                        
                     }
                 }
             }

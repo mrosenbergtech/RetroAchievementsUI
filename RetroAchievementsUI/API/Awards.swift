@@ -37,11 +37,11 @@ struct VisibleUserAward: Codable, Identifiable {
     let awardData: Int
     let awardDataExtra: Int
     let displayOrder: Int
-    let id: String
-    let consoleID: Int
-    let consoleName: String
-    let flags: Int
-    let imageIcon: String
+    let id: String?
+    let consoleID: Int?
+    let consoleName: String?
+    let flags: Int?
+    let imageIcon: String?
 
     enum CodingKeys: String, CodingKey {
         case awardedAt = "AwardedAt"

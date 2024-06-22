@@ -20,7 +20,7 @@ struct AwardsView: View {
                     } else if (!hardcoreMode) {
                         AwardDetailView(hardcoreMode: $hardcoreMode, award: award)
                     } else {
-                        Text("No Awards!")
+                        Text(award.awardType)
                     }
                 }
             }

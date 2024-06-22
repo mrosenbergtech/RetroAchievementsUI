@@ -31,12 +31,16 @@ struct GameSummaryHeaderView: View {
                         .lineLimit(1)
                         .padding(.horizontal)
                     
-                    Text("Unlocked: " + String(hardcoreMode ? network.gameSummaryCache[gameID]!.numAwardedToUserHardcore : network.gameSummaryCache[gameID]!.numAwardedToUser) + " | " + String(network.gameSummaryCache[gameID]!.numAchievements))
-                        .multilineTextAlignment(.center)
-                        .font(.footnote)
-                    
-                    ProgressView(value: Float(hardcoreMode ? network.gameSummaryCache[gameID]!.numAwardedToUserHardcore : network.gameSummaryCache[gameID]!.numAwardedToUser) / Float(network.gameSummaryCache[gameID]!.numAchievements))
-                        .padding(.horizontal)
+                    if network.gameSummaryCache[gameID]!.numAchievements > 0 {
+                        Text("Unlocked: " + String(hardcoreMode ? network.gameSummaryCache[gameID]!.numAwardedToUserHardcore : network.gameSummaryCache[gameID]!.numAwardedToUser) + " | " + String(network.gameSummaryCache[gameID]!.numAchievements))
+                            .multilineTextAlignment(.center)
+                            .font(.footnote)
+                        
+                        ProgressView(value: Float(hardcoreMode ? network.gameSummaryCache[gameID]!.numAwardedToUserHardcore : network.gameSummaryCache[gameID]!.numAwardedToUser) / Float(network.gameSummaryCache[gameID]!.numAchievements))
+                            .padding(.horizontal)
+                    } else {
+                        Text("No Achievements!")
+                    }
                 }
             }
             .padding(.horizontal)
