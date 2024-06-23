@@ -31,7 +31,7 @@ struct ProfileView: View {
                             
                             HStack {
                                 Image(systemName: "command.circle.fill")
-                                Text(String(((hardcoreMode ? network.profile?.totalTruePoints : network.profile?.totalPoints) ?? 0)))
+                                Text(String(((hardcoreMode ? network.profile?.totalPoints : network.profile?.totalSoftcorePoints) ?? 0)))
                             }
                         }
                     }

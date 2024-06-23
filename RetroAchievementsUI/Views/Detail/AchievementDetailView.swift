@@ -26,7 +26,7 @@ struct AchievementDetailView: View {
                 HStack{
                     // Achievement Points
                     HStack{
-                        Image(systemName: "trophy.circle")
+                        Image(systemName: "command.circle.fill")
                         Text(String(achievement.points))
                     }
                     

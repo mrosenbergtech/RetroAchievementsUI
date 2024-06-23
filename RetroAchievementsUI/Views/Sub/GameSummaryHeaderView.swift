@@ -32,9 +32,12 @@ struct GameSummaryHeaderView: View {
                         .padding(.horizontal)
                     
                     if network.gameSummaryCache[gameID]!.numAchievements > 0 {
-                        Text("Unlocked: " + String(hardcoreMode ? network.gameSummaryCache[gameID]!.numAwardedToUserHardcore : network.gameSummaryCache[gameID]!.numAwardedToUser) + " | " + String(network.gameSummaryCache[gameID]!.numAchievements))
-                            .multilineTextAlignment(.center)
-                            .font(.footnote)
+                        HStack{
+                            Image(systemName: "trophy.circle")
+                            Text(String(hardcoreMode ? network.gameSummaryCache[gameID]!.numAwardedToUserHardcore : network.gameSummaryCache[gameID]!.numAwardedToUser) + " | " + String(network.gameSummaryCache[gameID]!.numAchievements))
+                                .multilineTextAlignment(.center)
+                                .font(.footnote)
+                        }                        
                         
                         ProgressView(value: Float(hardcoreMode ? network.gameSummaryCache[gameID]!.numAwardedToUserHardcore : network.gameSummaryCache[gameID]!.numAwardedToUser) / Float(network.gameSummaryCache[gameID]!.numAchievements))
                             .padding(.horizontal)
