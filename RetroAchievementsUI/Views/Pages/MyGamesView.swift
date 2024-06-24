@@ -21,7 +21,7 @@ struct MyGamesView: View {
                                 ForEach(network.userGameCompletionProgress!.results.filter { $0.consoleName == console.name}.sorted { $0.title.lowercased() < $1.title.lowercased()}){ game in
                                     NavigationLink(destination: GameSummaryView(hardcoreMode: $hardcoreMode, gameID: game.id))
                                     {
-                                        UserGameCompletionProgressDetailView(game: game, hardcoreMode: $hardcoreMode)
+                                        GameSummaryPreviewView(hardcoreMode: $hardcoreMode, gameID: game.id)
                                     }
                                 }
                             }

@@ -209,7 +209,7 @@ class Network: ObservableObject {
     }
     
     func getGameSummary(gameID: Int) {
-        guard let url = URL(string: "https://retroachievements.org/API/API_GetGameInfoAndUserProgress.php?\(buildAuthenticationString())&g=\(gameID)&u=\(self.authenticatedWebAPIUsername)") else { fatalError("Missing URL") }
+        guard let url = URL(string: "https://retroachievements.org/API/API_GetGameInfoAndUserProgress.php?\(buildAuthenticationString())&g=\(gameID)&u=\(self.authenticatedWebAPIUsername)&a=1") else { fatalError("Missing URL") }
         
         let urlRequest = URLRequest(url: url)
 

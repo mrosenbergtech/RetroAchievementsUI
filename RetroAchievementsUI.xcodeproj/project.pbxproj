@@ -9,7 +9,7 @@
 /* Begin PBXBuildFile section */
 		2702F0452C253E8D00EC3364 /* AwardDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2702F0442C253E8D00EC3364 /* AwardDetailView.swift */; };
 		2702F0472C253F1800EC3364 /* AwardsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2702F0462C253F1800EC3364 /* AwardsView.swift */; };
-		2702F04A2C25472100EC3364 /* GameSummaryHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2702F0492C25472100EC3364 /* GameSummaryHeaderView.swift */; };
+		2702F04A2C25472100EC3364 /* GameSummaryPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2702F0492C25472100EC3364 /* GameSummaryPreviewView.swift */; };
 		274F4E922C24FBA300F49981 /* RecentGame.swift in Sources */ = {isa = PBXBuildFile; fileRef = 274F4E912C24FBA300F49981 /* RecentGame.swift */; };
 		27503B292C1BC4690010B0A2 /* Achievement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27503B282C1BC4690010B0A2 /* Achievement.swift */; };
 		27503B2E2C1D024C0010B0A2 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 27503B2D2C1D024C0010B0A2 /* Kingfisher */; };
@@ -30,7 +30,6 @@
 		2757FA892C142233008A8B7A /* GameCompletionProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2757FA882C142233008A8B7A /* GameCompletionProgress.swift */; };
 		2757FA8B2C142571008A8B7A /* MyGamesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2757FA8A2C142571008A8B7A /* MyGamesView.swift */; };
 		2757FA8D2C14315C008A8B7A /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2757FA8C2C14315C008A8B7A /* Launch Screen.storyboard */; };
-		276B9A872C15099C00B42EA8 /* UserGameCompletionProgressDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 276B9A862C15099C00B42EA8 /* UserGameCompletionProgressDetailView.swift */; };
 		27C704A82C250D14004BBB49 /* Awards.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27C704A72C250D14004BBB49 /* Awards.swift */; };
 		27CFC3372C1F3D550014E22E /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = 27CFC3362C1F3D550014E22E /* LICENSE */; };
 		27ED59FD2C17FA9A00D4167F /* ConsoleDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27ED59FC2C17FA9A00D4167F /* ConsoleDetailView.swift */; };
@@ -43,7 +42,7 @@
 /* Begin PBXFileReference section */
 		2702F0442C253E8D00EC3364 /* AwardDetailView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AwardDetailView.swift; sourceTree = "<group>"; };
 		2702F0462C253F1800EC3364 /* AwardsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AwardsView.swift; sourceTree = "<group>"; };
-		2702F0492C25472100EC3364 /* GameSummaryHeaderView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GameSummaryHeaderView.swift; sourceTree = "<group>"; };
+		2702F0492C25472100EC3364 /* GameSummaryPreviewView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GameSummaryPreviewView.swift; sourceTree = "<group>"; };
 		274F4E912C24FBA300F49981 /* RecentGame.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecentGame.swift; sourceTree = "<group>"; };
 		27503B282C1BC4690010B0A2 /* Achievement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Achievement.swift; sourceTree = "<group>"; };
 		2752C8882C166D81002E25E2 /* AchievementsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AchievementsView.swift; sourceTree = "<group>"; };
@@ -64,7 +63,6 @@
 		2757FA882C142233008A8B7A /* GameCompletionProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameCompletionProgress.swift; sourceTree = "<group>"; };
 		2757FA8A2C142571008A8B7A /* MyGamesView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MyGamesView.swift; sourceTree = "<group>"; };
 		2757FA8C2C14315C008A8B7A /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
-		276B9A862C15099C00B42EA8 /* UserGameCompletionProgressDetailView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserGameCompletionProgressDetailView.swift; sourceTree = "<group>"; };
 		27A4F3BC2C1F52260093AE4A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		27C704A72C250D14004BBB49 /* Awards.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Awards.swift; sourceTree = "<group>"; };
 		27CFC3362C1F3D550014E22E /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
@@ -94,7 +92,6 @@
 				2702F0462C253F1800EC3364 /* AwardsView.swift */,
 				27ED5A002C18041100D4167F /* ConsoleGamesView.swift */,
 				2757FA812C140D93008A8B7A /* GameSummaryView.swift */,
-				2702F0492C25472100EC3364 /* GameSummaryHeaderView.swift */,
 				27FCD0C22C193DD1008C54AF /* RetroAchievementsLoginView.swift */,
 			);
 			path = Sub;
@@ -172,8 +169,8 @@
 				2702F0442C253E8D00EC3364 /* AwardDetailView.swift */,
 				27ED5A022C1807E100D4167F /* ConsoleGameDetailView.swift */,
 				27ED59FC2C17FA9A00D4167F /* ConsoleDetailView.swift */,
+				2702F0492C25472100EC3364 /* GameSummaryPreviewView.swift */,
 				2752C88C2C16922B002E25E2 /* ScrollingText.swift */,
-				276B9A862C15099C00B42EA8 /* UserGameCompletionProgressDetailView.swift */,
 			);
 			path = Detail;
 			sourceTree = "<group>";
@@ -271,12 +268,11 @@
 				2757FA892C142233008A8B7A /* GameCompletionProgress.swift in Sources */,
 				2757FA682C138FDE008A8B7A /* ContentView.swift in Sources */,
 				27503B292C1BC4690010B0A2 /* Achievement.swift in Sources */,
-				2702F04A2C25472100EC3364 /* GameSummaryHeaderView.swift in Sources */,
+				2702F04A2C25472100EC3364 /* GameSummaryPreviewView.swift in Sources */,
 				27FCD0C32C193DD1008C54AF /* RetroAchievementsLoginView.swift in Sources */,
 				27ED5A012C18041100D4167F /* ConsoleGamesView.swift in Sources */,
 				2757FA762C13905A008A8B7A /* Profile.swift in Sources */,
 				27ED59FD2C17FA9A00D4167F /* ConsoleDetailView.swift in Sources */,
-				276B9A872C15099C00B42EA8 /* UserGameCompletionProgressDetailView.swift in Sources */,
 				2757FA782C13A951008A8B7A /* ProfileView.swift in Sources */,
 				2757FA8B2C142571008A8B7A /* MyGamesView.swift in Sources */,
 				2757FA822C140D93008A8B7A /* GameSummaryView.swift in Sources */,
@@ -424,7 +420,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_ASSET_PATHS = "\"RetroAchievementsUI/Preview Content\"";
 				DEVELOPMENT_TEAM = Z8253GXZFC;
 				ENABLE_PREVIEWS = YES;
@@ -457,7 +453,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_ASSET_PATHS = "\"RetroAchievementsUI/Preview Content\"";
 				DEVELOPMENT_TEAM = Z8253GXZFC;
 				ENABLE_PREVIEWS = YES;

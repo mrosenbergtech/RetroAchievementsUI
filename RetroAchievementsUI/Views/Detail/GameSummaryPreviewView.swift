@@ -8,7 +8,7 @@
 import SwiftUI
 import Kingfisher
 
-struct GameSummaryHeaderView: View {
+struct GameSummaryPreviewView: View {
     @EnvironmentObject var network: Network
     @Binding var hardcoreMode: Bool
     var gameID: Int
@@ -37,16 +37,19 @@ struct GameSummaryHeaderView: View {
                             Text(String(hardcoreMode ? network.gameSummaryCache[gameID]!.numAwardedToUserHardcore : network.gameSummaryCache[gameID]!.numAwardedToUser) + " | " + String(network.gameSummaryCache[gameID]!.numAchievements))
                                 .multilineTextAlignment(.center)
                                 .font(.footnote)
-                        }                        
-                        
+                        }
+                            
                         ProgressView(value: Float(hardcoreMode ? network.gameSummaryCache[gameID]!.numAwardedToUserHardcore : network.gameSummaryCache[gameID]!.numAwardedToUser) / Float(network.gameSummaryCache[gameID]!.numAchievements))
                             .padding(.horizontal)
                     } else {
                         Text("No Achievements!")
                     }
+                    
                 }
+                
+                Image(systemName: "checkmark.circle")
+                    .foregroundStyle(highestAwardColor(highestAwardKind: network.gameSummaryCache[gameID]!.highestAwardKind))
             }
-            .padding(.horizontal)
         }  else {
             ProgressView()
                 .onAppear {
@@ -55,12 +58,27 @@ struct GameSummaryHeaderView: View {
         }
     }
 }
+
+func highestAwardColor(highestAwardKind: String?) -> Color {
+    switch highestAwardKind {
+    case "mastered":
+        return .yellow
+    case "completed":
+        return .orange
+    case "beaten-hardcore":
+        return .green
+    case "beaten-softcore":
+        return .blue
+    default:
+        return .gray
+    }
+}
  
 #Preview {
     @State var hardcoreMode: Bool = true
     let network = Network()
     network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
     network.getGameSummary(gameID: 10003)
-    return GameSummaryHeaderView(hardcoreMode: $hardcoreMode, gameID: 10003).environmentObject(network)
+    return GameSummaryPreviewView(hardcoreMode: $hardcoreMode, gameID: 10003).environmentObject(network)
 }
 

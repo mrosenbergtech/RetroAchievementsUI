@@ -15,13 +15,11 @@ struct GameSummaryView: View {
     
     var body: some View {
         if network.gameSummaryCache[gameID] != nil {
-                GameSummaryHeaderView(hardcoreMode: $hardcoreMode, gameID: gameID)
-                .padding(.horizontal)
-                
-                Spacer()
+            Form {
+                GameSummaryPreviewView(hardcoreMode: $hardcoreMode, gameID: gameID)
                 
                 AchievementsView(hardcoreMode: $hardcoreMode, gameSummary: network.gameSummaryCache[gameID]!)
-            
+            }
         }  else {
             ProgressView()
                 .onAppear {

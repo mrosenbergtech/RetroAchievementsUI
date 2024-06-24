@@ -40,7 +40,7 @@ struct ProfileView: View {
                         Section(header: Text("Recently Played Games")) {
                             ForEach(network.userRecentlyPlayedGames) { recentlyPlayedGame in
                                 NavigationLink(destination: GameSummaryView(hardcoreMode: $hardcoreMode, gameID: recentlyPlayedGame.id)){
-                                    GameSummaryHeaderView(hardcoreMode: $hardcoreMode, gameID: recentlyPlayedGame.id)
+                                    GameSummaryPreviewView(hardcoreMode: $hardcoreMode, gameID: recentlyPlayedGame.id)
                                 }
                             }
                         }

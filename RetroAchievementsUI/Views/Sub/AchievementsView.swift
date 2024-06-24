@@ -14,65 +14,60 @@ struct AchievementsView: View {
     
     
     var body: some View {
-        Form {
-            Section(header: Text("Achievements")){
-                HStack{
-                    Spacer()
-                    
-                    Text("All")
-                        .onTapGesture {
-                            selectedAchievementFilter = "All"
-                        }
-                        .fontWeight((selectedAchievementFilter == "All") ? .bold : .regular)
-                        .padding()
-                        .background(selectedAchievementFilter == "All" ? .gray : .clear)
-                        .clipShape(.rect(cornerRadius: 10))
-                    
-                    
-                    Spacer()
-                    
-                    Text("Locked")
-                        .onTapGesture {
-                            selectedAchievementFilter = "Locked"
-                        }
-                        .fontWeight((selectedAchievementFilter == "Locked") ? .bold : .regular)
-                        .padding()
-                        .background(selectedAchievementFilter == "Locked" ? .gray : .clear)
-                        .clipShape(.rect(cornerRadius: 10))
-                    
-                    Spacer()
-                    
-                    Text("Unlocked")
-                        .onTapGesture {
-                            selectedAchievementFilter = "Unlocked"
-                        }
-                        .fontWeight((selectedAchievementFilter == "Unlocked") ? .bold : .regular)
-                        .padding()
-                        .background(selectedAchievementFilter == "Unlocked" ? .gray : .clear)
-                        .clipShape(.rect(cornerRadius: 10))
-                    
-                    Spacer()
-                }
+        Section(header: Text("Achievements")){
+            HStack{
+                Spacer()
                 
-                if selectedAchievementFilter == "All" {
-                    ForEach(gameSummary.achievements.keys.sorted(), id: \.self) { id in
-                        AchievementDetailView(hardcoreMode: $hardcoreMode, achievement: gameSummary.achievements[id]!)
+                Text("All")
+                    .onTapGesture {
+                        selectedAchievementFilter = "All"
                     }
-                } else if selectedAchievementFilter == "Locked" {
-                    ForEach(gameSummary.achievements.keys.filter { gameSummary.achievements[$0]!.dateEarnedHardcore == nil }.sorted(), id: \.self) { id in
-                        AchievementDetailView(hardcoreMode: $hardcoreMode, achievement: gameSummary.achievements[id]!)
+                    .fontWeight((selectedAchievementFilter == "All") ? .bold : .regular)
+                    .padding()
+                    .background(selectedAchievementFilter == "All" ? .gray : .clear)
+                    .clipShape(.rect(cornerRadius: 10))
+                
+                
+                Spacer()
+                
+                Text("Locked")
+                    .onTapGesture {
+                        selectedAchievementFilter = "Locked"
                     }
-                } else if selectedAchievementFilter == "Unlocked" {
-                    ForEach(gameSummary.achievements.keys.filter { gameSummary.achievements[$0]!.dateEarnedHardcore != nil }.sorted(), id: \.self) { id in
-                        AchievementDetailView(hardcoreMode: $hardcoreMode, achievement: gameSummary.achievements[id]!)
+                    .fontWeight((selectedAchievementFilter == "Locked") ? .bold : .regular)
+                    .padding()
+                    .background(selectedAchievementFilter == "Locked" ? .gray : .clear)
+                    .clipShape(.rect(cornerRadius: 10))
+                
+                Spacer()
+                
+                Text("Unlocked")
+                    .onTapGesture {
+                        selectedAchievementFilter = "Unlocked"
                     }
-                }
+                    .fontWeight((selectedAchievementFilter == "Unlocked") ? .bold : .regular)
+                    .padding()
+                    .background(selectedAchievementFilter == "Unlocked" ? .gray : .clear)
+                    .clipShape(.rect(cornerRadius: 10))
+                
+                Spacer()
             }
             
+            if selectedAchievementFilter == "All" {
+                ForEach(gameSummary.achievements.keys.sorted(), id: \.self) { id in
+                    AchievementDetailView(hardcoreMode: $hardcoreMode, achievement: gameSummary.achievements[id]!)
+                }
+            } else if selectedAchievementFilter == "Locked" {
+                ForEach(gameSummary.achievements.keys.filter { gameSummary.achievements[$0]!.dateEarnedHardcore == nil }.sorted(), id: \.self) { id in
+                    AchievementDetailView(hardcoreMode: $hardcoreMode, achievement: gameSummary.achievements[id]!)
+                }
+            } else if selectedAchievementFilter == "Unlocked" {
+                ForEach(gameSummary.achievements.keys.filter { gameSummary.achievements[$0]!.dateEarnedHardcore != nil }.sorted(), id: \.self) { id in
+                    AchievementDetailView(hardcoreMode: $hardcoreMode, achievement: gameSummary.achievements[id]!)
+                }
+            }
         }
-            
     }
-        
 }
 
 #Preview {
