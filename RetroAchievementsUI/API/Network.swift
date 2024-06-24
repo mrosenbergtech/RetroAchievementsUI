@@ -148,6 +148,43 @@ class Network: ObservableObject {
         dataTask.resume()
     }
     
+    func filterHighestAwardType(awards: [VisibleUserAward]) -> [VisibleUserAward] {
+        var filteredAwardList: [VisibleUserAward] = awards
+        var filteredAwardIDList: [Int] = []
+        for award in filteredAwardList {
+            
+            // Find Matching Award IDs
+            if !filteredAwardIDList.contains(award.id ?? -1) {
+                let matchingAwards = filteredAwardList.filter { $0.id == award.id }
+                
+                // Find Highest Award
+                if matchingAwards.count > 1 {
+                    var highestAward: String?
+                    
+                    for matchingAward in matchingAwards {
+                        if matchingAward.awardType == "Game Beaten" && highestAward != "Mastery/Completion" {
+                            highestAward = "Game Beaten"
+                        } else if matchingAward.awardType == "Mastery/Completion" {
+                            highestAward = "Mastery/Completion"
+                        }
+                    }
+                                                                        
+                    // Remove Lower Awards
+                    let lowerAwards = matchingAwards.filter { $0.awardType != highestAward }
+                    if lowerAwards.count > 0 {
+                        for lowerAward in lowerAwards {
+                            filteredAwardList.removeAll(where: { $0.id == lowerAward.id && $0.awardType == lowerAward.awardType })
+                        }
+                    }
+                    
+                    filteredAwardIDList.append(award.id!)
+                }
+            }
+        }
+        
+        return filteredAwardList
+    }
+    
     func getUserRecentGames() {
         guard let url = URL(string: "https://retroachievements.org/API/API_GetUserRecentlyPlayedGames.php?\(buildAuthenticationString())&u=\(self.authenticatedWebAPIUsername)&c=3") else { fatalError("Missing URL") }
         

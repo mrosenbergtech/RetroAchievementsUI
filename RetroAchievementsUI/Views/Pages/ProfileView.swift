@@ -45,11 +45,7 @@ struct ProfileView: View {
                             }
                         }
                         
-                        Section(header: Text("Awards")) {
-                            AwardsView(network: _network, hardcoreMode: $hardcoreMode)
-                        }
-                        
-                        
+                        AwardsView(network: _network, hardcoreMode: $hardcoreMode)                        
                     }
                 }
             }
