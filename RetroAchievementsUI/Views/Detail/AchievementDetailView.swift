@@ -14,7 +14,7 @@ struct AchievementDetailView: View {
     
     var body: some View {
         HStack{
-            KFImage(URL(string: "https://retroachievements.org/Badge/" + (achievement.badgeName) + ".png"))
+            KFImage(URL(string: "https://retroachievements.org/Badge/" + (achievement.badgeName) + (hardcoreMode ? ((achievement.dateEarnedHardcore != nil) ? "" : "_lock") : ((achievement.dateEarned != nil) ? "" : "_lock"))  + ".png"))
                 .frame(width: 64, height: 64)
             
             VStack(alignment: .center) {
