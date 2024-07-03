@@ -40,7 +40,7 @@ struct ProfileView: View {
                         Section(header: Text("Recently Played Games")) {
                             ForEach(network.userRecentlyPlayedGames) { recentlyPlayedGame in
                                 NavigationLink(destination: GameSummaryView(hardcoreMode: $hardcoreMode, gameID: recentlyPlayedGame.id)){
-                                    GameSummaryPreviewView(hardcoreMode: $hardcoreMode, gameID: recentlyPlayedGame.id)
+                                     RecentGameSummaryPreviewView(hardcoreMode: $hardcoreMode, imageIconString: recentlyPlayedGame.imageIcon, gameTitle: recentlyPlayedGame.title, gameConsoleName: recentlyPlayedGame.consoleName, maxPossible: recentlyPlayedGame.numPossibleAchievements, numAwardedHardcore: recentlyPlayedGame.numAchievedHardcore, numAwarded: recentlyPlayedGame.numAchieved, highestAwardKind: network.userGameCompletionProgress?.results.filter {$0.id == recentlyPlayedGame.id}.first?.highestAwardKind ?? nil)
                                 }
                             }
                         }
@@ -59,7 +59,10 @@ struct ProfileView: View {
 #Preview {
     @State var hardcoreMode: Bool = true
     let network = Network()
-    network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
+    Task {
+        await network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
+    }
+    
     return ProfileView(hardcoreMode: $hardcoreMode)
         .environmentObject(network)
 }

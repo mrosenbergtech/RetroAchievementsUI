@@ -18,14 +18,17 @@ struct RetroAchievementsUIApp: App {
     @AppStorage("hardcoreMode") var hardcoreMode: Bool = true
     @ObservedObject var network = Network()
     
-    init() {
-        network.authenticateCredentials(webAPIUsername: webAPIUsername, webAPIKey: webAPIKey)
-    }
+//    init() {
+//        network.authenticateCredentials(webAPIUsername: webAPIUsername, webAPIKey: webAPIKey)
+//    }
     
     var body: some Scene {
         WindowGroup {
             ContentView(webAPIUsername: $webAPIUsername, webAPIKey: $webAPIKey, hardcoreMode: $hardcoreMode)
                 .environmentObject(network)
+                .task {
+                    await network.authenticateCredentials(webAPIUsername: webAPIUsername, webAPIKey: webAPIKey)
+                }
         }
     }
 }

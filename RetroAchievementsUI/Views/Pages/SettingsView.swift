@@ -112,7 +112,9 @@ struct SettingsView: View {
     @State var hardcoreMode = true
     @State var shouldShowLoginSheet = false
     let network = Network()
-    network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
+    Task {
+        await network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
+    }
     return SettingsView(webAPIUsername: $webAPIUsername, webAPIKey: $webAPIKey, hardcoreMode: $hardcoreMode, shouldShowLoginSheet: $shouldShowLoginSheet)
         .environmentObject(network)
 }

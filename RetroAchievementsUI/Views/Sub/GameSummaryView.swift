@@ -22,8 +22,8 @@ struct GameSummaryView: View {
             }
         }  else {
             ProgressView()
-                .onAppear {
-                    network.getGameSummary(gameID: gameID)
+                .task {
+                    await network.getGameSummary(gameID: gameID)
                 }
         }
     }
@@ -33,7 +33,9 @@ struct GameSummaryView: View {
 #Preview {
     @State var hardcoreMode: Bool = true
     let network = Network()
-    network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
+    Task {
+        await network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
+    }
     return GameSummaryView(hardcoreMode: $hardcoreMode, gameID: 10003).environmentObject(network)
 }
 

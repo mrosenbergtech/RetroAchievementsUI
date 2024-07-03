@@ -40,7 +40,11 @@ struct AwardsView: View {
 
 #Preview {
     let network = Network()
-    network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
+    Task {
+        await network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
+
+    }
+    
     @State var hardcoreMode: Bool = true
     return AwardsView(hardcoreMode: $hardcoreMode).environmentObject(network)
 }

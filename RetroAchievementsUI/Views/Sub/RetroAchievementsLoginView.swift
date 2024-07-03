@@ -29,18 +29,25 @@ struct RetroAchievementsLoginView: View {
                     
                     TextField("Username", text: $webAPIUsername)
                         .multilineTextAlignment(.center)
+                        .alignmentGuide(.listRowSeparatorLeading) { _ in -20 }
+
       
                     SecureField("Web API Key", text: $webAPIKey)
                         .multilineTextAlignment(.center)
+                        .alignmentGuide(.listRowSeparatorLeading) { _ in -20 }
+
                     
                     Button {
-                        network.authenticateCredentials(webAPIUsername: webAPIUsername, webAPIKey: webAPIKey)
+                        Task {
+                            await network.authenticateCredentials(webAPIUsername: webAPIUsername, webAPIKey: webAPIKey)
+                        }
                     } label: {
                         HStack{
                             Spacer()
                             Text("Login")
                             Spacer()
-                        }
+                        }        
+                        .alignmentGuide(.listRowSeparatorLeading) { _ in -20 }
                     }
                     
                     Button {
@@ -70,7 +77,6 @@ struct RetroAchievementsLoginView: View {
     @State var webAPIKey = debugWebAPIKey
     @State var shouldShowLoginSheet = false
     let network = Network()
-    network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
     return RetroAchievementsLoginView(shouldShowLoginSheet: $shouldShowLoginSheet, webAPIUsername: $webAPIUsername, webAPIKey: $webAPIKey)
         .environmentObject(network)
 }

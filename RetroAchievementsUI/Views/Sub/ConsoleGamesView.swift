@@ -16,8 +16,8 @@ struct ConsoleGamesView: View {
         if network.consoleGamesCache[consoleID] != nil {
                 Form(){
                     ForEach(network.consoleGamesCache[consoleID]!.sorted { $0.title.lowercased() < $1.title.lowercased()}) { consoleGame in
-                        NavigationLink(destination: GameSummaryView(hardcoreMode: $hardcoreMode, gameID: consoleGame.id).onAppear {
-                            network.getGameSummary(gameID: consoleGame.id)
+                        NavigationLink(destination: GameSummaryView(hardcoreMode: $hardcoreMode, gameID: consoleGame.id).task {
+                            await network.getGameSummary(gameID: consoleGame.id)
                         })
                         {
                             ConsoleGameDetailView(consoleGame: consoleGame, hardcoreMode: $hardcoreMode)
@@ -27,8 +27,8 @@ struct ConsoleGamesView: View {
             
         } else {
             ProgressView()
-                .onAppear {
-                    network.getGameForConsole(consoleID: consoleID)
+                .task {
+                    await network.getGameForConsole(consoleID: consoleID)
                 }
         }
             
@@ -38,8 +38,10 @@ struct ConsoleGamesView: View {
 // Preview Bug Likely From Use of Dictionary (Empty Dictionary Lieral?)
 #Preview {
     let network = Network()
-    network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
-    network.getGameForConsole(consoleID: 2)
+    Task {
+        await network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
+        await network.getGameForConsole(consoleID: 2)
+    }
     @State var hardcoreMode: Bool = true
     return ConsoleGamesView(hardcoreMode: $hardcoreMode, consoleID: 2)
         .environmentObject(network)

@@ -98,7 +98,10 @@ extension Bool {
     @State var webAPIKey = debugWebAPIKey
     @State var hardcoreMode = true
     let network = Network()
-    network.authenticateCredentials(webAPIUsername: webAPIUsername, webAPIKey: webAPIKey)
+    Task {
+        await network.authenticateCredentials(webAPIUsername: webAPIUsername, webAPIKey: webAPIKey)
+
+    }
     return ContentView(webAPIUsername: $webAPIUsername, webAPIKey: $webAPIKey,
     hardcoreMode: $hardcoreMode)
         .environmentObject(network)

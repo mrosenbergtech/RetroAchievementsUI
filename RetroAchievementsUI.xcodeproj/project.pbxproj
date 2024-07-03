@@ -10,6 +10,7 @@
 		2702F0452C253E8D00EC3364 /* AwardDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2702F0442C253E8D00EC3364 /* AwardDetailView.swift */; };
 		2702F0472C253F1800EC3364 /* AwardsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2702F0462C253F1800EC3364 /* AwardsView.swift */; };
 		2702F04A2C25472100EC3364 /* GameSummaryPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2702F0492C25472100EC3364 /* GameSummaryPreviewView.swift */; };
+		271722F12C360756004114EB /* RecentGamePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 271722F02C360756004114EB /* RecentGamePreviewView.swift */; };
 		274F4E922C24FBA300F49981 /* RecentGame.swift in Sources */ = {isa = PBXBuildFile; fileRef = 274F4E912C24FBA300F49981 /* RecentGame.swift */; };
 		27503B292C1BC4690010B0A2 /* Achievement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27503B282C1BC4690010B0A2 /* Achievement.swift */; };
 		27503B2E2C1D024C0010B0A2 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 27503B2D2C1D024C0010B0A2 /* Kingfisher */; };
@@ -43,6 +44,7 @@
 		2702F0442C253E8D00EC3364 /* AwardDetailView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AwardDetailView.swift; sourceTree = "<group>"; };
 		2702F0462C253F1800EC3364 /* AwardsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AwardsView.swift; sourceTree = "<group>"; };
 		2702F0492C25472100EC3364 /* GameSummaryPreviewView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GameSummaryPreviewView.swift; sourceTree = "<group>"; };
+		271722F02C360756004114EB /* RecentGamePreviewView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecentGamePreviewView.swift; sourceTree = "<group>"; };
 		274F4E912C24FBA300F49981 /* RecentGame.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecentGame.swift; sourceTree = "<group>"; };
 		27503B282C1BC4690010B0A2 /* Achievement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Achievement.swift; sourceTree = "<group>"; };
 		2752C8882C166D81002E25E2 /* AchievementsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AchievementsView.swift; sourceTree = "<group>"; };
@@ -170,6 +172,7 @@
 				27ED5A022C1807E100D4167F /* ConsoleGameDetailView.swift */,
 				27ED59FC2C17FA9A00D4167F /* ConsoleDetailView.swift */,
 				2702F0492C25472100EC3364 /* GameSummaryPreviewView.swift */,
+				271722F02C360756004114EB /* RecentGamePreviewView.swift */,
 				2752C88C2C16922B002E25E2 /* ScrollingText.swift */,
 			);
 			path = Detail;
@@ -266,6 +269,7 @@
 			files = (
 				27C704A82C250D14004BBB49 /* Awards.swift in Sources */,
 				2757FA892C142233008A8B7A /* GameCompletionProgress.swift in Sources */,
+				271722F12C360756004114EB /* RecentGamePreviewView.swift in Sources */,
 				2757FA682C138FDE008A8B7A /* ContentView.swift in Sources */,
 				27503B292C1BC4690010B0A2 /* Achievement.swift in Sources */,
 				2702F04A2C25472100EC3364 /* GameSummaryPreviewView.swift in Sources */,
@@ -420,7 +424,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "\"RetroAchievementsUI/Preview Content\"";
 				DEVELOPMENT_TEAM = Z8253GXZFC;
 				ENABLE_PREVIEWS = YES;
@@ -432,13 +436,14 @@
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = "Launch Screen.storyboard";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2.2;
+				MARKETING_VERSION = 1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mrosenbergtech.RetroAchievementsUI;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -453,7 +458,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "\"RetroAchievementsUI/Preview Content\"";
 				DEVELOPMENT_TEAM = Z8253GXZFC;
 				ENABLE_PREVIEWS = YES;
@@ -465,13 +470,14 @@
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = "Launch Screen.storyboard";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2.2;
+				MARKETING_VERSION = 1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mrosenbergtech.RetroAchievementsUI;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

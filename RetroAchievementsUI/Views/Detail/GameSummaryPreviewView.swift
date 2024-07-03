@@ -52,8 +52,8 @@ struct GameSummaryPreviewView: View {
             }
         }  else {
             ProgressView()
-                .onAppear {
-                    network.getGameSummary(gameID: gameID)
+                .task {
+                    await network.getGameSummary(gameID: gameID)
                 }
         }
     }
@@ -77,8 +77,11 @@ func highestAwardColor(highestAwardKind: String?) -> Color {
 #Preview {
     @State var hardcoreMode: Bool = true
     let network = Network()
-    network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
-    network.getGameSummary(gameID: 10003)
+    Task {
+        await network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
+        await network.getGameSummary(gameID: 10003)
+    }
+    
     return GameSummaryPreviewView(hardcoreMode: $hardcoreMode, gameID: 10003).environmentObject(network)
 }
 

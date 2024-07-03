@@ -39,8 +39,10 @@ struct MyGamesView: View {
 
 #Preview {
     let network = Network()
-    network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
-    network.getUserGameCompletionProgress()
+    Task {
+        await network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
+        await network.getUserGameCompletionProgress()
+    }
     @State var hardcoreMode: Bool = true
     return MyGamesView(hardcoreMode: $hardcoreMode)
         .environmentObject(network)
