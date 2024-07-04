@@ -40,7 +40,7 @@ struct ProfileView: View {
                         Section(header: Text("Recently Played Games")) {
                             ForEach(network.userRecentlyPlayedGames) { recentlyPlayedGame in
                                 NavigationLink(destination: GameSummaryView(hardcoreMode: $hardcoreMode, gameID: recentlyPlayedGame.id)){
-                                     RecentGameSummaryPreviewView(hardcoreMode: $hardcoreMode, imageIconString: recentlyPlayedGame.imageIcon, gameTitle: recentlyPlayedGame.title, gameConsoleName: recentlyPlayedGame.consoleName, maxPossible: recentlyPlayedGame.numPossibleAchievements, numAwardedHardcore: recentlyPlayedGame.numAchievedHardcore, numAwarded: recentlyPlayedGame.numAchieved, highestAwardKind: network.userGameCompletionProgress?.results.filter {$0.id == recentlyPlayedGame.id}.first?.highestAwardKind ?? nil)
+                                     GameSummaryPreviewView(hardcoreMode: $hardcoreMode, imageIconString: recentlyPlayedGame.imageIcon, gameTitle: recentlyPlayedGame.title, gameConsoleName: recentlyPlayedGame.consoleName, maxPossible: recentlyPlayedGame.numPossibleAchievements, numAwardedHardcore: recentlyPlayedGame.numAchievedHardcore, numAwarded: recentlyPlayedGame.numAchieved, highestAwardKind: network.userGameCompletionProgress?.results.filter {$0.id == recentlyPlayedGame.id}.first?.highestAwardKind ?? nil)
                                 }
                             }
                         }

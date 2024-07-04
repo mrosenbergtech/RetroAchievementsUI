@@ -16,7 +16,7 @@ struct GameSummaryView: View {
     var body: some View {
         if network.gameSummaryCache[gameID] != nil {
             Form {
-                GameSummaryPreviewView(hardcoreMode: $hardcoreMode, gameID: gameID)
+                GameSummaryHeaderView(hardcoreMode: $hardcoreMode, gameID: gameID)
                 
                 AchievementsView(hardcoreMode: $hardcoreMode, gameSummary: network.gameSummaryCache[gameID]!)
             }

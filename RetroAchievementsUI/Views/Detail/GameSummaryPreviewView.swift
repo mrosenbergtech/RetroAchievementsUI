@@ -1,5 +1,5 @@
 //
-//  GameSummaryHeaderView.swift
+//  GameSummaryPreviewView.swift
 //  RetroAchievementsUI
 //
 //  Created by Michael Rosenberg on 6/20/24.
@@ -11,66 +11,51 @@ import Kingfisher
 struct GameSummaryPreviewView: View {
     @EnvironmentObject var network: Network
     @Binding var hardcoreMode: Bool
-    var gameID: Int
+    let imageIconString: String
+    let gameTitle: String
+    let gameConsoleName: String
+    let maxPossible: Int
+    let numAwardedHardcore: Int
+    let numAwarded: Int
+    let highestAwardKind: String?
     
     var body: some View {
-        if network.gameSummaryCache[gameID] != nil {
-            HStack{
-                KFImage(URL(string: "https://retroachievements.org/" + (network.gameSummaryCache[gameID]!.imageIcon)))
-                .resizable()
-                .clipShape(.rect(cornerRadius: 10))
-                .frame(width: 64, height: 64)
+        HStack{
+            KFImage(URL(string: "https://retroachievements.org/" + imageIconString))
+            .resizable()
+            .clipShape(.rect(cornerRadius: 10))
+            .frame(width: 64, height: 64)
+            
+            VStack {
+                ScrollingText(text: gameTitle, font: .boldSystemFont(ofSize: 15), leftFade: 15, rightFade: 15, startDelay: 1, alignment: .center)
+                    .padding(.horizontal)
                 
-                VStack {
-                    ScrollingText(text: network.gameSummaryCache[gameID]!.title, font: .boldSystemFont(ofSize: 15), leftFade: 15, rightFade: 15, startDelay: 1, alignment: .center)
-                        .padding(.horizontal)
-                    
-                    Text(network.gameSummaryCache[gameID]!.consoleName)
-                        .foregroundStyle(.gray)
-                        .font(.footnote)
-                        .lineLimit(1)
-                        .padding(.horizontal)
-                    
-                    if network.gameSummaryCache[gameID]!.numAchievements > 0 {
-                        HStack{
-                            Image(systemName: "trophy.circle")
-                            Text(String(hardcoreMode ? network.gameSummaryCache[gameID]!.numAwardedToUserHardcore : network.gameSummaryCache[gameID]!.numAwardedToUser) + " | " + String(network.gameSummaryCache[gameID]!.numAchievements))
-                                .multilineTextAlignment(.center)
-                                .font(.footnote)
-                        }
-                            
-                        ProgressView(value: Float(hardcoreMode ? network.gameSummaryCache[gameID]!.numAwardedToUserHardcore : network.gameSummaryCache[gameID]!.numAwardedToUser) / Float(network.gameSummaryCache[gameID]!.numAchievements))
-                            .padding(.horizontal)
-                    } else {
-                        Text("No Achievements!")
+                Text(gameConsoleName)
+                    .foregroundStyle(.gray)
+                    .font(.footnote)
+                    .lineLimit(1)
+                    .padding(.horizontal)
+                
+                if maxPossible > 0 {
+                    HStack{
+                        Image(systemName: "trophy.circle")
+                        Text(String(hardcoreMode ? numAwardedHardcore : numAwarded) + " | " + String(maxPossible))
+                            .multilineTextAlignment(.center)
+                            .font(.footnote)
                     }
-                    
+                        
+                    ProgressView(value: Float(hardcoreMode ? numAwardedHardcore : numAwarded) / Float(maxPossible)
+                    )
+                    .padding(.horizontal)
+                } else {
+                    Text("No Achievements!")
                 }
                 
-                Image(systemName: "checkmark.circle")
-                    .foregroundStyle(highestAwardColor(highestAwardKind: network.gameSummaryCache[gameID]!.highestAwardKind))
             }
-        }  else {
-            ProgressView()
-                .task {
-                    await network.getGameSummary(gameID: gameID)
-                }
+            
+            Image(systemName: "checkmark.circle")
+                .foregroundStyle(highestAwardColor(highestAwardKind: highestAwardKind))
         }
-    }
-}
-
-func highestAwardColor(highestAwardKind: String?) -> Color {
-    switch highestAwardKind {
-    case "mastered":
-        return .yellow
-    case "completed":
-        return .orange
-    case "beaten-hardcore":
-        return .green
-    case "beaten-softcore":
-        return .blue
-    default:
-        return .gray
     }
 }
  
@@ -82,6 +67,7 @@ func highestAwardColor(highestAwardKind: String?) -> Color {
         await network.getGameSummary(gameID: 10003)
     }
     
-    return GameSummaryPreviewView(hardcoreMode: $hardcoreMode, gameID: 10003).environmentObject(network)
+    return GameSummaryPreviewView(hardcoreMode: $hardcoreMode, imageIconString: "/Images/047942.png", gameTitle: "Super Mario 64", gameConsoleName: "Nintendo 64", maxPossible: 114, numAwardedHardcore: 59, numAwarded: 59, highestAwardKind: "beaten-hardcore")
+        .environmentObject(network)
 }
 
