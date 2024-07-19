@@ -38,5 +38,8 @@ struct ConsoleDetailView: View {
 #Preview {
     let network = Network()
     @State var hardcoreMode: Bool = true
-    return ConsoleDetailView(console: network.consolesCache.consoles.first!, hardcoreMode: $hardcoreMode)
+    Task {
+        await network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
+    }
+    return ConsoleDetailView(console: network.consolesCache?.consoles.first ?? Console(id: -1, name: "Error", iconURL: "Error", active: false, isGameSystem: false), hardcoreMode: $hardcoreMode)
 }

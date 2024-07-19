@@ -14,11 +14,11 @@ struct ConsolesView: View {
     var body: some View {
         NavigationView {
             Form(){
-                ForEach(network.consolesCache.consolesSortedByKind.sorted {$0.id.lowercased() < $1.id.lowercased()}) { consoleKind in
+                ForEach(network.consolesCache?.consolesSortedByKind.sorted {$0.id.lowercased() < $1.id.lowercased()} ?? []) { consoleKind in
                     Section(header: Text(consoleKind.id)){
                         ForEach(consoleKind.consoleIDList, id: \.self) { consoleID in
                             NavigationLink(destination: ConsoleGamesView(hardcoreMode: $hardcoreMode, consoleID: consoleID)) {
-                                ConsoleDetailView(console: network.consolesCache.getConsoleDataByID(consoleID: consoleID), hardcoreMode: $hardcoreMode)
+                                ConsoleDetailView(console: network.consolesCache?.getConsoleDataByID(consoleID: consoleID) ?? Console(id: -1, name: "Error", iconURL: "Error", active: false, isGameSystem: false), hardcoreMode: $hardcoreMode)
                             }
                         }
                     }

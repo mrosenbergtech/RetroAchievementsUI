@@ -18,7 +18,7 @@ class Network: ObservableObject {
     @Published var gameSummaryCache: [Int: GameSummary] = [:]
     @Published var initialWebAPIAuthenticationCheckComplete: Bool = false
     @Published var webAPIAuthenticated: Bool = false
-    @Published var consolesCache: Consoles = Consoles()
+    @Published var consolesCache: Consoles? = nil
     @Published var authenticatedWebAPIUsername: String = ""
     private var authenticatedWebAPIKey: String = ""
     
@@ -118,6 +118,10 @@ class Network: ObservableObject {
                 
                 Task {
                     await self.getUserRecentGames()
+                }
+                
+                Task {
+                    await self.getGameConsoles()
                 }
                                     
                 do {
@@ -268,6 +272,7 @@ class Network: ObservableObject {
                 do {
                     let decodedConsoleSummary = try JSONDecoder().decode([Console].self, from: raAPIResponse)
                     self.consoles = decodedConsoleSummary
+                    self.consolesCache = Consoles(consoles: self.consoles)
                 } catch let error {
                     print("Error decoding: ", error)
                 }
