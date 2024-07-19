@@ -66,7 +66,7 @@ class Consoles {
 """
     var aConsoles:    ConsoleByManuFacturer = ConsoleByManuFacturer(id: "Atari", consoleIDList: [13, 17, 25, 51, 77])
     var neConsoles:   ConsoleByManuFacturer = ConsoleByManuFacturer(id: "NEC", consoleIDList: [8, 47, 49, 76])
-    var niConsoles:   ConsoleByManuFacturer = ConsoleByManuFacturer(id: "Nintendo", consoleIDList: [2, 3, 4, 5, 6, 7, 18, 24, 28, 78])
+    var niConsoles:   ConsoleByManuFacturer = ConsoleByManuFacturer(id: "Nintendo", consoleIDList: [2, 3, 4, 5, 6, 7, 16, 18, 24, 28, 78])
     var seConsoles:   ConsoleByManuFacturer = ConsoleByManuFacturer(id: "Sega", consoleIDList: [1, 9, 10, 11, 15, 33, 39, 40])
     var snConsoles:   ConsoleByManuFacturer = ConsoleByManuFacturer(id: "SNK", consoleIDList: [14, 56])
     var soConsoles:   ConsoleByManuFacturer = ConsoleByManuFacturer(id: "Sony", consoleIDList: [12, 21, 41])
