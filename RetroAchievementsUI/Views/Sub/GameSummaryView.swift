@@ -20,6 +20,11 @@ struct GameSummaryView: View {
                 
                 AchievementsView(hardcoreMode: $hardcoreMode, gameSummary: network.gameSummaryCache[gameID]!)
             }
+            .refreshable {
+                Task {
+                    await network.getGameSummary(gameID: gameID)
+                }
+            }
         }  else {
             ProgressView()
                 .task {

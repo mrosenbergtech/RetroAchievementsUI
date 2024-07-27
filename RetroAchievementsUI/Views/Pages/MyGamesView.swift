@@ -31,6 +31,11 @@ struct MyGamesView: View {
 
                 }
             }
+            .refreshable {
+                Task {
+                    await network.getUserGameCompletionProgress()
+                }
+            }
         } else {
             ProgressView()
         }

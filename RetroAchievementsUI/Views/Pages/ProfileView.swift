@@ -49,6 +49,14 @@ struct ProfileView: View {
                     }
                 }
             }
+            .refreshable {
+                Task {
+                    await network.getProfile()
+                    await network.getUserGameCompletionProgress()
+                    await network.getUserRecentGames()
+                    await network.getAwards()
+                }
+            }
         } else {
             ProgressView()
         }
