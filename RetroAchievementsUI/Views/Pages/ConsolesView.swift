@@ -29,7 +29,7 @@ struct ConsolesView: View {
 }
 
 #Preview {
+    @Previewable @State var hardcoreMode: Bool = true
     let network = Network()
-    @State var hardcoreMode: Bool = true
     return ConsolesView(hardcoreMode: $hardcoreMode).environmentObject(network)
 }

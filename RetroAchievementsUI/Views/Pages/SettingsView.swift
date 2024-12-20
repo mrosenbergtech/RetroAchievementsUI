@@ -107,10 +107,10 @@ struct SettingsView: View {
 }
 
 #Preview {
-    @State var webAPIUsername = debugWebAPIUsername
-    @State var webAPIKey = debugWebAPIKey
-    @State var hardcoreMode = true
-    @State var shouldShowLoginSheet = false
+    @Previewable @State var webAPIUsername = debugWebAPIUsername
+    @Previewable @State var webAPIKey = debugWebAPIKey
+    @Previewable @State var hardcoreMode = true
+    @Previewable @State var shouldShowLoginSheet = false
     let network = Network()
     Task {
         await network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)

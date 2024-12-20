@@ -43,7 +43,7 @@ struct ConsoleGameDetailView: View {
 
 
 #Preview {
+    @Previewable @State var hardcoreMode: Bool = true
     let previewGame = ConsoleGameInfo(title: "Super Mario 64", id: 10003, consoleID: 2, consoleName: "Nintendo 64", imageIcon: "/Images/047942.png", numAchievements: 114, numLeaderboards: 0, points: 500, dateModified: "N/A", forumTopicID: -1, hashes: nil)
-    @State var hardcoreMode: Bool = true
     return ConsoleGameDetailView(consoleGame: previewGame, hardcoreMode: $hardcoreMode)
 }

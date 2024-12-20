@@ -75,7 +75,7 @@ func highestAwardColor(highestAwardKind: String?) -> Color {
 }
  
 #Preview {
-    @State var hardcoreMode: Bool = true
+    @Previewable @State var hardcoreMode: Bool = true
     let network = Network()
     Task {
         await network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)

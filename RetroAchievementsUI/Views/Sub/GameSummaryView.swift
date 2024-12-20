@@ -36,7 +36,7 @@ struct GameSummaryView: View {
  
 // Preview Bug Likely From Use of Dictionary (Empty Dictionary Lieral?)
 #Preview {
-    @State var hardcoreMode: Bool = true
+    @Previewable @State var hardcoreMode: Bool = true
     let network = Network()
     Task {
         await network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)

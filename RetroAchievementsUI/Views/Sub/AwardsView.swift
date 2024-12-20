@@ -39,12 +39,11 @@ struct AwardsView: View {
 }
 
 #Preview {
+    @Previewable @State var hardcoreMode: Bool = true
     let network = Network()
     Task {
         await network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
-
+        
     }
-    
-    @State var hardcoreMode: Bool = true
     return AwardsView(hardcoreMode: $hardcoreMode).environmentObject(network)
 }

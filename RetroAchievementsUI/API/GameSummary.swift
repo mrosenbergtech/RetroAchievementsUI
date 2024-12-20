@@ -17,15 +17,15 @@ struct GameSummary: Codable {
     let imageTitle: String
     let imageIngame: String
     let imageBoxArt: String
-    let publisher: String
-    let developer: String
-    let genre: String
+    let publisher: String?
+    let developer: String?
+    let genre: String?
     let released: String
-    let isFinal: Int
+    let isFinal: Bool
     let richPresencePatch: String
-    let playersTotal: Int
-    let achievementsPublished: Int
-    let pointsTotal: Int
+    let playersTotal: Int?
+    let achievementsPublished: Int?
+    let pointsTotal: Int?
     let guideURL: String? // Note: Use Optional<String> instead of String if guideURL can be null
     let consoleName: String
     let parentGameID: Int? // Note: Use Optional<Int> instead of Int if parentGameID can be null

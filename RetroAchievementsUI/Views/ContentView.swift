@@ -94,9 +94,9 @@ extension Bool {
 }
 
 #Preview {
-    @State var webAPIUsername = debugWebAPIUsername
-    @State var webAPIKey = debugWebAPIKey
-    @State var hardcoreMode = true
+    @Previewable @State var webAPIUsername = debugWebAPIUsername
+    @Previewable @State var webAPIKey = debugWebAPIKey
+    @Previewable @State var hardcoreMode = true
     let network = Network()
     Task {
         await network.authenticateCredentials(webAPIUsername: webAPIUsername, webAPIKey: webAPIKey)

@@ -37,7 +37,7 @@ struct AwardDetailView: View {
 }
 
 #Preview {
-    @State var hardcoreMode: Bool = true
+    @Previewable @State var hardcoreMode: Bool = true
     let previewAward = VisibleUserAward(awardedAt: "2023-05-21T13:16:27+00:00", awardType: "Game Beaten", id: 10003, awardDataExtra: 1, displayOrder: 0, title: "Super Mario 64", consoleID: 2, consoleName: "Nintendo 64", flags: 0, imageIcon: "/Images/047942.png")
     return AwardDetailView(award: previewAward).padding()
 }

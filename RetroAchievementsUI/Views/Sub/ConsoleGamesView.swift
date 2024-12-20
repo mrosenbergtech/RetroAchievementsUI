@@ -37,12 +37,12 @@ struct ConsoleGamesView: View {
 
 // Preview Bug Likely From Use of Dictionary (Empty Dictionary Lieral?)
 #Preview {
+    @Previewable @State var hardcoreMode: Bool = true
     let network = Network()
     Task {
         await network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
         await network.getGameForConsole(consoleID: 2)
     }
-    @State var hardcoreMode: Bool = true
     return ConsoleGamesView(hardcoreMode: $hardcoreMode, consoleID: 2)
         .environmentObject(network)
 }

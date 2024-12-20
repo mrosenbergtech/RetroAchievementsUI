@@ -36,8 +36,8 @@ struct ConsoleDetailView: View {
 
 
 #Preview {
+    @Previewable @State var hardcoreMode: Bool = true
     let network = Network()
-    @State var hardcoreMode: Bool = true
     Task {
         await network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
     }

@@ -86,9 +86,9 @@ struct RetroAchievementsLoginView: View {
 }
 
 #Preview {
-    @State var webAPIUsername = debugWebAPIUsername
-    @State var webAPIKey = debugWebAPIKey
-    @State var shouldShowLoginSheet = false
+    @Previewable @State var webAPIUsername = debugWebAPIUsername
+    @Previewable @State var webAPIKey = debugWebAPIKey
+    @Previewable @State var shouldShowLoginSheet = false
     let network = Network()
     return RetroAchievementsLoginView(shouldShowLoginSheet: $shouldShowLoginSheet, webAPIUsername: $webAPIUsername, webAPIKey: $webAPIKey)
         .environmentObject(network)
