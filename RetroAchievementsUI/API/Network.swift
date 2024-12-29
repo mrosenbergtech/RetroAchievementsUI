@@ -20,6 +20,7 @@ class Network: ObservableObject {
     @Published var webAPIAuthenticated: Bool = false
     @Published var consolesCache: Consoles? = nil
     @Published var authenticatedWebAPIUsername: String = ""
+    @Published var userRecentAchievements: [RecentAchievement] = []
     private var authenticatedWebAPIKey: String = ""
     
     func buildAuthenticationString() -> String {
@@ -109,7 +110,10 @@ class Network: ObservableObject {
                 
                 Task {
                     await self.getAwards()
-
+                }
+                
+                Task {
+                    await self.getUserRecentAchievements()
                 }
                 
                 Task {
@@ -122,7 +126,7 @@ class Network: ObservableObject {
                 
                 Task {
                     await self.getGameConsoles()
-                }
+                }                                
                                     
                 do {
                     let decodedProfile = try JSONDecoder().decode(Profile.self, from: raAPIResponse)
@@ -221,6 +225,23 @@ class Network: ObservableObject {
                 do {
                     let decodedUserRecentlyPlayedGames = try JSONDecoder().decode([RecentGame].self, from: raAPIResponse)
                     self.userRecentlyPlayedGames = decodedUserRecentlyPlayedGames
+                } catch let error {
+                    print("Error decoding: ", error)
+                }
+            }
+        } else {
+            print("Bad Response Code!")
+        }
+    }
+    
+    func getUserRecentAchievements() async {
+        guard let url = URL(string: "https://retroachievements.org/API/API_GetUserRecentAchievements.php?\(buildAuthenticationString())&u=\(self.authenticatedWebAPIUsername)&m=999999999") else { fatalError("Missing URL") }
+        
+        if let raAPIResponse: Data = await makeAPICall(url: url) {
+            DispatchQueue.main.async {
+                do {
+                    let decodedRecentAchievements = try JSONDecoder().decode([RecentAchievement].self, from: raAPIResponse)
+                    self.userRecentAchievements = decodedRecentAchievements
                 } catch let error {
                     print("Error decoding: ", error)
                 }

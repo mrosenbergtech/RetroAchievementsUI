@@ -21,19 +21,11 @@ struct ProfileView: View {
                             .resizable()
                             .clipShape(.rect(cornerRadius: 10))
                             .scaleEffect(0.75)
-                            .frame(width: 96, height: 96)
+                            .frame(width: 50, height: 50)
                         
-                        VStack {
-                            
-                            Text(network.profile?.user ?? "Username")
-                                .font(.title)
-                                .bold()
-                            
-                            HStack {
-                                Image(systemName: "command.circle.fill")
-                                Text(String(((hardcoreMode ? network.profile?.totalPoints : network.profile?.totalSoftcorePoints) ?? 0)))
-                            }
-                        }
+                        Text(network.profile?.user ?? "Username")
+                            .font(.title)
+                            .bold()
                     }
                     
                     Form {
@@ -45,6 +37,8 @@ struct ProfileView: View {
                             }
                         }
                         
+                        RecentAchievementsView(network: _network, hardcoreMode: $hardcoreMode)
+                        
                         AwardsView(network: _network, hardcoreMode: $hardcoreMode)                        
                     }
                 }
@@ -53,6 +47,7 @@ struct ProfileView: View {
                 Task {
                     await network.getProfile()
                     await network.getUserGameCompletionProgress()
+                    await network.getUserRecentAchievements()
                     await network.getUserRecentGames()
                     await network.getAwards()
                 }

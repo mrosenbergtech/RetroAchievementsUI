@@ -30,6 +30,15 @@ struct AchievementDetailView: View {
                         Text(String(achievement.points))
                     }
                     
+                    // Missable
+                    if achievement.type == "missable"{
+                        HStack{
+                            Image(systemName: "m.circle.fill")
+                            Text("Missable")
+                        }.minimumScaleFactor(0.01)
+
+                    }
+                    
                     // Unlock Status
                     HStack{
                         if (achievement.dateEarned != nil){
