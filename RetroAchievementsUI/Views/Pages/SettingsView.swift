@@ -13,6 +13,7 @@ struct SettingsView: View {
     @Binding var webAPIUsername: String
     @Binding var webAPIKey: String
     @Binding var hardcoreMode: Bool
+    @Binding var unofficialSearchResults: Bool
     @Binding var shouldShowLoginSheet: Bool
     @State var blankCredentials: Bool = false
     
@@ -73,6 +74,9 @@ struct SettingsView: View {
                 content: {
                         Toggle("Hardcode Mode", isOn: $hardcoreMode)
                         .alignmentGuide(.listRowSeparatorLeading) { _ in -20 }
+                    
+                        Toggle("Search for Unofficial Games", isOn: $unofficialSearchResults)
+                        .alignmentGuide(.listRowSeparatorLeading) { _ in -20 }
 
                         
                         Button {
@@ -126,11 +130,12 @@ struct SettingsView: View {
     @Previewable @State var webAPIUsername = debugWebAPIUsername
     @Previewable @State var webAPIKey = debugWebAPIKey
     @Previewable @State var hardcoreMode = true
+    @Previewable @State var unofficialSearchResults = false
     @Previewable @State var shouldShowLoginSheet = false
     let network = Network()
     Task {
         await network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
     }
-    return SettingsView(webAPIUsername: $webAPIUsername, webAPIKey: $webAPIKey, hardcoreMode: $hardcoreMode, shouldShowLoginSheet: $shouldShowLoginSheet)
+    return SettingsView(webAPIUsername: $webAPIUsername, webAPIKey: $webAPIKey, hardcoreMode: $hardcoreMode, unofficialSearchResults: $unofficialSearchResults, shouldShowLoginSheet: $shouldShowLoginSheet)
         .environmentObject(network)
 }

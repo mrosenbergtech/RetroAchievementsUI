@@ -33,9 +33,11 @@ struct ProfileView: View {
                         
                         RecentAchievementsView(hardcoreMode: $hardcoreMode)
                         
-                        AwardsView(hardcoreMode: $hardcoreMode)                        
+                        AwardsView(hardcoreMode: $hardcoreMode)
                     }
                 }
+                .navigationBarTitle("Profile")
+                .navigationBarHidden(true)
             }
             .refreshable {
                 Task {

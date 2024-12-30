@@ -12,6 +12,7 @@ struct ContentView: View {
     @Binding var webAPIUsername: String
     @Binding var webAPIKey: String
     @Binding var hardcoreMode: Bool
+    @Binding var unofficialSearchResults: Bool
     @State var selectedTab: Int = 1
     @State var shouldShowLoginSheet: Bool = true
     
@@ -54,7 +55,7 @@ struct ContentView: View {
                         selectedTab = 3
                     }
                 
-                SearchView(hardcoreMode: $hardcoreMode)
+                SearchView(hardcoreMode: $hardcoreMode, unofficialSearchResults: $unofficialSearchResults)
                     .tabItem {
                         Label(
                             title: { Text("Search") },
@@ -67,7 +68,7 @@ struct ContentView: View {
                     }
                 
                 // TODO: Move to Sheet
-                SettingsView(webAPIUsername: $webAPIUsername, webAPIKey: $webAPIKey, hardcoreMode: $hardcoreMode, shouldShowLoginSheet: $shouldShowLoginSheet)
+                SettingsView(webAPIUsername: $webAPIUsername, webAPIKey: $webAPIKey, hardcoreMode: $hardcoreMode, unofficialSearchResults: $unofficialSearchResults, shouldShowLoginSheet: $shouldShowLoginSheet)
                     .tabItem {
                         Label(
                             title: { Text("Settings") },
@@ -109,12 +110,13 @@ extension Bool {
     @Previewable @State var webAPIUsername = debugWebAPIUsername
     @Previewable @State var webAPIKey = debugWebAPIKey
     @Previewable @State var hardcoreMode = true
+    @Previewable @State var unofficialSearchResults = false
     let network = Network()
+
     Task {
         await network.authenticateCredentials(webAPIUsername: webAPIUsername, webAPIKey: webAPIKey)
-
     }
-    return ContentView(webAPIUsername: $webAPIUsername, webAPIKey: $webAPIKey,
-    hardcoreMode: $hardcoreMode)
+    
+    return ContentView(webAPIUsername: $webAPIUsername, webAPIKey: $webAPIKey, hardcoreMode: $hardcoreMode, unofficialSearchResults: $unofficialSearchResults)
         .environmentObject(network)
 }

@@ -30,6 +30,8 @@ struct MyGamesView: View {
                     }
 
                 }
+                .navigationBarTitle("My Games")
+                .navigationBarHidden(true)
             }
             .refreshable {
                 Task {
