@@ -54,6 +54,18 @@ struct ContentView: View {
                         selectedTab = 3
                     }
                 
+                SearchView(hardcoreMode: $hardcoreMode)
+                    .tabItem {
+                        Label(
+                            title: { Text("Search") },
+                            icon: { Image(systemName: "magnifyingglass.circle") }
+                        )
+                    }
+                    .tag(4)
+                    .onAppear {
+                        selectedTab = 4
+                    }
+                
                 // TODO: Move to Sheet
                 SettingsView(webAPIUsername: $webAPIUsername, webAPIKey: $webAPIKey, hardcoreMode: $hardcoreMode, shouldShowLoginSheet: $shouldShowLoginSheet)
                     .tabItem {
@@ -62,9 +74,9 @@ struct ContentView: View {
                             icon: { Image(systemName: "gear.circle") }
                         )
                     }
-                    .tag(4)
+                    .tag(5)
                     .onAppear {
-                        selectedTab = 4
+                        selectedTab = 5
                     }
             }
         } else if !network.initialWebAPIAuthenticationCheckComplete {

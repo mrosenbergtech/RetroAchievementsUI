@@ -13,7 +13,7 @@ struct ProfileView: View {
     @Binding var hardcoreMode: Bool
     var body: some View {
         
-        if (network.profile != nil || network.userRecentlyPlayedGames.count >= 0 || network.awards != nil) {
+        if (network.profile != nil && network.awards != nil) {
             NavigationView {
                 VStack {
                     HStack {
@@ -29,17 +29,11 @@ struct ProfileView: View {
                     }
                     
                     Form {
-                        Section(header: Text("Recently Played Games")) {
-                            ForEach(network.userRecentlyPlayedGames) { recentlyPlayedGame in
-                                NavigationLink(destination: GameSummaryView(hardcoreMode: $hardcoreMode, gameID: recentlyPlayedGame.id)){
-                                     GameSummaryPreviewView(hardcoreMode: $hardcoreMode, imageIconString: recentlyPlayedGame.imageIcon, gameTitle: recentlyPlayedGame.title, gameConsoleName: recentlyPlayedGame.consoleName, maxPossible: recentlyPlayedGame.numPossibleAchievements, numAwardedHardcore: recentlyPlayedGame.numAchievedHardcore, numAwarded: recentlyPlayedGame.numAchieved, highestAwardKind: network.userGameCompletionProgress?.results.filter {$0.id == recentlyPlayedGame.id}.first?.highestAwardKind ?? nil)
-                                }
-                            }
-                        }
+                        RecentGamesView(hardcoreMode: $hardcoreMode)
                         
-                        RecentAchievementsView(network: _network, hardcoreMode: $hardcoreMode)
+                        RecentAchievementsView(hardcoreMode: $hardcoreMode)
                         
-                        AwardsView(network: _network, hardcoreMode: $hardcoreMode)                        
+                        AwardsView(hardcoreMode: $hardcoreMode)                        
                     }
                 }
             }
