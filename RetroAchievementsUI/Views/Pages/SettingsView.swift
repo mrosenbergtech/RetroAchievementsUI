@@ -71,8 +71,9 @@ struct SettingsView: View {
             Section(
                 header: Text("Other Settings"),
                 content: {
-                    VStack{
                         Toggle("Hardcode Mode", isOn: $hardcoreMode)
+                        .alignmentGuide(.listRowSeparatorLeading) { _ in -20 }
+
                         
                         Button {
                             let cache = ImageCache.default
@@ -86,8 +87,23 @@ struct SettingsView: View {
                                 Spacer()
                             }
                         }
-                    }
-                    
+                        .alignmentGuide(.listRowSeparatorLeading) { _ in -20 }
+
+                                                
+                        Button {
+                            Task {
+                                await network.refreshGameList()
+                            }
+                        } label: {
+                            HStack {
+                                Spacer()
+                                Text("Refresh Game List")
+                                    .foregroundStyle(.cyan)
+                                Spacer()
+                            }
+                        }
+                        .alignmentGuide(.listRowSeparatorLeading) { _ in -20 }
+
                 }
             )
         }

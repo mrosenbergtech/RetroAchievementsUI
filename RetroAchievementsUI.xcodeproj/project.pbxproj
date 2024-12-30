@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2701F1122D2319840036405D /* GameListGame.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2701F1112D2319840036405D /* GameListGame.swift */; };
 		2702F0452C253E8D00EC3364 /* AwardDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2702F0442C253E8D00EC3364 /* AwardDetailView.swift */; };
 		2702F0472C253F1800EC3364 /* AwardsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2702F0462C253F1800EC3364 /* AwardsView.swift */; };
 		2702F04A2C25472100EC3364 /* GameSummaryHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2702F0492C25472100EC3364 /* GameSummaryHeaderView.swift */; };
@@ -44,6 +45,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		2701F1112D2319840036405D /* GameListGame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameListGame.swift; sourceTree = "<group>"; };
 		2702F0442C253E8D00EC3364 /* AwardDetailView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AwardDetailView.swift; sourceTree = "<group>"; };
 		2702F0462C253F1800EC3364 /* AwardsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AwardsView.swift; sourceTree = "<group>"; };
 		2702F0492C25472100EC3364 /* GameSummaryHeaderView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GameSummaryHeaderView.swift; sourceTree = "<group>"; };
@@ -157,6 +159,7 @@
 				2757FA7F2C13F79E008A8B7A /* GameSummary.swift */,
 				2757FA752C13905A008A8B7A /* Profile.swift */,
 				274F4E912C24FBA300F49981 /* RecentGame.swift */,
+				2701F1112D2319840036405D /* GameListGame.swift */,
 			);
 			path = API;
 			sourceTree = "<group>";
@@ -284,6 +287,7 @@
 				2702F04A2C25472100EC3364 /* GameSummaryHeaderView.swift in Sources */,
 				27FCD0C32C193DD1008C54AF /* RetroAchievementsLoginView.swift in Sources */,
 				27D04B312D209FBC00A51BF6 /* RecentAchievement.swift in Sources */,
+				2701F1122D2319840036405D /* GameListGame.swift in Sources */,
 				27ED5A012C18041100D4167F /* ConsoleGamesView.swift in Sources */,
 				2757FA762C13905A008A8B7A /* Profile.swift in Sources */,
 				27ED59FD2C17FA9A00D4167F /* ConsoleDetailView.swift in Sources */,
@@ -455,7 +459,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.5.0;
+				MARKETING_VERSION = 1.5.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mrosenbergtech.RetroAchievementsUI;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -489,7 +493,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.5.0;
+				MARKETING_VERSION = 1.5.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mrosenbergtech.RetroAchievementsUI;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
