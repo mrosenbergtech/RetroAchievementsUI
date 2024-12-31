@@ -147,6 +147,20 @@ class Network: ObservableObject {
         }
     }
     
+    func buildUserStatusMessage() -> String {
+        var temporaryRichPresenceMessage = "Currently Offline"
+        
+        if self.profile?.richPresenceMsg != nil {
+            if let latestRichPresenceMessage = self.profile!.richPresenceMsg {
+                if let lastPlayedGameName = self.gameList.filter({ $0.id == self.profile!.lastGameID }) .first?.title {
+                    temporaryRichPresenceMessage = "[Playing: " + lastPlayedGameName + "] " + (latestRichPresenceMessage)
+                }
+            }
+        }
+        
+        return temporaryRichPresenceMessage
+    }
+    
     func getProfile() async {
         guard let url = URL(string: "https://retroachievements.org/API/API_GetUserProfile.php?\(buildAuthenticationString())&u=\(self.authenticatedWebAPIUsername)") else { fatalError("Missing URL") }
         

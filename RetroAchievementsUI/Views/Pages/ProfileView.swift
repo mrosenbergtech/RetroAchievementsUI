@@ -20,12 +20,21 @@ struct ProfileView: View {
                         KFImage(URL(string: "https://retroachievements.org/" + (network.profile?.userPic ?? "UserPic/retroachievementsUI")))
                             .resizable()
                             .clipShape(.rect(cornerRadius: 10))
-                            .scaleEffect(0.75)
+                            .scaleEffect(1.25)
                             .frame(width: 50, height: 50)
+                            .padding()
                         
-                        Text(network.profile?.user ?? "Username")
-                            .font(.title)
-                            .bold()
+                        VStack{
+                            Text(network.profile?.user ?? "Username")
+                                .font(.title)
+                                .bold()
+
+                            ScrollingText(text: network.buildUserStatusMessage(), font: .preferredFont(forTextStyle: .subheadline), leftFade: 15, rightFade: 15, startDelay: 3, alignment: .center)
+                                    .frame(maxWidth: .infinity)
+                                    .foregroundStyle(.gray)
+                                    .padding(.horizontal)
+                        }
+                        
                     }
                     
                     Form {
