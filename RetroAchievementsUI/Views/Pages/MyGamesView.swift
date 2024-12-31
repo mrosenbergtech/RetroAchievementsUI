@@ -12,7 +12,7 @@ struct MyGamesView: View {
     @Binding var hardcoreMode: Bool
         
     var body: some View {
-        if network.userGameCompletionProgress != nil {
+        if network.userGameCompletionProgress?.results.count ?? -1 > 0 {
             NavigationView {
                 Form(){
                     ForEach(network.consolesCache?.consoles.sorted { $0.name.lowercased() < $1.name.lowercased()} ?? []) { console in
@@ -38,6 +38,8 @@ struct MyGamesView: View {
                     await network.getUserGameCompletionProgress()
                 }
             }
+        } else if network.userGameCompletionProgress?.count ?? -1 == 0 {
+            Text("No Games Found - Give One A Try!")
         } else {
             ProgressView()
         }
