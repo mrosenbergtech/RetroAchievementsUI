@@ -14,7 +14,7 @@ struct RecentAchievementsView: View {
     var body: some View {
         if ((network.userRecentAchievements.count) > 0){
             Section(header: Text("Recently Unlocked Achievements")){
-                ForEach(network.userRecentAchievements.prefix(upTo: 5)) { recentAchievement in
+                ForEach(network.userRecentAchievements.prefix(upTo: 3)) { recentAchievement in
                     if (hardcoreMode && recentAchievement.hardcoreMode == 1){
                         NavigationLink(destination: GameSummaryView(hardcoreMode: $hardcoreMode, gameID: recentAchievement.gameID)){
                             RecentAchievementDetailView(hardcoreMode: $hardcoreMode, achievement: recentAchievement)
