@@ -28,35 +28,6 @@ struct ConsoleByManuFacturer: Codable, Identifiable {
     var consoleIDList: [Int]
 }
 
-struct ConsoleGameInfo: Codable, Identifiable {
-    let title: String
-    let id: Int
-    let consoleID: Int
-    let consoleName: String
-    let imageIcon: String
-    let numAchievements: Int
-    let numLeaderboards: Int
-    let points: Int
-    let dateModified: String
-    let forumTopicID: Int?
-    let hashes: [String]?
-
-    enum CodingKeys: String, CodingKey {
-        case title = "Title"
-        case id = "ID"
-        case consoleID = "ConsoleID"
-        case consoleName = "ConsoleName"
-        case imageIcon = "ImageIcon"
-        case numAchievements = "NumAchievements"
-        case numLeaderboards = "NumLeaderboards"
-        case points = "Points"
-        case dateModified = "DateModified"
-        case forumTopicID = "ForumTopicID"
-        case hashes = "Hashes"
-    }
-}
-
-
 class Consoles {
     var consoles: [Console] = []
     var consolesSortedByKind: [ConsoleByManuFacturer] = []

@@ -13,23 +13,22 @@ struct ConsoleGamesView: View {
     var consoleID: Int
     
     var body: some View {
-        if network.consoleGamesCache[consoleID] != nil {
+        if network.gameList.count > 0 {
                 Form(){
-                    ForEach(network.consoleGamesCache[consoleID]!.sorted { $0.title.lowercased() < $1.title.lowercased()}) { consoleGame in
-                        NavigationLink(destination: GameSummaryView(hardcoreMode: $hardcoreMode, gameID: consoleGame.id).task {
-                            await network.getGameSummary(gameID: consoleGame.id)
-                        })
-                        {
-                            ConsoleGameDetailView(consoleGame: consoleGame, hardcoreMode: $hardcoreMode)
-                        }
+                    ForEach(network.gameList.filter { $0.consoleID == consoleID } .sorted { $0.title.lowercased() < $1.title.lowercased()}) { game in
+                        NavigationLink(destination: GameSummaryView(hardcoreMode: $hardcoreMode, gameID: game.id)
+                            .task {
+                                await network.getGameSummary(gameID: game.id)
+                            })
+                            {
+                                ConsoleGameDetailView(gameListGame: game, hardcoreMode: $hardcoreMode)
+                            }
+                            .navigationBarTitle(network.consolesCache?.getConsoleDataByID(consoleID: consoleID).name ?? "Error")
                     }
                 }
             
         } else {
             ProgressView()
-                .task {
-                    await network.getGameForConsole(consoleID: consoleID)
-                }
         }
             
     }
@@ -41,7 +40,6 @@ struct ConsoleGamesView: View {
     let network = Network()
     Task {
         await network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
-        await network.getGameForConsole(consoleID: 2)
     }
     return ConsoleGamesView(hardcoreMode: $hardcoreMode, consoleID: 2)
         .environmentObject(network)

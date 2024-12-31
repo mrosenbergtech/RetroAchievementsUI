@@ -30,7 +30,7 @@ struct SearchView: View {
                         NavigationLink {
                             GameSummaryView(hardcoreMode: $hardcoreMode, gameID: game.id)
                         } label: {
-                            Text(game.title)
+                            ConsoleGameDetailView(gameListGame: game, hardcoreMode: $hardcoreMode)
                         }
                     }
                 }

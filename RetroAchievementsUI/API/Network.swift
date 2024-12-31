@@ -18,7 +18,6 @@ class Network: ObservableObject {
     @Published var awards: Awards? = nil
     @Published var userRecentlyPlayedGames: [RecentGame] = []
     @Published var userGameCompletionProgress: UserGamesCompletionProgressResult? = nil
-    @Published var consoleGamesCache: [Int : [ConsoleGameInfo]] = [:]
     @Published var gameSummaryCache: [Int: GameSummary] = [:]
     @Published var initialWebAPIAuthenticationCheckComplete: Bool = false
     @Published var webAPIAuthenticated: Bool = false
@@ -387,23 +386,6 @@ class Network: ObservableObject {
             
             print("Console Data Loaded!")
         
-        }
-    }
-    
-    func getGameForConsole(consoleID: Int) async {
-        guard let url = URL(string: "https://retroachievements.org/API/API_GetGameList.php?\(buildAuthenticationString())&i=\(String(consoleID))&f=1)") else { fatalError("Missing URL") }
-        
-        if let raAPIResponse: Data = await makeAPICall(url: url) {
-            DispatchQueue.main.sync {
-                do {
-                    let decodedConsoleGames = try JSONDecoder().decode([ConsoleGameInfo].self, from: raAPIResponse)
-                    self.consoleGamesCache[consoleID] = decodedConsoleGames
-                } catch let error {
-                    print("Error decoding: ", error)
-                }
-            }
-        } else {
-            print("Bad Response Code!")
         }
     }
 }

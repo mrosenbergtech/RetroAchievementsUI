@@ -24,9 +24,10 @@ struct ConsolesView: View {
                     }
                 }
             }
+            .navigationBarTitle("Consoles")
+            .navigationBarHidden(true)
         }
-        .navigationBarTitle("Consoles")
-        .navigationBarHidden(true)
+
     }
 }
 
