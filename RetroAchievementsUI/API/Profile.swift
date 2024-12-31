@@ -11,7 +11,7 @@ struct Profile: Codable {
     let user: String
     let userPic: String
     let memberSince: String
-    let richPresenceMsg: String
+    let richPresenceMsg: String?
     let lastGameID: Int
     let contribCount: Int
     let contribYield: Int
