@@ -11,6 +11,9 @@ import Kingfisher
 struct ProfileView: View {
     @EnvironmentObject var network: Network
     @Binding var hardcoreMode: Bool
+    @State private var timeRemaining = 60
+    private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+    
     var body: some View {
         
         if (network.profile != nil && network.awards != nil) {
@@ -57,10 +60,27 @@ struct ProfileView: View {
                     await network.getAwards()
                 }
             }
+            .onReceive(timer) { _ in
+                if timeRemaining > 0 {
+                    timeRemaining -= 1
+                } else {
+                    // Refresh Data
+                    print("Profile Data Expired - Refreshing...", terminator:" ")
+                    Task {
+                        await network.getProfile()
+                        await network.getUserGameCompletionProgress()
+                        await network.getUserRecentAchievements()
+                        await network.getUserRecentGames()
+                        await network.getAwards()
+                        
+                        timeRemaining = 60
+                        print("Profile Data Refreshed & Timer Reset!")
+                    }
+                }
+            }
         } else {
             ProgressView()
         }
-        
     }
 }
 

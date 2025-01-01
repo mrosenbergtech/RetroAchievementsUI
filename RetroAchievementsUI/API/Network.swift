@@ -148,17 +148,53 @@ class Network: ObservableObject {
     }
     
     func buildUserStatusMessage() -> String {
-        var temporaryRichPresenceMessage = "Currently Offline"
-        
-        if self.profile?.richPresenceMsg != nil {
-            if let latestRichPresenceMessage = self.profile!.richPresenceMsg {
-                if let lastPlayedGameName = self.gameList.filter({ $0.id == self.profile!.lastGameID }) .first?.title {
-                    temporaryRichPresenceMessage = "[Playing: " + lastPlayedGameName + "] " + (latestRichPresenceMessage)
-                }
-            }
+        // Get Last Played Game Name
+        if self.gameList.count == 0 {
+            return "Loading User Profile..."
         }
         
-        return temporaryRichPresenceMessage
+        guard let lastPlayedGameName: String = self.gameList.filter({ $0.id == self.profile!.lastGameID }) .first?.title
+        else {
+            return "Offline - No Games Played!"
+        }
+        
+        guard let lastPlayedGameConsole: String = self.gameList.filter({ $0.id == self.profile!.lastGameID }) .first?.consoleName
+        else {
+            return "Offline - No Games Played!"
+        }
+        
+        // Get Last Time Played for Last Played Game
+        guard let lastPlayedDateString: String = self.userRecentlyPlayedGames.filter({ $0.id == self.profile!.lastGameID}).first?.lastPlayed
+        else {
+            return "Error Getting Last Played Game Timestamp!"
+        }
+        
+        let inputDateFormatter = DateFormatter()
+        inputDateFormatter.dateFormat = "YYYY-MM-dd HH:mm:ss"
+        inputDateFormatter.timeZone = TimeZone(abbreviation: "UTC")
+        
+        guard let lastPlayedDate: Date = inputDateFormatter.date(from: lastPlayedDateString)
+        else {
+            return "Error Converting Last Played Game Timestamp to Date Object!"
+        }
+        
+        // Last Played > 5m ago
+        let lastTimePlayedDelta = lastPlayedDate.timeIntervalSinceNow
+        if abs(lastTimePlayedDelta) > 300 { // 300s = 5m
+            let relativeDateFormatter = RelativeDateTimeFormatter()
+            relativeDateFormatter.unitsStyle = .full
+            let relativeDate = relativeDateFormatter.localizedString(for: lastPlayedDate, relativeTo: Date.now)
+            
+            return "[Last Seen Playing '" + lastPlayedGameName + "' on " + lastPlayedGameConsole + " - " + relativeDate + "]"
+        // "Currently" (< 15m ago) Playing
+        } else {
+            guard let latestRichPresenceMessage: String = self.profile!.richPresenceMsg
+            else {
+                return "Error Getting Latest Rich Presence Message!"
+            }
+            
+            return "[Playing: '" + lastPlayedGameName + "' on " + lastPlayedGameConsole + "] " + (latestRichPresenceMessage)
+        }
     }
     
     func getProfile() async {
@@ -307,9 +343,9 @@ class Network: ObservableObject {
         // Check For Cached Data Before Making API Call
         if self.completeRetroAchievementsGameListJSONData != nil {
             validatedGameListJSONData = self.completeRetroAchievementsGameListJSONData
-            print("Cached Game List Data Found - Attempting to Load Into Memory...")
+            print("Cached Game List Data Found - Attempting to Load Into Memory...", terminator:" ")
         } else {
-            print("No Cached Game List! Fetching New Data...")
+            print("No Cached Game List! Fetching New Data...", terminator:" ")
             // Use Each ConsoleID & Get Game List from API
             var temporaryGameList: [GameListGame] = []
             if self.consolesCache?.consoles != nil {
@@ -371,11 +407,11 @@ class Network: ObservableObject {
         
         // Check For Cached Data Before Making API Call
         if self.completeRetroAchievementsConsoleListJSONData != nil {
-            print("Cached Console Data Found - Attempting to Load Into Memory...")
+            print("Cached Console Data Found - Attempting to Load Into Memory...", terminator:" ")
             validatedRAConsoleListJSONData = self.completeRetroAchievementsConsoleListJSONData
         } else { // TODO: Cache Expiration
             // Get Console Data from RA API
-            print("No Cached Console Data! Fetching New Data...")
+            print("No Cached Console Data! Fetching New Data...", terminator:" ")
             guard let url = URL(string: "https://retroachievements.org/API/API_GetConsoleIDs.php?\(buildAuthenticationString())") else { fatalError("Missing URL") }
             if let raAPIResponse: Data = await makeAPICall(url: url) {
                 validatedRAConsoleListJSONData = raAPIResponse
