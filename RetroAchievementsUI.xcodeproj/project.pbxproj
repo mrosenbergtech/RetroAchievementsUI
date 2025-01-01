@@ -34,6 +34,7 @@
 		2757FA892C142233008A8B7A /* GameCompletionProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2757FA882C142233008A8B7A /* GameCompletionProgress.swift */; };
 		2757FA8B2C142571008A8B7A /* MyGamesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2757FA8A2C142571008A8B7A /* MyGamesView.swift */; };
 		2757FA8D2C14315C008A8B7A /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2757FA8C2C14315C008A8B7A /* Launch Screen.storyboard */; };
+		278A6BB82D25CD7500D9ACE7 /* ProfileHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 278A6BB72D25CD7500D9ACE7 /* ProfileHeaderView.swift */; };
 		27C704A82C250D14004BBB49 /* Awards.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27C704A72C250D14004BBB49 /* Awards.swift */; };
 		27CFC3372C1F3D550014E22E /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = 27CFC3362C1F3D550014E22E /* LICENSE */; };
 		27D04B312D209FBC00A51BF6 /* RecentAchievement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27D04B302D209FBC00A51BF6 /* RecentAchievement.swift */; };
@@ -74,6 +75,7 @@
 		2757FA882C142233008A8B7A /* GameCompletionProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameCompletionProgress.swift; sourceTree = "<group>"; };
 		2757FA8A2C142571008A8B7A /* MyGamesView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MyGamesView.swift; sourceTree = "<group>"; };
 		2757FA8C2C14315C008A8B7A /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
+		278A6BB72D25CD7500D9ACE7 /* ProfileHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileHeaderView.swift; sourceTree = "<group>"; };
 		27A4F3BC2C1F52260093AE4A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		27C704A72C250D14004BBB49 /* Awards.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Awards.swift; sourceTree = "<group>"; };
 		27CFC3362C1F3D550014E22E /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
@@ -106,6 +108,7 @@
 				2702F0462C253F1800EC3364 /* AwardsView.swift */,
 				27ED5A002C18041100D4167F /* ConsoleGamesView.swift */,
 				2757FA812C140D93008A8B7A /* GameSummaryView.swift */,
+				278A6BB72D25CD7500D9ACE7 /* ProfileHeaderView.swift */,
 				27D04B322D20A17900A51BF6 /* RecentAchievementsView.swift */,
 				2701F1172D2338A80036405D /* RecentGamesView.swift */,
 				27FCD0C22C193DD1008C54AF /* RetroAchievementsLoginView.swift */,
@@ -306,6 +309,7 @@
 				2757FA862C141DBA008A8B7A /* Console.swift in Sources */,
 				2752C8892C166D81002E25E2 /* AchievementsView.swift in Sources */,
 				2757FA802C13F79E008A8B7A /* GameSummary.swift in Sources */,
+				278A6BB82D25CD7500D9ACE7 /* ProfileHeaderView.swift in Sources */,
 				274F4E922C24FBA300F49981 /* RecentGame.swift in Sources */,
 				27ED5A032C1807E100D4167F /* ConsoleGameDetailView.swift in Sources */,
 				2752C88B2C167BA6002E25E2 /* AchievementDetailView.swift in Sources */,
@@ -448,7 +452,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_ASSET_PATHS = "\"RetroAchievementsUI/Preview Content\"";
 				DEVELOPMENT_TEAM = Z8253GXZFC;
 				ENABLE_PREVIEWS = YES;
@@ -482,7 +486,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_ASSET_PATHS = "\"RetroAchievementsUI/Preview Content\"";
 				DEVELOPMENT_TEAM = Z8253GXZFC;
 				ENABLE_PREVIEWS = YES;
