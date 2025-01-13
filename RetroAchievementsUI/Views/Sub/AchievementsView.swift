@@ -17,7 +17,7 @@ struct AchievementsView: View {
             HStack{
                 Spacer()
                 
-                Image(systemName: "trophy.circle")
+                Image(systemName: "trophy.fill")
                     .onTapGesture {
                         selectedAchievementFilter = "All"
                     }
@@ -51,16 +51,30 @@ struct AchievementsView: View {
                 
                 Spacer()
                 
-                Image(systemName: "m.circle.fill")
+                Image(systemName: "checkmark.circle.fill")
                     .onTapGesture {
-                        selectedAchievementFilter = "Missable"
+                        selectedAchievementFilter = "RequiredToBeat"
                     }
-                    .fontWeight((selectedAchievementFilter == "Missable") ? .bold : .regular)
+                    .fontWeight((selectedAchievementFilter == "RequiredToBeat") ? .bold : .regular)
                     .padding()
-                    .background(selectedAchievementFilter == "Missable" ? .gray : .clear)
+                    .background(selectedAchievementFilter == "RequiredToBeat" ? .gray : .clear)
                     .clipShape(.rect(cornerRadius: 10))
                 
                 Spacer()
+                
+                // Only Show Missable Filter If There Are Missable Achievements
+                if gameSummary.achievements.keys.filter({ gameSummary.achievements[$0]!.type == "missable" }).count > 0 {
+                    Image(systemName: "questionmark.circle.dashed")
+                        .onTapGesture {
+                            selectedAchievementFilter = "Missable"
+                        }
+                        .fontWeight((selectedAchievementFilter == "Missable") ? .bold : .regular)
+                        .padding()
+                        .background(selectedAchievementFilter == "Missable" ? .gray : .clear)
+                        .clipShape(.rect(cornerRadius: 10))
+                    
+                    Spacer()
+                }
             }
             
             if selectedAchievementFilter == "All" {
@@ -77,6 +91,17 @@ struct AchievementsView: View {
                 }
             } else if selectedAchievementFilter == "Missable" {
                 ForEach(gameSummary.achievements.keys.filter { gameSummary.achievements[$0]!.type == "missable" }.sorted(), id: \.self) { id in
+                    AchievementDetailView(hardcoreMode: $hardcoreMode, achievement: gameSummary.achievements[id]!)
+                }
+            } else if selectedAchievementFilter == "RequiredToBeat" {
+                if (gameSummary.achievements.keys.filter { gameSummary.achievements[$0]!.type == "win_condition" }.count > 0) {
+                    ForEach(gameSummary.achievements.keys.filter { gameSummary.achievements[$0]!.type == "win_condition"
+                    }.sorted(), id: \.self) { id in
+                        AchievementDetailView(hardcoreMode: $hardcoreMode, achievement: gameSummary.achievements[id]!)
+                    }
+                }
+                
+                ForEach(gameSummary.achievements.keys.filter { gameSummary.achievements[$0]!.type == "progression" }.sorted(), id: \.self) { id in
                     AchievementDetailView(hardcoreMode: $hardcoreMode, achievement: gameSummary.achievements[id]!)
                 }
             }

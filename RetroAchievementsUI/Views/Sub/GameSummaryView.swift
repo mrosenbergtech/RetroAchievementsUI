@@ -34,13 +34,14 @@ struct GameSummaryView: View {
     }
 }
  
-// Preview Bug Likely From Use of Dictionary (Empty Dictionary Lieral?)
 #Preview {
     @Previewable @State var hardcoreMode: Bool = true
     let network = Network()
     Task {
         await network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
+        await network.getGameSummary(gameID: 10003)
     }
+        
     return GameSummaryView(hardcoreMode: $hardcoreMode, gameID: 10003).environmentObject(network)
 }
 
