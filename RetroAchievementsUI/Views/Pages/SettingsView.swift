@@ -18,19 +18,25 @@ struct SettingsView: View {
     @State var blankCredentials: Bool = false
     
     var body: some View {
-        Form{
-            Section(header: Text("RetroAchievements Login"), 
-                content: {
-                    HStack {
+        Form
+        {
+            Section(header: Text("RetroAchievements Login"),
+                content:
+                {
+                    HStack
+                    {
                         Spacer()
                         
                         Text("Login Status:")
                             .bold()
                                                     
-                        if network.webAPIAuthenticated {
+                        if network.webAPIAuthenticated
+                        {
                             Image(systemName: "checkmark.circle")
                                 .foregroundColor(.green)
-                        } else {
+                        }
+                        else
+                        {
                             Image(systemName: "x.circle")
                                 .foregroundColor(.red)
                         }
@@ -39,23 +45,32 @@ struct SettingsView: View {
                     }
                 
                     if network.webAPIAuthenticated {
-                        Button {
+                        Button
+                        {
                             webAPIUsername = ""
                             webAPIKey = ""
                             network.logout()
                             shouldShowLoginSheet = true
-                        } label: {
-                            HStack{
+                        }
+                        label:
+                        {
+                            HStack
+                            {
                                 Spacer()
                                 Text("Logout " + network.authenticatedWebAPIUsername)
+                                    .foregroundStyle(.cyan)
                                 Spacer()
                             }
                         }
                     } else {
-                        Button {
+                        Button
+                        {
                             shouldShowLoginSheet = true
-                        } label: {
-                            HStack {
+                        }
+                        label:
+                        {
+                            HStack
+                            {
                                 Spacer()
                                 
                                 Text("Enter Credentials")
@@ -71,54 +86,79 @@ struct SettingsView: View {
                 
             Section(
                 header: Text("Other Settings"),
-                content: {
-                        Toggle("Hardcode Mode", isOn: $hardcoreMode)
+                content:
+                {
+                    Toggle("Hardcode Mode", isOn: $hardcoreMode)
                         .alignmentGuide(.listRowSeparatorLeading) { _ in -20 }
                     
-                        Toggle("Search for Unofficial Games", isOn: $unofficialSearchResults)
+                    Toggle("Search for Unofficial Games", isOn: $unofficialSearchResults)
                         .alignmentGuide(.listRowSeparatorLeading) { _ in -20 }
-
-                        
-                        Button {
-                            let cache = ImageCache.default
-                            cache.clearMemoryCache()
-                            cache.clearDiskCache { print("Image Cache Cleared!") }
-                        } label: {
-                            HStack {
-                                Spacer()
-                                Text("Clear Image Cache")
-                                    .foregroundStyle(.cyan)
-                                Spacer()
-                            }
+                    
+                    
+                    Button
+                    {
+                        let cache = ImageCache.default
+                        cache.clearMemoryCache()
+                        cache.clearDiskCache { print("Image Cache Cleared!") }
+                    }
+                    label:
+                    {
+                        HStack
+                        {
+                            Spacer()
+                            Text("Clear Image Cache")
+                                .foregroundStyle(.cyan)
+                            Spacer()
                         }
-                        .alignmentGuide(.listRowSeparatorLeading) { _ in -20 }
-
-                                                
-                        Button {
+                    }
+                    .alignmentGuide(.listRowSeparatorLeading) { _ in -20 }
+                    
+                    if (network.cacheDate != nil)
+                    {
+                        Button
+                        {
                             Task {
                                 await network.refreshGameList()
                             }
-                        } label: {
-                            HStack {
+                        }
+                        label:
+                        {
+                            HStack
+                            {
                                 Spacer()
-                                Text("Refresh Game List")
+                                Text("Refresh Game List - Saved: " + Date(timeIntervalSince1970: network.cacheDate ?? -1.0).description.dropLast(15))
                                     .foregroundStyle(.cyan)
+                                    .multilineTextAlignment(.center)
                                 Spacer()
                             }
                         }
                         .alignmentGuide(.listRowSeparatorLeading) { _ in -20 }
-
+                    }
+                    else
+                    {
+                        HStack
+                        {
+                            ScrollingText(text: "Getting Game List - Please Wait...", font: .preferredFont(forTextStyle: .subheadline), leftFade: 15, rightFade: 15, startDelay: 3, alignment: .center)
+                                .foregroundStyle(.gray)
+                            ProgressView()
+                        }
+                    }
                 }
             )
         }
-        .onAppear {
-            if webAPIUsername == "" && webAPIKey == "" {
+        .onAppear
+        {
+            if webAPIUsername == "" && webAPIKey == ""
+            {
                 blankCredentials = true
-            } else {
+            }
+            else
+            {
                 blankCredentials = false
             }
             
-            if !network.webAPIAuthenticated {
+            if !network.webAPIAuthenticated
+            {
                 shouldShowLoginSheet = true
             }
         }

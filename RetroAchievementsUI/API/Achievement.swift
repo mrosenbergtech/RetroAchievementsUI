@@ -16,7 +16,7 @@ struct Achievement: Codable {
     let points: Int
     let trueRatio: Int
     let author: String
-    let dateModified: String
+    let dateModified: String?
     let dateCreated: String
     let badgeName: String
     let displayOrder: Int

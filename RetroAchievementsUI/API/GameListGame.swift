@@ -16,7 +16,7 @@ struct GameListGame: Codable, Identifiable, Hashable {
     let numAchievements: Int
     let numLeaderboards: Int
     let points: Int
-    let dateModified: String
+    let dateModified: String?
     let forumTopicID: Int?
     
     enum CodingKeys: String, CodingKey {

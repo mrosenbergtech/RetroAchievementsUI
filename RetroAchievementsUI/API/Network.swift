@@ -12,6 +12,7 @@ class Network: ObservableObject {
     // Cache "Stable" Data in AppStorage
     @AppStorage("completeRetroAchievementsConsoleListJSONData") var completeRetroAchievementsConsoleListJSONData: Data?
     @AppStorage("completeRetroAchievementsGameListJSONData") var completeRetroAchievementsGameListJSONData: Data?
+    @AppStorage("cacheDate") var cacheDate: TimeInterval?
     
     // Store Dynamic Data in Memory
     @Published var profile: Profile? = nil
@@ -53,6 +54,7 @@ class Network: ObservableObject {
         
         DispatchQueue.main.sync {
             self.completeRetroAchievementsGameListJSONData = nil
+            self.cacheDate = nil
         }
         
         print("Done. Fetching Game List...")
@@ -339,25 +341,37 @@ class Network: ObservableObject {
     func getRAGameList() async {
         var validatedGameListJSONData: Data?
         var validatedGameList: [GameListGame]?
-        
+        let oneDayInSeconds: TimeInterval = 24 * 60 * 60
+        let cacheDateObject = Date(timeIntervalSince1970: self.cacheDate ?? -1.0)
+        let timeInterval = Date().timeIntervalSince(cacheDateObject)
+        print("Last Cache Update: " + cacheDateObject.description + " | Days Ago: " + String(timeInterval/oneDayInSeconds))
+                
         // Check For Cached Data Before Making API Call
-        if self.completeRetroAchievementsGameListJSONData != nil {
+        if (self.cacheDate != nil && timeInterval < oneDayInSeconds * 7)
+        {
             validatedGameListJSONData = self.completeRetroAchievementsGameListJSONData
             print("Cached Game List Data Found - Attempting to Load Into Memory...", terminator:" ")
-        } else {
+        }
+        else
+        {
             print("No Cached Game List! Fetching New Data...", terminator:" ")
             // Use Each ConsoleID & Get Game List from API
             var temporaryGameList: [GameListGame] = []
-            if self.consolesCache?.consoles != nil {
-                for console in self.consolesCache!.consoles {
+            if self.consolesCache?.consoles != nil
+            {
+                for console in self.consolesCache!.consoles
+                {
                     // URL Arguments: f=1 (Only Return Games w/ Achievements) | i=n (Return Games for ConsoleID 'n')
                     guard let url = URL(string: "https://retroachievements.org/API/API_GetGameList.php?\(buildAuthenticationString())&f=1&i=\(String(console.id))") else { fatalError("Missing URL") }
-                    if let raAPIResponse: Data = await makeAPICall(url: url) {
-                        
-                        do {
+                    if let raAPIResponse: Data = await makeAPICall(url: url)
+                    {
+                        do
+                        {
                             let decodedConsoleGames = try JSONDecoder().decode([GameListGame].self, from: raAPIResponse)
                             temporaryGameList += decodedConsoleGames
-                        } catch {
+                        }
+                        catch
+                        {
                             print("Error Appending Console Game List JSON String to Local Var")
                             print(error)
                         }
@@ -367,16 +381,20 @@ class Network: ObservableObject {
                     }
                         
                 }
-            } else {
+            }
+            else
+            {
                 print("getRAGameList() - Console List Missing!")
             }
             
-            
             // Encode Game List
-            do {
+            do
+            {
                 let encodedGameList = try JSONEncoder().encode(temporaryGameList)
                 validatedGameListJSONData = encodedGameList
-            } catch {
+            }
+            catch
+            {
                 print("Error Encoding Game List JSON for Caching!")
             }
             
@@ -385,17 +403,23 @@ class Network: ObservableObject {
         }
         
         // Cache Encoded Game List JSON Data & Store Decoded List in Memory
-        if validatedGameListJSONData != nil {
-            do {
+        if validatedGameListJSONData != nil
+        {
+            do
+            {
                 let decodedGameList = try JSONDecoder().decode([GameListGame].self, from: validatedGameListJSONData!)
                 validatedGameList = decodedGameList
-            } catch {
+            }
+            catch
+            {
                 print("Error Appending Console Game List JSON String to Local Var")
             }
             
-            DispatchQueue.main.sync {
+            DispatchQueue.main.sync
+            {
                 self.gameList = validatedGameList ?? []
                 self.completeRetroAchievementsGameListJSONData = validatedGameListJSONData
+                self.cacheDate = Date().timeIntervalSince1970
             }
             
             print("Game List Loaded!")
@@ -406,17 +430,23 @@ class Network: ObservableObject {
         var validatedRAConsoleListJSONData: Data?
         
         // Check For Cached Data Before Making API Call
-        if self.completeRetroAchievementsConsoleListJSONData != nil {
+        if self.completeRetroAchievementsConsoleListJSONData != nil
+        {
             print("Cached Console Data Found - Attempting to Load Into Memory...", terminator:" ")
             validatedRAConsoleListJSONData = self.completeRetroAchievementsConsoleListJSONData
-        } else { // TODO: Cache Expiration
+        }
+        else
+        { // TODO: Cache Expiration
             // Get Console Data from RA API
             print("No Cached Console Data! Fetching New Data...", terminator:" ")
-            guard let url = URL(string: "https://retroachievements.org/API/API_GetConsoleIDs.php?\(buildAuthenticationString())") else { fatalError("Missing URL") }
-            if let raAPIResponse: Data = await makeAPICall(url: url) {
+            guard let url = URL(string: "https://retroachievements.org/API/API_GetConsoleIDs.php?\(buildAuthenticationString())") else { fatalError("Missing URL")}
+            if let raAPIResponse: Data = await makeAPICall(url: url)
+            {
                 validatedRAConsoleListJSONData = raAPIResponse
                 print("Console List Fetched from API!")
-            } else {
+            }
+            else
+            {
                 print("Bad Response Code!")
             }
         }
@@ -424,18 +454,20 @@ class Network: ObservableObject {
         // Cache Encoded Console List JSON Data & Store Decoded List in Memory
         if validatedRAConsoleListJSONData != nil {
             DispatchQueue.main.sync {
-                do {
+                do
+                {
                     let decodedConsoleSummary = try JSONDecoder().decode([Console].self, from: validatedRAConsoleListJSONData!)
                     self.consolesCache = Consoles(consoles: decodedConsoleSummary)
                     self.completeRetroAchievementsConsoleListJSONData = validatedRAConsoleListJSONData
                     return
-                } catch {
+                }
+                catch
+                {
                     print("Error Decoding Console List JSON Data!")
                 }
             }
             
             print("Console Data Loaded!")
-        
         }
     }
 }
