@@ -39,7 +39,7 @@ struct Achievement: Codable {
         case badgeName = "BadgeName"
         case displayOrder = "DisplayOrder"
         case memAddr = "MemAddr"
-        case type = "type"
+        case type = "Type"
         case dateEarnedHardcore = "DateEarnedHardcore"
         case dateEarned = "DateEarned"
     }
