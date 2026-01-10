@@ -40,6 +40,7 @@
 		27D04B312D209FBC00A51BF6 /* RecentAchievement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27D04B302D209FBC00A51BF6 /* RecentAchievement.swift */; };
 		27D04B332D20A17900A51BF6 /* RecentAchievementsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27D04B322D20A17900A51BF6 /* RecentAchievementsView.swift */; };
 		27D04B352D20A64300A51BF6 /* RecentAchievementDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27D04B342D20A64300A51BF6 /* RecentAchievementDetailView.swift */; };
+		27D4B5FA2F11FB1F00F014B0 /* ToastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27D4B5F92F11FB1F00F014B0 /* ToastView.swift */; };
 		27ED59FD2C17FA9A00D4167F /* ConsoleDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27ED59FC2C17FA9A00D4167F /* ConsoleDetailView.swift */; };
 		27ED59FF2C17FCE200D4167F /* ConsolesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27ED59FE2C17FCE200D4167F /* ConsolesView.swift */; };
 		27ED5A012C18041100D4167F /* ConsoleGamesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27ED5A002C18041100D4167F /* ConsoleGamesView.swift */; };
@@ -82,6 +83,7 @@
 		27D04B302D209FBC00A51BF6 /* RecentAchievement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentAchievement.swift; sourceTree = "<group>"; };
 		27D04B322D20A17900A51BF6 /* RecentAchievementsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentAchievementsView.swift; sourceTree = "<group>"; };
 		27D04B342D20A64300A51BF6 /* RecentAchievementDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentAchievementDetailView.swift; sourceTree = "<group>"; };
+		27D4B5F92F11FB1F00F014B0 /* ToastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastView.swift; sourceTree = "<group>"; };
 		27ED59FC2C17FA9A00D4167F /* ConsoleDetailView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConsoleDetailView.swift; sourceTree = "<group>"; };
 		27ED59FE2C17FCE200D4167F /* ConsolesView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConsolesView.swift; sourceTree = "<group>"; };
 		27ED5A002C18041100D4167F /* ConsoleGamesView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConsoleGamesView.swift; sourceTree = "<group>"; };
@@ -112,6 +114,7 @@
 				27D04B322D20A17900A51BF6 /* RecentAchievementsView.swift */,
 				2701F1172D2338A80036405D /* RecentGamesView.swift */,
 				27FCD0C22C193DD1008C54AF /* RetroAchievementsLoginView.swift */,
+				27D4B5F92F11FB1F00F014B0 /* ToastView.swift */,
 			);
 			path = Sub;
 			sourceTree = "<group>";
@@ -288,6 +291,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				27D4B5FA2F11FB1F00F014B0 /* ToastView.swift in Sources */,
 				27C704A82C250D14004BBB49 /* Awards.swift in Sources */,
 				2757FA892C142233008A8B7A /* GameCompletionProgress.swift in Sources */,
 				271722F12C360756004114EB /* GameSummaryPreviewView.swift in Sources */,
@@ -456,12 +460,12 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "\"RetroAchievementsUI/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = RetroAchievementsUI/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = RetroAchieveUI;
+				INFOPLIST_KEY_CFBundleDisplayName = "RA UI";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.games";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -474,7 +478,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.2.1;
+				MARKETING_VERSION = 3.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mrosenbergtech.RetroAchievementsUI;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -489,12 +493,12 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "\"RetroAchievementsUI/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = RetroAchievementsUI/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = RetroAchieveUI;
+				INFOPLIST_KEY_CFBundleDisplayName = "RA UI";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.games";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -507,7 +511,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.2.1;
+				MARKETING_VERSION = 3.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mrosenbergtech.RetroAchievementsUI;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

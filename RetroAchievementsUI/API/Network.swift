@@ -2,19 +2,34 @@
 //  Network.swift
 //  RetroAchievementsUI
 //
-//  Created by Michael Rosenberg on 6/7/24.
-//
 
 import Foundation
 import SwiftUI
+import Kingfisher
 
+@MainActor
 class Network: ObservableObject {
-    // Cache "Stable" Data in AppStorage
+    
+    // MARK: - Static Formatters
+    private static let statusDateFormatter: DateFormatter = {
+        let df = DateFormatter()
+        df.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        df.timeZone = TimeZone(abbreviation: "UTC")
+        return df
+    }()
+
+    private static let relativeFormatter: RelativeDateTimeFormatter = {
+        let rf = RelativeDateTimeFormatter()
+        rf.unitsStyle = .full
+        return rf
+    }()
+
+    // MARK: - AppStorage
     @AppStorage("completeRetroAchievementsConsoleListJSONData") var completeRetroAchievementsConsoleListJSONData: Data?
     @AppStorage("completeRetroAchievementsGameListJSONData") var completeRetroAchievementsGameListJSONData: Data?
     @AppStorage("cacheDate") var cacheDate: TimeInterval?
     
-    // Store Dynamic Data in Memory
+    // MARK: - Published Properties
     @Published var profile: Profile? = nil
     @Published var awards: Awards? = nil
     @Published var userRecentlyPlayedGames: [RecentGame] = []
@@ -26,448 +41,281 @@ class Network: ObservableObject {
     @Published var authenticatedWebAPIUsername: String = ""
     @Published var userRecentAchievements: [RecentAchievement] = []
     @Published var gameList: [GameListGame] = []
+    @Published var isFetching: Bool = false
     
-    // Keep Validated RA API Key Private
+    // Tracks the long-running background game list synchronization
+    @Published var isFetchingFullGameList: Bool = false
+    @Published var syncProgressPercentage: Double = 0.0
+    
+    // MARK: - Private State
     private var authenticatedWebAPIKey: String = ""
-    
-    func buildAuthenticationString() -> String {
-        return "z=\(authenticatedWebAPIUsername)&y=\(authenticatedWebAPIKey)"
+    private var activeProfileTask: Task<Void, Never>?
+
+    var isUserOnline: Bool {
+        buildUserStatusMessage().contains("[Playing")
     }
     
+    nonisolated func buildAuthenticationString(username: String, key: String) -> String {
+        return "z=\(username)&y=\(key)"
+    }
+    
+    // MARK: - Session Management
     func logout() {
-        // Clear All But Console Cache
-        DispatchQueue.main.async {
-            self.authenticatedWebAPIUsername = ""
-            self.authenticatedWebAPIKey = ""
-            self.webAPIAuthenticated = false
-            self.gameSummaryCache = [:]
-            self.userGameCompletionProgress = nil
-            self.userRecentlyPlayedGames = []
-            self.awards = nil
-            self.profile = nil
-            print("Data Cache Cleared")
-        }
+        self.authenticatedWebAPIUsername = ""
+        self.authenticatedWebAPIKey = ""
+        self.webAPIAuthenticated = false
+        self.gameSummaryCache = [:]
+        self.userGameCompletionProgress = nil
+        self.userRecentlyPlayedGames = []
+        self.awards = nil
+        self.profile = nil
+        self.isFetching = false
+        self.isFetchingFullGameList = false
+        self.syncProgressPercentage = 0.0
     }
     
     func refreshGameList() async {
-        print("Clearing Cached Game List...")
-        
-        DispatchQueue.main.sync {
-            self.completeRetroAchievementsGameListJSONData = nil
-            self.cacheDate = nil
-        }
-        
-        print("Done. Fetching Game List...")
-        
+        self.completeRetroAchievementsGameListJSONData = nil
+        self.cacheDate = nil
+        self.gameList = []
         await self.getRAGameList()
-        
-        print("Game List Refreshed!")
     }
     
-    func makeAPICall(url: URL) async -> Data? {
+    // MARK: - Orchestration
+    func fetchAllProfileData() async {
+        if let existingTask = activeProfileTask {
+            return await existingTask.value
+        }
+
+        activeProfileTask = Task {
+            self.isFetching = true
+            
+            // Phase 1: Fetch core user identity and recent activity data concurrently
+            await withTaskGroup(of: Void.self) { group in
+                group.addTask { await self.getProfile() }
+                group.addTask { await self.getAwards() }
+                group.addTask { await self.getUserRecentAchievements() }
+                group.addTask { await self.getUserGameCompletionProgress() }
+                group.addTask { await self.getUserRecentlyPlayedGames() } // Needed for Status Message
+                group.addTask { await self.getGameConsoles() }
+            }
+            
+            // Phase 2: Signal that the login/profile view can now proceed
+            withAnimation(.easeInOut(duration: 0.5)) {
+                self.isFetching = false
+            }
+            
+            // Phase 3: Trigger the long-running game list fetch in the background
+            await self.getRAGameList()
+            
+            activeProfileTask = nil
+        }
+    }
+
+    // MARK: - Network Core
+    nonisolated func makeAPICall(url: URL) async -> Data? {
         let request = URLRequest(url: url)
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
-            guard let response = response as? HTTPURLResponse else { return nil }
+            guard let httpResponse = response as? HTTPURLResponse else { return nil }
             
-            // Good Response - Return Data
-            if response.statusCode == 200 {
+            if httpResponse.statusCode == 200 {
                 return data
-            } else if response.statusCode == 401 {
-                print("Returned Code 401: Unauthorized")
-                return nil
-            
-            } else if response.statusCode == 429 {
-                print("Returned Code 429: Too Many Requests")
-                
-                var retries = 1
-                while retries < 5 {
-                    let retryDelay = Int(pow(Double(2), Double(retries-1))) * 500000000
-                    print(" Retrying (# \(retries)) after \(retryDelay/1000000) ms")
-                    try await Task.sleep(nanoseconds: UInt64(retryDelay))
-                    
-                    do {
-                        let (data, response) = try await URLSession.shared.data(for: request)
-                        guard let response = response as? HTTPURLResponse else { return nil }
-                        
-                        // Good Response - Return Data
-                        if response.statusCode == 200 {
-                            print("Success on Retry #\(retries)!")
-                            return data
-                        } else if response.statusCode == 401 {
-                            print(" Returned Code 401: Unauthorized")
-                            return nil
-                        } else if response.statusCode == 429 {
-                            print(" Failed on Retry #\(retries)!")
-                            retries += 1
-                        }
-                        
-                    } catch {
-                        print(error)
-                        return nil
-                    }
-                }
-            } else {
-                print("Returned Other Status Code: " + String(response.statusCode))
-                return nil
+            } else if httpResponse.statusCode == 429 {
+                return await handleRateLimit(request: request)
             }
+            return nil
         } catch {
-            print(error)
             return nil
         }
-        
+    }
+
+    nonisolated private func handleRateLimit(request: URLRequest) async -> Data? {
+        var retries = 1
+        while retries < 5 {
+            let retryDelay = Int(pow(2.0, Double(retries - 1))) * 1_000_000_000
+            try? await Task.sleep(nanoseconds: UInt64(retryDelay))
+            
+            if let (data, response) = try? await URLSession.shared.data(for: request),
+               (response as? HTTPURLResponse)?.statusCode == 200 {
+                return data
+            }
+            retries += 1
+        }
         return nil
     }
-        
+    
     func authenticateCredentials(webAPIUsername: String, webAPIKey: String) async {
-        guard let url = URL(string: "https://retroachievements.org/API/API_GetUserProfile.php?z=\(webAPIUsername)&y=\(webAPIKey)&u=\(webAPIUsername)") else { fatalError("Missing URL") }
+        let auth = buildAuthenticationString(username: webAPIUsername, key: webAPIKey)
+        guard let url = URL(string: "https://retroachievements.org/API/API_GetUserProfile.php?\(auth)&u=\(webAPIUsername)") else { return }
         
-        if ((await makeAPICall(url: url)) != nil) {
-            DispatchQueue.main.sync {
-                self.initialWebAPIAuthenticationCheckComplete = true
-                self.webAPIAuthenticated = true
-                self.authenticatedWebAPIUsername = webAPIUsername
-                self.authenticatedWebAPIKey = webAPIKey
-            }
-            
-            await self.getProfile()
-            await self.getAwards()
-            await self.getUserRecentAchievements()
-            await self.getUserGameCompletionProgress()
-            await self.getUserRecentGames()
-            await self.getGameConsoles()
-            await self.getRAGameList()
-            
+        if await makeAPICall(url: url) != nil {
+            self.initialWebAPIAuthenticationCheckComplete = true
+            self.webAPIAuthenticated = true
+            self.authenticatedWebAPIUsername = webAPIUsername
+            self.authenticatedWebAPIKey = webAPIKey
+            await self.fetchAllProfileData()
         } else {
-            print("Bad Response Code!")
-            DispatchQueue.main.sync {
-                self.initialWebAPIAuthenticationCheckComplete = true
-                self.webAPIAuthenticated = false
-                self.authenticatedWebAPIUsername = ""
-                self.authenticatedWebAPIKey = ""
-            }
+            self.initialWebAPIAuthenticationCheckComplete = true
+            self.webAPIAuthenticated = false
+            self.isFetching = false
         }
     }
-    
-    func buildUserStatusMessage() -> String {
-        // Get Last Played Game Name
-        if self.gameList.count == 0 {
-            return "Loading User Profile..."
-        }
-        
-        guard let lastPlayedGameName: String = self.gameList.filter({ $0.id == self.profile!.lastGameID }) .first?.title
-        else {
-            return "Offline - No Games Played!"
-        }
-        
-        guard let lastPlayedGameConsole: String = self.gameList.filter({ $0.id == self.profile!.lastGameID }) .first?.consoleName
-        else {
-            return "Offline - No Games Played!"
-        }
-        
-        // Get Last Time Played for Last Played Game
-        guard let lastPlayedDateString: String = self.userRecentlyPlayedGames.filter({ $0.id == self.profile!.lastGameID}).first?.lastPlayed
-        else {
-            return "Error Getting Last Played Game Timestamp!"
-        }
-        
-        let inputDateFormatter = DateFormatter()
-        inputDateFormatter.dateFormat = "YYYY-MM-dd HH:mm:ss"
-        inputDateFormatter.timeZone = TimeZone(abbreviation: "UTC")
-        
-        guard let lastPlayedDate: Date = inputDateFormatter.date(from: lastPlayedDateString)
-        else {
-            return "Error Converting Last Played Game Timestamp to Date Object!"
-        }
-        
-        // Last Played > 5m ago
-        let lastTimePlayedDelta = lastPlayedDate.timeIntervalSinceNow
-        if abs(lastTimePlayedDelta) > 300 { // 300s = 5m
-            let relativeDateFormatter = RelativeDateTimeFormatter()
-            relativeDateFormatter.unitsStyle = .full
-            let relativeDate = relativeDateFormatter.localizedString(for: lastPlayedDate, relativeTo: Date.now)
-            
-            return "[Last Seen Playing '" + lastPlayedGameName + "' on " + lastPlayedGameConsole + " - " + relativeDate + "]"
-        // "Currently" (< 15m ago) Playing
-        } else {
-            guard let latestRichPresenceMessage: String = self.profile!.richPresenceMsg
-            else {
-                return "Error Getting Latest Rich Presence Message!"
-            }
-            
-            return "[Playing: '" + lastPlayedGameName + "' on " + lastPlayedGameConsole + "] " + (latestRichPresenceMessage)
-        }
-    }
-    
-    func getProfile() async {
-        guard let url = URL(string: "https://retroachievements.org/API/API_GetUserProfile.php?\(buildAuthenticationString())&u=\(self.authenticatedWebAPIUsername)") else { fatalError("Missing URL") }
-        
-        if let raAPIResponse: Data = await makeAPICall(url: url) {
-            DispatchQueue.main.sync {
-                do {
-                    let decodedProfile = try JSONDecoder().decode(Profile.self, from: raAPIResponse)
-                    self.profile = decodedProfile
-                } catch let error {
-                    print("Error decoding: ", error)
-                }
-            }
-        } else {
-            print("Bad Response Code!")
-        }
-    }
-    
-    func getAwards() async {
-        guard let url = URL(string: "https://retroachievements.org/API/API_GetUserAwards.php?\(buildAuthenticationString())&u=\(self.authenticatedWebAPIUsername)") else { fatalError("Missing URL") }
-        
-        if let raAPIResponse: Data = await makeAPICall(url: url) {
-            DispatchQueue.main.sync {
-                do {
-                    let decodedAwards = try JSONDecoder().decode(Awards.self, from: raAPIResponse)
-                    self.awards = decodedAwards
-                } catch let error {
-                    print("Error decoding: ", error)
-                }
-            }
-        } else {
-            print("Bad Response Code!")
-        }
-    }
-    
-    func filterHighestAwardType(awards: [VisibleUserAward]) -> [VisibleUserAward] {
-        var filteredAwardList: [VisibleUserAward] = awards
-        var filteredAwardIDList: [Int] = []
-        for award in filteredAwardList {
-            
-            // Find Matching Award IDs
-            if !filteredAwardIDList.contains(award.id ?? -1) {
-                let matchingAwards = filteredAwardList.filter { $0.id == award.id }
-                
-                // Find Highest Award
-                if matchingAwards.count > 1 {
-                    var highestAward: String?
-                    
-                    for matchingAward in matchingAwards {
-                        if matchingAward.awardType == "Game Beaten" && highestAward != "Mastery/Completion" {
-                            highestAward = "Game Beaten"
-                        } else if matchingAward.awardType == "Mastery/Completion" {
-                            highestAward = "Mastery/Completion"
-                        }
-                    }
-                                                                        
-                    // Remove Lower Awards
-                    let lowerAwards = matchingAwards.filter { $0.awardType != highestAward }
-                    if lowerAwards.count > 0 {
-                        for lowerAward in lowerAwards {
-                            filteredAwardList.removeAll(where: { $0.id == lowerAward.id && $0.awardType == lowerAward.awardType })
-                        }
-                    }
-                    
-                    filteredAwardIDList.append(award.id!)
-                }
-            }
-        }
-        
-        return filteredAwardList
-    }
-    
-    func getUserRecentGames() async {
-        guard let url = URL(string: "https://retroachievements.org/API/API_GetUserRecentlyPlayedGames.php?\(buildAuthenticationString())&u=\(self.authenticatedWebAPIUsername)&c=3") else { fatalError("Missing URL") }
-        
-        if let raAPIResponse: Data = await makeAPICall(url: url) {
-            DispatchQueue.main.sync {
-                do {
-                    let decodedUserRecentlyPlayedGames = try JSONDecoder().decode([RecentGame].self, from: raAPIResponse)
-                    self.userRecentlyPlayedGames = decodedUserRecentlyPlayedGames
-                } catch let error {
-                    print("Error decoding: ", error)
-                }
-            }
-        } else {
-            print("Bad Response Code!")
-        }
-    }
-    
-    func getUserRecentAchievements() async {
-        guard let url = URL(string: "https://retroachievements.org/API/API_GetUserRecentAchievements.php?\(buildAuthenticationString())&u=\(self.authenticatedWebAPIUsername)&m=999999999") else { fatalError("Missing URL") }
-        
-        if let raAPIResponse: Data = await makeAPICall(url: url) {
-            DispatchQueue.main.sync {
-                do {
-                    let decodedRecentAchievements = try JSONDecoder().decode([RecentAchievement].self, from: raAPIResponse)
-                    self.userRecentAchievements = decodedRecentAchievements
-                } catch let error {
-                    print("Error decoding: ", error)
-                }
-            }
-        } else {
-            print("Bad Response Code!")
-        }
-    }
-    
-    func getUserGameCompletionProgress() async {
-        guard let url = URL(string: "https://retroachievements.org/API/API_GetUserCompletionProgress.php?\(buildAuthenticationString())&u=\(self.authenticatedWebAPIUsername)&c=500") else { fatalError("Missing URL") }
-        
-        if let raAPIResponse: Data = await makeAPICall(url: url) {
-            DispatchQueue.main.sync {
-                do {
-                    let decodedUserGameCompletionProgress = try JSONDecoder().decode(UserGamesCompletionProgressResult.self, from: raAPIResponse)
-                    self.userGameCompletionProgress = decodedUserGameCompletionProgress
-                } catch let error {
-                    print("Error decoding: ", error)
-                }
-            }
-        } else {
-            print("Bad Response Code!")
-        }
-    }
-    
-    func getGameSummary(gameID: Int) async {
-        guard let url = URL(string: "https://retroachievements.org/API/API_GetGameInfoAndUserProgress.php?\(buildAuthenticationString())&g=\(gameID)&u=\(self.authenticatedWebAPIUsername)&a=1") else { fatalError("Missing URL") }
-        
-        if let raAPIResponse: Data = await makeAPICall(url: url) {
-            DispatchQueue.main.sync {
-                do {
-                    let decodedGameSummary = try JSONDecoder().decode(GameSummary.self, from: raAPIResponse)
-                    self.gameSummaryCache[decodedGameSummary.id] = decodedGameSummary
-                } catch let error {
-                    print("Error decoding: ", error)
-                }
-            }
-        } else {
-            print("Bad Response Code!")
-        }
-    }
-    
-    func getRAGameList() async {
-        var validatedGameListJSONData: Data?
-        var validatedGameList: [GameListGame]?
-        let oneDayInSeconds: TimeInterval = 24 * 60 * 60
-        let cacheDateObject = Date(timeIntervalSince1970: self.cacheDate ?? -1.0)
-        let timeInterval = Date().timeIntervalSince(cacheDateObject)
-        print("Last Cache Update: " + cacheDateObject.description + " | Days Ago: " + String(timeInterval/oneDayInSeconds))
-                
-        // Check For Cached Data Before Making API Call
-        if (self.cacheDate != nil && timeInterval < oneDayInSeconds * 7)
-        {
-            validatedGameListJSONData = self.completeRetroAchievementsGameListJSONData
-            print("Cached Game List Data Found - Attempting to Load Into Memory...", terminator:" ")
-        }
-        else
-        {
-            print("No Cached Game List! Fetching New Data...", terminator:" ")
-            // Use Each ConsoleID & Get Game List from API
-            var temporaryGameList: [GameListGame] = []
-            if self.consolesCache?.consoles != nil
-            {
-                for console in self.consolesCache!.consoles
-                {
-                    // URL Arguments: f=1 (Only Return Games w/ Achievements) | i=n (Return Games for ConsoleID 'n')
-                    guard let url = URL(string: "https://retroachievements.org/API/API_GetGameList.php?\(buildAuthenticationString())&f=1&i=\(String(console.id))") else { fatalError("Missing URL") }
-                    if let raAPIResponse: Data = await makeAPICall(url: url)
-                    {
-                        do
-                        {
-                            let decodedConsoleGames = try JSONDecoder().decode([GameListGame].self, from: raAPIResponse)
-                            temporaryGameList += decodedConsoleGames
-                        }
-                        catch
-                        {
-                            print("Error Appending Console Game List JSON String to Local Var")
-                            print(error)
-                        }
-                        
-                        // DEBUG: Only Get Data for ONE Console
-                        //break
-                    }
-                        
-                }
-            }
-            else
-            {
-                print("getRAGameList() - Console List Missing!")
-            }
-            
-            // Encode Game List
-            do
-            {
-                let encodedGameList = try JSONEncoder().encode(temporaryGameList)
-                validatedGameListJSONData = encodedGameList
-            }
-            catch
-            {
-                print("Error Encoding Game List JSON for Caching!")
-            }
-            
-            print("Game List Fetched from API!")
 
+    // MARK: - Game List Fetching
+    func getRAGameList() async {
+        let sevenDays: TimeInterval = 604800
+        let currentCacheDate = Date(timeIntervalSince1970: self.cacheDate ?? 0)
+        
+        if let cachedData = self.completeRetroAchievementsGameListJSONData,
+           Date().timeIntervalSince(currentCacheDate) < sevenDays {
+            if let decoded = try? JSONDecoder().decode([GameListGame].self, from: cachedData) {
+                self.gameList = decoded
+                return
+            }
         }
         
-        // Cache Encoded Game List JSON Data & Store Decoded List in Memory
-        if validatedGameListJSONData != nil
-        {
-            do
-            {
-                let decodedGameList = try JSONDecoder().decode([GameListGame].self, from: validatedGameListJSONData!)
-                validatedGameList = decodedGameList
-            }
-            catch
-            {
-                print("Error Appending Console Game List JSON String to Local Var")
+        guard let consoles = self.consolesCache?.consoles else { return }
+        self.isFetchingFullGameList = true
+        self.syncProgressPercentage = 0.0
+        
+        let authString = buildAuthenticationString(username: authenticatedWebAPIUsername, key: authenticatedWebAPIKey)
+        var finalAccumulatedList: [GameListGame] = []
+        let batchSize = 8
+        
+        for i in stride(from: 0, to: consoles.count, by: batchSize) {
+            let end = min(i + batchSize, consoles.count)
+            let batch = Array(consoles[i..<end])
+            
+            let fetchedBatch = await withTaskGroup(of: [GameListGame]?.self) { group in
+                for console in batch {
+                    group.addTask {
+                        let urlString = "https://retroachievements.org/API/API_GetGameList.php?\(authString)&i=\(console.id)&f=1"
+                        guard let url = URL(string: urlString),
+                              let data = await self.makeAPICall(url: url) else { return nil }
+                        return try? JSONDecoder().decode([GameListGame].self, from: data)
+                    }
+                }
+                
+                var batchCollection: [GameListGame] = []
+                for await consoleGames in group {
+                    if let games = consoleGames {
+                        batchCollection.append(contentsOf: games)
+                    }
+                }
+                return batchCollection
             }
             
-            DispatchQueue.main.sync
-            {
-                self.gameList = validatedGameList ?? []
-                self.completeRetroAchievementsGameListJSONData = validatedGameListJSONData
+            finalAccumulatedList.append(contentsOf: fetchedBatch)
+            self.syncProgressPercentage = (Double(end) / Double(consoles.count)) * 100
+            
+            try? await Task.sleep(nanoseconds: 100_000_000)
+        }
+        
+        if !finalAccumulatedList.isEmpty {
+            if let encoded = try? JSONEncoder().encode(finalAccumulatedList) {
+                self.gameList = finalAccumulatedList
+                self.completeRetroAchievementsGameListJSONData = encoded
                 self.cacheDate = Date().timeIntervalSince1970
             }
-            
-            print("Game List Loaded!")
+        }
+        
+        self.isFetchingFullGameList = false
+    }
+
+    // MARK: - Individual Data Fetchers
+    func getProfile() async {
+        let auth = buildAuthenticationString(username: authenticatedWebAPIUsername, key: authenticatedWebAPIKey)
+        guard let url = URL(string: "https://retroachievements.org/API/API_GetUserProfile.php?\(auth)&u=\(self.authenticatedWebAPIUsername)") else { return }
+        if let data = await makeAPICall(url: url), let decoded = try? JSONDecoder().decode(Profile.self, from: data) {
+            self.profile = decoded
         }
     }
-    
+
+    func getAwards() async {
+        let auth = buildAuthenticationString(username: authenticatedWebAPIUsername, key: authenticatedWebAPIKey)
+        guard let url = URL(string: "https://retroachievements.org/API/API_GetUserAwards.php?\(auth)&u=\(self.authenticatedWebAPIUsername)") else { return }
+        if let data = await makeAPICall(url: url), let decoded = try? JSONDecoder().decode(Awards.self, from: data) {
+            self.awards = decoded
+        }
+    }
+
+    func getUserRecentlyPlayedGames() async {
+        let auth = buildAuthenticationString(username: authenticatedWebAPIUsername, key: authenticatedWebAPIKey)
+        guard let url = URL(string: "https://retroachievements.org/API/API_GetUserRecentlyPlayedGames.php?\(auth)&u=\(self.authenticatedWebAPIUsername)&c=3") else { return }
+        if let data = await makeAPICall(url: url), let decoded = try? JSONDecoder().decode([RecentGame].self, from: data) {
+            self.userRecentlyPlayedGames = decoded
+        }
+    }
+
+    func getUserRecentAchievements() async {
+        let auth = buildAuthenticationString(username: authenticatedWebAPIUsername, key: authenticatedWebAPIKey)
+        guard let url = URL(string: "https://retroachievements.org/API/API_GetUserRecentAchievements.php?\(auth)&u=\(self.authenticatedWebAPIUsername)&m=999999999") else { return }
+        if let data = await makeAPICall(url: url), let decoded = try? JSONDecoder().decode([RecentAchievement].self, from: data) {
+            self.userRecentAchievements = decoded
+        }
+    }
+
+    func getUserGameCompletionProgress() async {
+        let auth = buildAuthenticationString(username: authenticatedWebAPIUsername, key: authenticatedWebAPIKey)
+        guard let url = URL(string: "https://retroachievements.org/API/API_GetUserCompletionProgress.php?\(auth)&u=\(self.authenticatedWebAPIUsername)&c=500") else { return }
+        if let data = await makeAPICall(url: url), let decoded = try? JSONDecoder().decode(UserGamesCompletionProgressResult.self, from: data) {
+            self.userGameCompletionProgress = decoded
+        }
+    }
+
+    func getGameSummary(gameID: Int) async {
+        let auth = buildAuthenticationString(username: authenticatedWebAPIUsername, key: authenticatedWebAPIKey)
+        guard let url = URL(string: "https://retroachievements.org/API/API_GetGameInfoAndUserProgress.php?\(auth)&g=\(gameID)&u=\(self.authenticatedWebAPIUsername)&a=1") else { return }
+        if let data = await makeAPICall(url: url), let decoded = try? JSONDecoder().decode(GameSummary.self, from: data) {
+            self.gameSummaryCache[decoded.id] = decoded
+        }
+    }
+
     func getGameConsoles() async {
-        var validatedRAConsoleListJSONData: Data?
+        if let cached = self.completeRetroAchievementsConsoleListJSONData,
+           let decoded = try? JSONDecoder().decode([Console].self, from: cached) {
+            self.consolesCache = Consoles(consoles: decoded)
+            return
+        }
+        let auth = buildAuthenticationString(username: authenticatedWebAPIUsername, key: authenticatedWebAPIKey)
+        guard let url = URL(string: "https://retroachievements.org/API/API_GetConsoleIDs.php?\(auth)") else { return }
+        if let data = await makeAPICall(url: url), let decoded = try? JSONDecoder().decode([Console].self, from: data) {
+            self.consolesCache = Consoles(consoles: decoded)
+            self.completeRetroAchievementsConsoleListJSONData = data
+        }
+    }
+
+    // MARK: - Formatting Helpers
+    func buildUserStatusMessage() -> String {
+        guard let profile = self.profile else { return "Loading Profile..." }
         
-        // Check For Cached Data Before Making API Call
-        if self.completeRetroAchievementsConsoleListJSONData != nil
-        {
-            print("Cached Console Data Found - Attempting to Load Into Memory...", terminator:" ")
-            validatedRAConsoleListJSONData = self.completeRetroAchievementsConsoleListJSONData
-        }
-        else
-        { // TODO: Cache Expiration
-            // Get Console Data from RA API
-            print("No Cached Console Data! Fetching New Data...", terminator:" ")
-            guard let url = URL(string: "https://retroachievements.org/API/API_GetConsoleIDs.php?\(buildAuthenticationString())") else { fatalError("Missing URL")}
-            if let raAPIResponse: Data = await makeAPICall(url: url)
-            {
-                validatedRAConsoleListJSONData = raAPIResponse
-                print("Console List Fetched from API!")
-            }
-            else
-            {
-                print("Bad Response Code!")
-            }
+        // Use userRecentlyPlayedGames to find the current/last game.
+        // This array is small and fetched in the core login block.
+        guard let lastPlayedGame = self.userRecentlyPlayedGames.first(where: { $0.id == profile.lastGameID }) else {
+            return "Online"
         }
         
-        // Cache Encoded Console List JSON Data & Store Decoded List in Memory
-        if validatedRAConsoleListJSONData != nil {
-            DispatchQueue.main.sync {
-                do
-                {
-                    let decodedConsoleSummary = try JSONDecoder().decode([Console].self, from: validatedRAConsoleListJSONData!)
-                    self.consolesCache = Consoles(consoles: decodedConsoleSummary)
-                    self.completeRetroAchievementsConsoleListJSONData = validatedRAConsoleListJSONData
-                    return
-                }
-                catch
-                {
-                    print("Error Decoding Console List JSON Data!")
-                }
-            }
-            
-            print("Console Data Loaded!")
+        guard let lastPlayedDate = Self.statusDateFormatter.date(from: lastPlayedGame.lastPlayed) else {
+            return "Online"
         }
+        
+        // If played within last 5 minutes, assume "Playing", else "Last Seen"
+        if abs(lastPlayedDate.timeIntervalSinceNow) > 300 {
+            let relative = Self.relativeFormatter.localizedString(for: lastPlayedDate, relativeTo: Date.now)
+            return "[Last Seen Playing '\(lastPlayedGame.title)' (\(lastPlayedGame.consoleName)) - \(relative)]"
+        } else {
+            return "[Playing: '\(lastPlayedGame.title)' | Game Status: \(profile.richPresenceMsg ?? "Unknown")]"
+        }
+    }
+
+    func filterHighestAwardType(awards: [VisibleUserAward]) -> [VisibleUserAward] {
+        var filtered = awards
+        let grouped = Dictionary(grouping: awards, by: { $0.id })
+        for (id, matches) in grouped where matches.count > 1 {
+            let highest = matches.contains(where: { $0.awardType == "Mastery/Completion" }) ? "Mastery/Completion" : "Game Beaten"
+            filtered.removeAll { $0.id == id && $0.awardType != highest }
+        }
+        return filtered
     }
 }

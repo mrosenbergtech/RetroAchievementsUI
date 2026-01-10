@@ -21,7 +21,7 @@ struct Profile: Codable {
     let permissions: Int
     let untracked: Int
     let id: Int
-    let userWallActive: Bool
+    let userWallActive: Int
     let motto: String
     
     enum CodingKeys: String, CodingKey {

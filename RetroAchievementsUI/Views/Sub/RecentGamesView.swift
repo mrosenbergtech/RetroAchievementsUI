@@ -9,15 +9,30 @@ import SwiftUI
 
 struct RecentGamesView: View {
     @EnvironmentObject var network: Network
+    @Environment(\.selectedGameID) var selectedGameID: Binding<GameSheetItem?>
     @Binding var hardcoreMode: Bool
 
     var body: some View {
         if (network.userRecentlyPlayedGames.count > 0){
             Section(header: Text("Recently Played Games")) {
                 ForEach(network.userRecentlyPlayedGames) { recentlyPlayedGame in
-                    NavigationLink(destination: GameSummaryView(hardcoreMode: $hardcoreMode, gameID: recentlyPlayedGame.id)){
-                         GameSummaryPreviewView(hardcoreMode: $hardcoreMode, imageIconString: recentlyPlayedGame.imageIcon, gameTitle: recentlyPlayedGame.title, gameConsoleName: recentlyPlayedGame.consoleName, maxPossible: recentlyPlayedGame.numPossibleAchievements, numAwardedHardcore: recentlyPlayedGame.numAchievedHardcore, numAwarded: recentlyPlayedGame.numAchieved, highestAwardKind: network.userGameCompletionProgress?.results.filter {$0.id == recentlyPlayedGame.id}.first?.highestAwardKind ?? nil)
+                    // Change NavigationLink to Button to trigger the global sheet
+                    Button {
+                        selectedGameID.wrappedValue = GameSheetItem(id: recentlyPlayedGame.id)
+                    } label: {
+                        GameSummaryPreviewView(
+                            hardcoreMode: $hardcoreMode,
+                            imageIconString: recentlyPlayedGame.imageIcon,
+                            gameTitle: recentlyPlayedGame.title,
+                            gameConsoleName: recentlyPlayedGame.consoleName,
+                            maxPossible: recentlyPlayedGame.numPossibleAchievements,
+                            numAwardedHardcore: recentlyPlayedGame.numAchievedHardcore,
+                            numAwarded: recentlyPlayedGame.numAchieved,
+                            highestAwardKind: network.userGameCompletionProgress?.results.filter {$0.id == recentlyPlayedGame.id}.first?.highestAwardKind ?? nil
+                        )
+                        .contentShape(Rectangle()) // Ensures the whole row area is tappable
                     }
+                    .buttonStyle(.plain) // Removes the default blue button tint
                 }
             }
         } else {
@@ -33,5 +48,8 @@ struct RecentGamesView: View {
         await network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
         
     }
-    return RecentGamesView(hardcoreMode: $hardcoreMode).environmentObject(network)
+    return Form {
+        RecentGamesView(hardcoreMode: $hardcoreMode)
+    }
+    .environmentObject(network)
 }

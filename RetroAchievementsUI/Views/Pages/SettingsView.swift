@@ -2,8 +2,6 @@
 //  SettingsView.swift
 //  RetroAchievementsUI
 //
-//  Created by Michael Rosenberg on 6/7/24.
-//
 
 import SwiftUI
 import Kingfisher
@@ -15,154 +13,140 @@ struct SettingsView: View {
     @Binding var hardcoreMode: Bool
     @Binding var unofficialSearchResults: Bool
     @Binding var shouldShowLoginSheet: Bool
-    @State var blankCredentials: Bool = false
+    
+    @State private var showingLogoutAlert = false
     
     var body: some View {
-        Form
-        {
-            Section(header: Text("RetroAchievements Login"),
-                content:
-                {
-                    HStack
-                    {
-                        Spacer()
+        Form {
+            // ACCOUNT SECTION
+            Section {
+                HStack(spacing: 15) {
+                    Image(systemName: "person.crop.circle.fill")
+                        .resizable()
+                        .frame(width: 45, height: 45)
+                        .foregroundStyle(network.webAPIAuthenticated ? Color.blue.gradient : Color.gray.gradient)
+                    VStack(alignment: .leading) {
+                        Text(network.webAPIAuthenticated ? network.authenticatedWebAPIUsername : "Not Signed In")
+                            .font(.headline)
                         
-                        Text("Login Status:")
-                            .bold()
-                                                    
-                        if network.webAPIAuthenticated
-                        {
-                            Image(systemName: "checkmark.circle")
-                                .foregroundColor(.green)
+                        HStack(spacing: 4) {
+                            Circle()
+                                .fill(network.webAPIAuthenticated ? .green : .red)
+                                .frame(width: 8, height: 8)
+                            Text(network.webAPIAuthenticated ? "Authenticated" : "Action Required")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
                         }
-                        else
-                        {
-                            Image(systemName: "x.circle")
-                                .foregroundColor(.red)
-                        }
-                        
-                        Spacer()
                     }
-                
+                    
+                    Spacer()
+                    
                     if network.webAPIAuthenticated {
-                        Button
-                        {
-                            webAPIUsername = ""
-                            webAPIKey = ""
-                            network.logout()
-                            shouldShowLoginSheet = true
+                        Button("Logout") {
+                            showingLogoutAlert = true
                         }
-                        label:
-                        {
-                            HStack
-                            {
-                                Spacer()
-                                Text("Logout " + network.authenticatedWebAPIUsername)
-                                    .foregroundStyle(.cyan)
-                                Spacer()
-                            }
-                        }
+                        .buttonStyle(.bordered)
+                        .tint(.red)
+                        .controlSize(.small)
                     } else {
-                        Button
-                        {
+                        Button("Login") {
                             shouldShowLoginSheet = true
                         }
-                        label:
-                        {
-                            HStack
-                            {
-                                Spacer()
-                                
-                                Text("Enter Credentials")
-                                    .foregroundStyle(.cyan)
-                                
-                                Spacer()
-                            }
-                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.small)
                     }
                 }
-            )
-            .alignmentGuide(.listRowSeparatorLeading) { _ in -20 }
-                
-            Section(
-                header: Text("Other Settings"),
-                content:
-                {
-                    Toggle("Hardcode Mode", isOn: $hardcoreMode)
-                        .alignmentGuide(.listRowSeparatorLeading) { _ in -20 }
-                    
-                    Toggle("Search for Unofficial Games", isOn: $unofficialSearchResults)
-                        .alignmentGuide(.listRowSeparatorLeading) { _ in -20 }
-                    
-                    
-                    Button
-                    {
-                        let cache = ImageCache.default
-                        cache.clearMemoryCache()
-                        cache.clearDiskCache { print("Image Cache Cleared!") }
-                    }
-                    label:
-                    {
-                        HStack
-                        {
-                            Spacer()
-                            Text("Clear Image Cache")
-                                .foregroundStyle(.cyan)
-                            Spacer()
-                        }
-                    }
-                    .alignmentGuide(.listRowSeparatorLeading) { _ in -20 }
-                    
-                    if (network.cacheDate != nil)
-                    {
-                        Button
-                        {
-                            Task {
-                                await network.refreshGameList()
-                            }
-                        }
-                        label:
-                        {
-                            HStack
-                            {
-                                Spacer()
-                                Text("Refresh Game List - Saved: " + Date(timeIntervalSince1970: network.cacheDate ?? -1.0).description.dropLast(15))
-                                    .foregroundStyle(.cyan)
-                                    .multilineTextAlignment(.center)
-                                Spacer()
-                            }
-                        }
-                        .alignmentGuide(.listRowSeparatorLeading) { _ in -20 }
-                    }
-                    else
-                    {
-                        HStack
-                        {
-                            ScrollingText(text: "Getting Game List - Please Wait...", font: .preferredFont(forTextStyle: .subheadline), leftFade: 15, rightFade: 15, startDelay: 3, alignment: .center)
-                                .foregroundStyle(.gray)
-                            ProgressView()
-                        }
-                    }
+                .padding(.vertical, 4)
+            } header: {
+                Text("Account")
+            } footer: {
+                if !network.webAPIAuthenticated {
+                    Text("Please enter your credentials to access your achievements and progress.")
                 }
-            )
-        }
-        .onAppear
-        {
-            if webAPIUsername == "" && webAPIKey == ""
-            {
-                blankCredentials = true
-            }
-            else
-            {
-                blankCredentials = false
             }
             
-            if !network.webAPIAuthenticated
-            {
+            // GAMEPLAY & SEARCH SETTINGS
+            Section("Preferences") {
+                Toggle(isOn: $hardcoreMode) {
+                    Label {
+                        Text("Hardcore Mode")
+                    } icon: {
+                        Image(systemName: "flame.fill").foregroundColor(.orange)
+                    }
+                }
+                
+                Toggle(isOn: $unofficialSearchResults) {
+                    Label {
+                        Text("Include Unofficial Games")
+                    } icon: {
+                        Image(systemName: "magnifyingglass.circle.fill").foregroundColor(.purple)
+                    }
+                }
+            }
+            
+            // STORAGE & DATA
+            Section("Data Management") {
+                Button(role: .destructive) {
+                    let cache = ImageCache.default
+                    cache.clearMemoryCache()
+                    cache.clearDiskCache { print("Image Cache Cleared!") }
+                } label: {
+                    Label("Clear Image Cache", systemImage: "photo.on.rectangle.angled")
+                        .foregroundColor(.red)
+                }
+                
+                if let cacheDate = network.cacheDate {
+                    Button {
+                        Task { await network.refreshGameList() }
+                    } label: {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Label("Refresh Game List", systemImage: "arrow.clockwise")
+                                .foregroundColor(.blue)
+                            Text("Last synced: \(formattedDate(cacheDate))")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                } else {
+                    HStack {
+                        Label("Updating Game List...", systemImage: "hourglass")
+                        Spacer()
+                        ProgressView()
+                    }
+                    .foregroundColor(.secondary)
+                }
+            }
+            
+            Section {
+                Link(destination: URL(string: "https://retroachievements.org")!) {
+                    Label("Visit RetroAchievements.org", systemImage: "safari")
+                }
+            } header: {
+                Text("Resources")
+            }
+        }
+        .navigationTitle("Settings")
+        .alert("Logout", isPresented: $showingLogoutAlert) {
+            Button("Cancel", role: .cancel) { }
+            Button("Logout", role: .destructive) {
+                webAPIUsername = ""
+                webAPIKey = ""
+                network.logout()
+                shouldShowLoginSheet = true
+            }
+        } message: {
+            Text("Are you sure you want to log out? You will need your API key to sign back in.")
+        }
+        .onAppear {
+            if !network.webAPIAuthenticated {
                 shouldShowLoginSheet = true
             }
         }
-
+    }
+    
+    private func formattedDate(_ interval: TimeInterval) -> String {
+        let date = Date(timeIntervalSince1970: interval)
+        return date.formatted(date: .abbreviated, time: .shortened)
     }
 }
 
