@@ -21,14 +21,16 @@ struct SettingsView: View {
             // ACCOUNT SECTION
             Section {
                 HStack(spacing: 15) {
-                    Image(systemName: "person.crop.circle.fill")
+                    KFImage(URL(string: "https://retroachievements.org/" + (network.profile?.userPic ?? "UserPic/retroachievementsUI")))
                         .resizable()
-                        .frame(width: 45, height: 45)
-                        .foregroundStyle(network.webAPIAuthenticated ? Color.blue.gradient : Color.gray.gradient)
+                        .placeholder { Circle().fill(Color.gray.opacity(0.2)) }
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: 56, height: 56)
+                        .clipShape(Circle())
                     VStack(alignment: .leading) {
                         Text(network.webAPIAuthenticated ? network.authenticatedWebAPIUsername : "Not Signed In")
                             .font(.headline)
-                        
+                            .lineLimit(1)                        
                         HStack(spacing: 4) {
                             Circle()
                                 .fill(network.webAPIAuthenticated ? .green : .red)

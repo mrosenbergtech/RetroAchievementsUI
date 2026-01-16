@@ -34,7 +34,11 @@ struct RecentAchievementDetailView: View {
             
             VStack(alignment: .center) {
                 // Achievement Title
-                ScrollingText(text: "[" + achievement.gameTitle + "] " + achievement.title, font: .boldSystemFont(ofSize: 15), leftFade: 15, rightFade: 15, startDelay: 3, alignment: .center)
+                ScrollingText(text: achievement.title, font: .boldSystemFont(ofSize: 15), leftFade: 15, rightFade: 15, startDelay: 3, alignment: .center)
+                    .frame(maxWidth: .infinity)
+                    .padding(.horizontal)
+                
+                ScrollingText(text: achievement.gameTitle + " - " + achievement.consoleName, font: .boldSystemFont(ofSize: 10), leftFade: 15, rightFade: 15, startDelay: 3, alignment: .center)
                     .frame(maxWidth: .infinity)
                     .padding(.horizontal)
                 
@@ -55,7 +59,7 @@ struct RecentAchievementDetailView: View {
                     
                     // Date Unlocked (Split Text on Space in Timestamp)
                     HStack{
-                        Image(systemName: "calendar.circle.fill")
+                        Image(systemName: "calendar.circle")
                         Text(formatDateFromString(dateString: achievement.date))
                     }
                 }

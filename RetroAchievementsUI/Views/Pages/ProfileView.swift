@@ -12,33 +12,33 @@ struct ProfileView: View {
     @Environment(\.selectedGameID) var selectedGameID: Binding<GameSheetItem?>
     @Binding var hardcoreMode: Bool
     
-    // Local state to guarantee skeleton visibility during refresh
     @State private var forceSkeleton: Bool = false
     
     var body: some View {
         NavigationView {
             Group {
-                // FIXED LOGIC:
-                // We show the skeleton if:
-                // 1. We are currently fetching
-                // 2. We are forcing it (pull-to-refresh)
-                // 3. OR if the profile is nil (initial launch state)
                 if network.isFetching || forceSkeleton || network.profile == nil {
                     skeletonLayout
                         .background(Color(UIColor.systemBackground))
                         .transition(.opacity)
                 } else {
                     VStack(spacing: 0) {
-                        // FIXED HEADER
                         ProfileHeaderView(hardcoreMode: $hardcoreMode)
                             .background(Color(UIColor.systemBackground))
                             .overlay(Divider().opacity(0.5), alignment: .bottom)
 
-                        // SCROLLING CONTENT
                         Form {
-                            RecentGamesView(hardcoreMode: $hardcoreMode)
-                            RecentAchievementsView(hardcoreMode: $hardcoreMode)
-                            AwardsView(hardcoreMode: $hardcoreMode)
+                            Section(header: Label("Recently Played Games", systemImage: "clock.arrow.circlepath")) {
+                                RecentGamesView(hardcoreMode: $hardcoreMode)
+                            }
+                            
+                            Section(header: Label("Recent Achievements", systemImage: "medal")) {
+                                RecentAchievementsView(hardcoreMode: $hardcoreMode)
+                            }
+                            
+                            Section(header: Label("Awards", systemImage: "trophy")) {
+                                AwardsView(hardcoreMode: $hardcoreMode)
+                            }
                         }
                         .listStyle(.insetGrouped)
                         .refreshable {
@@ -48,7 +48,6 @@ struct ProfileView: View {
                     .transition(.opacity)
                 }
             }
-            // Ensure transitions are animated smoothly
             .animation(.easeInOut(duration: 0.4), value: network.isFetching)
             .animation(.easeInOut(duration: 0.4), value: forceSkeleton)
             .animation(.easeInOut(duration: 0.4), value: network.profile == nil)
@@ -56,7 +55,6 @@ struct ProfileView: View {
             .navigationBarHidden(true)
         }
         .task {
-            // Initial load fetch
             if network.profile == nil {
                 await network.fetchAllProfileData()
             }
@@ -66,9 +64,7 @@ struct ProfileView: View {
     private func refreshWithMinimumDuration() async {
         forceSkeleton = true
         let startTime = Date()
-        
         await network.fetchAllProfileData()
-        
         let elapsed = Date().timeIntervalSince(startTime)
         let minimumDuration: TimeInterval = 1.5
         
@@ -88,8 +84,8 @@ struct ProfileView: View {
                 .overlay(Divider().opacity(0.5), alignment: .bottom)
             
             Form {
-                Section("Recent Games") {
-                    ForEach(0..<3, id: \.self) { _ in
+                Section("Recently Played Games") {
+                    ForEach(0..<2, id: \.self) { _ in
                         SkeletonRow(hasImage: true)
                     }
                 }

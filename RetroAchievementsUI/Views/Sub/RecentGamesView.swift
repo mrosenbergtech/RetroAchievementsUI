@@ -14,26 +14,24 @@ struct RecentGamesView: View {
 
     var body: some View {
         if (network.userRecentlyPlayedGames.count > 0){
-            Section(header: Text("Recently Played Games")) {
-                ForEach(network.userRecentlyPlayedGames) { recentlyPlayedGame in
-                    // Change NavigationLink to Button to trigger the global sheet
-                    Button {
-                        selectedGameID.wrappedValue = GameSheetItem(id: recentlyPlayedGame.id)
-                    } label: {
-                        GameSummaryPreviewView(
-                            hardcoreMode: $hardcoreMode,
-                            imageIconString: recentlyPlayedGame.imageIcon,
-                            gameTitle: recentlyPlayedGame.title,
-                            gameConsoleName: recentlyPlayedGame.consoleName,
-                            maxPossible: recentlyPlayedGame.numPossibleAchievements,
-                            numAwardedHardcore: recentlyPlayedGame.numAchievedHardcore,
-                            numAwarded: recentlyPlayedGame.numAchieved,
-                            highestAwardKind: network.userGameCompletionProgress?.results.filter {$0.id == recentlyPlayedGame.id}.first?.highestAwardKind ?? nil
-                        )
-                        .contentShape(Rectangle()) // Ensures the whole row area is tappable
-                    }
-                    .buttonStyle(.plain) // Removes the default blue button tint
+            ForEach(network.userRecentlyPlayedGames) { recentlyPlayedGame in
+                // Change NavigationLink to Button to trigger the global sheet
+                Button {
+                    selectedGameID.wrappedValue = GameSheetItem(id: recentlyPlayedGame.id)
+                } label: {
+                    GameSummaryPreviewView(
+                        hardcoreMode: $hardcoreMode,
+                        imageIconString: recentlyPlayedGame.imageIcon,
+                        gameTitle: recentlyPlayedGame.title,
+                        gameConsoleName: recentlyPlayedGame.consoleName,
+                        maxPossible: recentlyPlayedGame.numPossibleAchievements,
+                        numAwardedHardcore: recentlyPlayedGame.numAchievedHardcore,
+                        numAwarded: recentlyPlayedGame.numAchieved,
+                        highestAwardKind: network.userGameCompletionProgress?.results.filter {$0.id == recentlyPlayedGame.id}.first?.highestAwardKind ?? nil
+                    )
+                    .contentShape(Rectangle()) // Ensures the whole row area is tappable
                 }
+                .buttonStyle(.plain) // Removes the default blue button tint
             }
         } else {
             Text("No Recently Played Games!")

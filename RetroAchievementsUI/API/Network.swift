@@ -237,6 +237,17 @@ class Network: ObservableObject {
         guard let url = URL(string: "https://retroachievements.org/API/API_GetUserAwards.php?\(auth)&u=\(self.authenticatedWebAPIUsername)") else { return }
         if let data = await makeAPICall(url: url), let decoded = try? JSONDecoder().decode(Awards.self, from: data) {
             self.awards = decoded
+            
+            let gameAwards = self.filterHighestAwardType(awards: decoded.visibleUserAwards)
+                .filter { $0.consoleID != nil }
+            
+            for gameAward in gameAwards
+            {
+                if let gameID = gameAward.id
+                {
+                    await getGameSummary(gameID: gameID)
+                }
+            }
         }
     }
 
