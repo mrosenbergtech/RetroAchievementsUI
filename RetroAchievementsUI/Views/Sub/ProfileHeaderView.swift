@@ -71,7 +71,7 @@ struct ProfileHeaderView: View {
                 
                 // MARK: - Quick Stats
                 VStack(alignment: .trailing, spacing: 0) {
-                    Text("\(network.profile?.totalPoints ?? 0)")
+                    Text("\(hardcoreMode ? network.profile?.totalPoints ?? 0 : network.profile?.totalSoftcorePoints ?? 0)")
                         .font(.system(.headline, design: .monospaced))
                     Text("POINTS")
                         .font(.system(size: 9, weight: .bold))
