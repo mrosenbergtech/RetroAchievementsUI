@@ -82,11 +82,11 @@ struct AchievementsView: View {
                     AchievementDetailView(hardcoreMode: $hardcoreMode, achievement: gameSummary.achievements[id]!)
                 }
             } else if selectedAchievementFilter == "Locked" {
-                ForEach(gameSummary.achievements.keys.filter { gameSummary.achievements[$0]!.dateEarnedHardcore == nil }.sorted(), id: \.self) { id in
+                ForEach(gameSummary.achievements.keys.filter { !isUnlocked(gameSummary.achievements[$0]!) }.sorted(), id: \.self) { id in
                     AchievementDetailView(hardcoreMode: $hardcoreMode, achievement: gameSummary.achievements[id]!)
                 }
             } else if selectedAchievementFilter == "Unlocked" {
-                ForEach(gameSummary.achievements.keys.filter { gameSummary.achievements[$0]!.dateEarnedHardcore != nil }.sorted(), id: \.self) { id in
+                ForEach(gameSummary.achievements.keys.filter { isUnlocked(gameSummary.achievements[$0]!) }.sorted(), id: \.self) { id in
                     AchievementDetailView(hardcoreMode: $hardcoreMode, achievement: gameSummary.achievements[id]!)
                 }
             } else if selectedAchievementFilter == "Missable" {
@@ -105,6 +105,16 @@ struct AchievementsView: View {
                     AchievementDetailView(hardcoreMode: $hardcoreMode, achievement: gameSummary.achievements[id]!)
                 }
             }
+        }
+    }
+}
+
+extension AchievementsView {
+    func isUnlocked(_ achievement: Achievement) -> Bool {
+        if hardcoreMode {
+            return achievement.dateEarnedHardcore != nil
+        } else {
+            return achievement.dateEarned != nil
         }
     }
 }
