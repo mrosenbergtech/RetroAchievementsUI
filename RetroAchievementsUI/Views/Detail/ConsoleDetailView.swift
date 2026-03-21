@@ -81,7 +81,7 @@ struct ConsoleGridItemView: View {
 
 #Preview {
     @Previewable @State var hardcoreMode: Bool = true
-    let mockConsole = Console(id: 1, name: "Nintendo Entertainment System", iconURL: "https://retroachievements.org/static/img/console/1.png", active: true, isGameSystem: true)
+    let mockConsole = Console(id: 2, name: "Nintendo 64", iconURL: "https://static.retroachievements.org/assets/images/system/n64.png", active: true, isGameSystem: true)
     
     return List {
         ConsoleDetailView(console: mockConsole, hardcoreMode: $hardcoreMode)

@@ -115,6 +115,10 @@ struct GameSummaryView: View {
     @Previewable @State var hardcoreMode: Bool = true
     let network = Network()
     
+    Task {
+        await network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
+    }
+    
     return NavigationView {
         GameSummaryView(hardcoreMode: $hardcoreMode, gameID: 10003)
             .environmentObject(network)

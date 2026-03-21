@@ -12,11 +12,11 @@ struct SearchView: View {
     @EnvironmentObject var network: Network
     @Environment(\.selectedGameID) var selectedGameID: Binding<GameSheetItem?>
     @Binding var hardcoreMode: Bool
-    @Binding var unofficialSearchResults: Bool
+    @Binding var showUnofficial: Bool
     @State private var searchQuery = ""
     
     var searchResults: [GameListGame] {
-        let baseList = unofficialSearchResults ? network.gameList : network.gameList.filter { !$0.title.starts(with: "~") }
+        let baseList = showUnofficial ? network.gameList : network.gameList.filter { !$0.title.starts(with: "~") }
         if searchQuery.isEmpty {
             return baseList
         } else {
@@ -56,13 +56,13 @@ struct SearchView: View {
 
 #Preview {
     @Previewable @State var hardcoreMode: Bool = true
-    @Previewable @State var unofficialSearchResults: Bool = false
+    @Previewable @State var showUnofficial: Bool = false
 
     let network = Network()
     Task {
         await network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
     }
     
-    return SearchView(hardcoreMode: $hardcoreMode, unofficialSearchResults: $unofficialSearchResults)
+    return SearchView(hardcoreMode: $hardcoreMode, showUnofficial: $showUnofficial)
         .environmentObject(network)
 }

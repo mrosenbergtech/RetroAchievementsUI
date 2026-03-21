@@ -10,6 +10,7 @@ import SwiftUI
 struct ConsolesView: View {
     @EnvironmentObject var network: Network
     @Binding var hardcoreMode: Bool
+    @Binding var showUnofficial: Bool
     
     // Controls the visibility of the toast notification
     @State private var showSyncCompleteToast: Bool = false
@@ -59,7 +60,7 @@ struct ConsolesView: View {
                                     ForEach(consoleKind.consoleIDList, id: \.self) { consoleID in
                                         let consoleData = network.consolesCache?.getConsoleDataByID(consoleID: consoleID) ?? Console(id: -1, name: "Unknown", iconURL: "", active: false, isGameSystem: false)
                                         
-                                        NavigationLink(destination: ConsoleGamesView(hardcoreMode: $hardcoreMode, consoleID: consoleID)) {
+                                        NavigationLink(destination: ConsoleGamesView(hardcoreMode: $hardcoreMode, showUnofficial: $showUnofficial, consoleID: consoleID)) {
                                             ConsoleDetailView(console: consoleData, hardcoreMode: $hardcoreMode)
                                         }
                                     }
@@ -88,9 +89,15 @@ struct ConsolesView: View {
 
 #Preview {
     @Previewable @State var hardcoreMode: Bool = true
+    @Previewable @State var showUnofficial = false
     let network = Network()
-    // Mock some progress for the preview
-    network.syncProgressPercentage = 45.0
-    network.isFetchingFullGameList = true
-    return ConsolesView(hardcoreMode: $hardcoreMode).environmentObject(network)
+    
+    Task {
+        await network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
+        await network.getGameConsoles()
+    }
+    
+    return ConsolesView(hardcoreMode: $hardcoreMode, showUnofficial: $showUnofficial)
+        .environmentObject(network)
+        .environment(\.selectedGameID, .constant(nil))
 }

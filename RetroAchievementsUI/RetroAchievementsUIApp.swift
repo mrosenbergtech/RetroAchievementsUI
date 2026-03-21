@@ -16,7 +16,7 @@ struct RetroAchievementsUIApp: App {
     @AppStorage("webAPIUsername") var webAPIUsername: String = ""
     @AppStorage("webAPIKey") var webAPIKey: String = ""
     @AppStorage("hardcoreMode") var hardcoreMode: Bool = true
-    @AppStorage("unofficialSearchResults") var unofficialSearchResults: Bool = false
+    @AppStorage("showUnofficial") var showUnofficial: Bool = false
     @ObservedObject var network = Network()
     
 //    init() {
@@ -25,7 +25,7 @@ struct RetroAchievementsUIApp: App {
     
     var body: some Scene {
         WindowGroup {
-            ContentView(webAPIUsername: $webAPIUsername, webAPIKey: $webAPIKey, hardcoreMode: $hardcoreMode, unofficialSearchResults: $unofficialSearchResults)
+            ContentView(webAPIUsername: $webAPIUsername, webAPIKey: $webAPIKey, hardcoreMode: $hardcoreMode, showUnofficial: $showUnofficial)
                 .environmentObject(network)
                 .task {
                     await network.authenticateCredentials(webAPIUsername: webAPIUsername, webAPIKey: webAPIKey)

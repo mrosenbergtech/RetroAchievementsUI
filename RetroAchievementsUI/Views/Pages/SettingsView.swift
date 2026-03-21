@@ -11,7 +11,7 @@ struct SettingsView: View {
     @Binding var webAPIUsername: String
     @Binding var webAPIKey: String
     @Binding var hardcoreMode: Bool
-    @Binding var unofficialSearchResults: Bool
+    @Binding var showUnofficial: Bool
     @Binding var shouldShowLoginSheet: Bool
     
     @State private var showingLogoutAlert = false
@@ -77,7 +77,7 @@ struct SettingsView: View {
                     }
                 }
                 
-                Toggle(isOn: $unofficialSearchResults) {
+                Toggle(isOn: $showUnofficial) {
                     Label {
                         Text("Include Unofficial Games")
                     } icon: {
@@ -156,12 +156,12 @@ struct SettingsView: View {
     @Previewable @State var webAPIUsername = debugWebAPIUsername
     @Previewable @State var webAPIKey = debugWebAPIKey
     @Previewable @State var hardcoreMode = true
-    @Previewable @State var unofficialSearchResults = false
+    @Previewable @State var showUnofficial = false
     @Previewable @State var shouldShowLoginSheet = false
     let network = Network()
     Task {
         await network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
     }
-    return SettingsView(webAPIUsername: $webAPIUsername, webAPIKey: $webAPIKey, hardcoreMode: $hardcoreMode, unofficialSearchResults: $unofficialSearchResults, shouldShowLoginSheet: $shouldShowLoginSheet)
+    return SettingsView(webAPIUsername: $webAPIUsername, webAPIKey: $webAPIKey, hardcoreMode: $hardcoreMode, showUnofficial: $showUnofficial, shouldShowLoginSheet: $shouldShowLoginSheet)
         .environmentObject(network)
 }

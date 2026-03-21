@@ -76,8 +76,10 @@ class Network: ObservableObject {
     
     func refreshGameList() async {
         self.completeRetroAchievementsGameListJSONData = nil
+        self.completeRetroAchievementsConsoleListJSONData = nil
         self.cacheDate = nil
         self.gameList = []
+        await self.getGameConsoles()
         await self.getRAGameList()
     }
     
@@ -284,11 +286,13 @@ class Network: ObservableObject {
     }
 
     func getGameConsoles() async {
-        if let cached = self.completeRetroAchievementsConsoleListJSONData,
-           let decoded = try? JSONDecoder().decode([Console].self, from: cached) {
-            self.consolesCache = Consoles(consoles: decoded)
-            return
+        if let cachedData = self.completeRetroAchievementsConsoleListJSONData {
+            if let decoded = try? JSONDecoder().decode([Console].self, from: cachedData) {
+                self.consolesCache = Consoles(consoles: decoded)
+                return
+            }
         }
+        
         let auth = buildAuthenticationString(username: authenticatedWebAPIUsername, key: authenticatedWebAPIKey)
         guard let url = URL(string: "https://retroachievements.org/API/API_GetConsoleIDs.php?\(auth)") else { return }
         if let data = await makeAPICall(url: url), let decoded = try? JSONDecoder().decode([Console].self, from: data) {
@@ -304,11 +308,11 @@ class Network: ObservableObject {
         // Use userRecentlyPlayedGames to find the current/last game.
         // This array is small and fetched in the core login block.
         guard let lastPlayedGame = self.userRecentlyPlayedGames.first(where: { $0.id == profile.lastGameID }) else {
-            return "Online"
+            return "Offline"
         }
         
         guard let lastPlayedDate = Self.statusDateFormatter.date(from: lastPlayedGame.lastPlayed) else {
-            return "Online"
+            return "Offline"
         }
         
         // If played within last 5 minutes, assume "Playing", else "Last Seen"

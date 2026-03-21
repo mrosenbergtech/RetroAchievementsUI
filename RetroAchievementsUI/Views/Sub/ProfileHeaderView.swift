@@ -122,7 +122,7 @@ struct StatView: View {
     @Previewable @State var hardcoreMode: Bool = true
     let network = Network()
     Task {
-        await network.authenticateCredentials(webAPIUsername: "Sample", webAPIKey: "Sample")
+        await network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
     }
     return ProfileHeaderView(hardcoreMode: $hardcoreMode)
         .environmentObject(network)

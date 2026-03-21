@@ -12,7 +12,7 @@ struct ContentView: View {
     @Binding var webAPIUsername: String
     @Binding var webAPIKey: String
     @Binding var hardcoreMode: Bool
-    @Binding var unofficialSearchResults: Bool
+    @Binding var showUnofficial: Bool
     
     @State var selectedTab: Int = 1
     @State var shouldShowLoginSheet: Bool = false
@@ -35,25 +35,25 @@ struct ContentView: View {
     
     private var authenticatedInterface: some View {
         TabView(selection: $selectedTab) {
-            ProfileView(hardcoreMode: $hardcoreMode)
+            ProfileView(hardcoreMode: $hardcoreMode, showUnofficial: $showUnofficial)
                 .tabItem {
                     Label("Profile", systemImage: "person.circle")
                 }
                 .tag(1)
             
-            MyGamesView(hardcoreMode: $hardcoreMode)
+            MyGamesView(hardcoreMode: $hardcoreMode, showUnofficial: $showUnofficial)
                 .tabItem {
                     Label("My Games", systemImage: "gamecontroller")
                 }
                 .tag(2)
             
-            ConsolesView(hardcoreMode: $hardcoreMode)
+            ConsolesView(hardcoreMode: $hardcoreMode, showUnofficial: $showUnofficial)
                 .tabItem {
                     Label("Consoles", systemImage: "arcade.stick.console")
                 }
                 .tag(3)
             
-            SearchView(hardcoreMode: $hardcoreMode, unofficialSearchResults: $unofficialSearchResults)
+            SearchView(hardcoreMode: $hardcoreMode, showUnofficial: $showUnofficial)
                 .tabItem {
                     Label("Search", systemImage: "magnifyingglass.circle")
                 }
@@ -63,7 +63,7 @@ struct ContentView: View {
                 webAPIUsername: $webAPIUsername,
                 webAPIKey: $webAPIKey,
                 hardcoreMode: $hardcoreMode,
-                unofficialSearchResults: $unofficialSearchResults,
+                showUnofficial: $showUnofficial,
                 shouldShowLoginSheet: $shouldShowLoginSheet
             )
             .tabItem {
@@ -161,13 +161,13 @@ extension Bool {
     @Previewable @State var webAPIUsername = debugWebAPIUsername
     @Previewable @State var webAPIKey = debugWebAPIKey
     @Previewable @State var hardcoreMode = true
-    @Previewable @State var unofficialSearchResults = false
+    @Previewable @State var showUnofficial = false
     let network = Network()
 
     Task {
         await network.authenticateCredentials(webAPIUsername: webAPIUsername, webAPIKey: webAPIKey)
     }
     
-    return ContentView(webAPIUsername: $webAPIUsername, webAPIKey: $webAPIKey, hardcoreMode: $hardcoreMode, unofficialSearchResults: $unofficialSearchResults)
+    return ContentView(webAPIUsername: $webAPIUsername, webAPIKey: $webAPIKey, hardcoreMode: $hardcoreMode, showUnofficial: $showUnofficial)
         .environmentObject(network)
 }

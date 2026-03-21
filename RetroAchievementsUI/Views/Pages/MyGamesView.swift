@@ -9,6 +9,7 @@ struct MyGamesView: View {
     @EnvironmentObject var network: Network
     @Environment(\.selectedGameID) var selectedGameID: Binding<GameSheetItem?>
     @Binding var hardcoreMode: Bool
+    @Binding var showUnofficial: Bool
     
     // NEW: Local state to force the skeleton visibility
     @State private var forceSkeleton: Bool = false
@@ -19,8 +20,9 @@ struct MyGamesView: View {
                 // LAYER 1: The Actual Data
                 Form {
                     if let progress = network.userGameCompletionProgress, progress.results.count > 0 {
+                        let baseGames = showUnofficial ? progress.results : progress.results.filter({ !$0.title.starts(with: "~") })
                         ForEach(network.consolesCache?.consoles.sorted { $0.name.lowercased() < $1.name.lowercased() } ?? []) { console in
-                            let consoleGames = progress.results.filter({ $0.consoleName == console.name })
+                            let consoleGames = baseGames.filter({ $0.consoleName == console.name })
                             if consoleGames.count > 0 {
                                 Section(header: Text(console.name)) {
                                     ForEach(consoleGames.sorted { $0.title.lowercased() < $1.title.lowercased() }) { game in
@@ -129,11 +131,12 @@ struct MyGamesView: View {
 
 #Preview {
     @Previewable @State var hardcoreMode: Bool = true
+    @Previewable @State var showUnofficial: Bool = false
+    
     let network = Network()
     Task {
-        await network.authenticateCredentials(webAPIUsername: "SampleUser", webAPIKey: "SampleKey")
+        await network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
         await network.getUserGameCompletionProgress()
     }
-    return MyGamesView(hardcoreMode: $hardcoreMode)
-        .environmentObject(network)
+    return MyGamesView(hardcoreMode: $hardcoreMode, showUnofficial: $showUnofficial).environmentObject(network)
 }

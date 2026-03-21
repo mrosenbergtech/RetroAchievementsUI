@@ -11,10 +11,12 @@ struct RecentGamesView: View {
     @EnvironmentObject var network: Network
     @Environment(\.selectedGameID) var selectedGameID: Binding<GameSheetItem?>
     @Binding var hardcoreMode: Bool
+    @Binding var showUnofficial: Bool
 
     var body: some View {
-        if (network.userRecentlyPlayedGames.count > 0){
-            ForEach(network.userRecentlyPlayedGames) { recentlyPlayedGame in
+        let baseList = showUnofficial ? network.userRecentlyPlayedGames : network.userRecentlyPlayedGames.filter { !$0.title.starts(with: "~") }
+        if (baseList.count > 0){
+            ForEach(baseList) { recentlyPlayedGame in
                 // Change NavigationLink to Button to trigger the global sheet
                 Button {
                     selectedGameID.wrappedValue = GameSheetItem(id: recentlyPlayedGame.id)
@@ -41,13 +43,14 @@ struct RecentGamesView: View {
 
 #Preview {
     @Previewable @State var hardcoreMode: Bool = true
+    @Previewable @State var showUnofficial = false
     let network = Network()
     Task {
         await network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
-        
     }
+    
     return Form {
-        RecentGamesView(hardcoreMode: $hardcoreMode)
+        RecentGamesView(hardcoreMode: $hardcoreMode, showUnofficial: $showUnofficial)
     }
     .environmentObject(network)
 }

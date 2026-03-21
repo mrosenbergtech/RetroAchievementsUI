@@ -11,10 +11,12 @@ struct RecentAchievementsView: View {
     @EnvironmentObject var network: Network
     @Environment(\.selectedGameID) var selectedGameID: Binding<GameSheetItem?>
     @Binding var hardcoreMode: Bool
+    @Binding var showUnofficial: Bool
 
     var body: some View {
-        if ((network.userRecentAchievements.count) > 0) {
-            ForEach(network.userRecentAchievements.prefix(upTo: 3)) { recentAchievement in
+        let baseList = showUnofficial ? network.userRecentAchievements : network.userRecentAchievements.filter { !$0.gameTitle.starts(with: "~") }
+        if ((baseList.count) > 0) {
+            ForEach(baseList.prefix(upTo: 3)) { recentAchievement in
                 // Logic to determine if we should show this achievement based on Hardcore toggle
                 let shouldShow = (hardcoreMode && recentAchievement.hardcoreMode == 1) || !hardcoreMode
                 
@@ -37,21 +39,14 @@ struct RecentAchievementsView: View {
 
 #Preview {
     @Previewable @State var hardcoreMode: Bool = true
+    @Previewable @State var showUnofficial: Bool = false
     let network = Network()
     Task {
         await network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
     }
     return Form {
-        RecentAchievementsView(hardcoreMode: $hardcoreMode)
+        RecentAchievementsView(hardcoreMode: $hardcoreMode, showUnofficial: $showUnofficial)
     }
     .environmentObject(network)
-}
-
-#Preview {
-    @Previewable @State var hardcoreMode: Bool = true
-    let network = Network()
-    Task {
-        await network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey) 
-    }
-    return RecentAchievementsView(hardcoreMode: $hardcoreMode).environmentObject(network)
+    .environment(\.selectedGameID, .constant(nil))
 }

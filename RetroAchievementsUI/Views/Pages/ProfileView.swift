@@ -11,6 +11,7 @@ struct ProfileView: View {
     @EnvironmentObject var network: Network
     @Environment(\.selectedGameID) var selectedGameID: Binding<GameSheetItem?>
     @Binding var hardcoreMode: Bool
+    @Binding var showUnofficial: Bool
     
     @State private var forceSkeleton: Bool = false
     
@@ -29,11 +30,11 @@ struct ProfileView: View {
 
                         Form {
                             Section(header: Label("Recently Played Games", systemImage: "clock.arrow.circlepath")) {
-                                RecentGamesView(hardcoreMode: $hardcoreMode)
+                                RecentGamesView(hardcoreMode: $hardcoreMode, showUnofficial: $showUnofficial)
                             }
                             
                             Section(header: Label("Recent Achievements", systemImage: "medal")) {
-                                RecentAchievementsView(hardcoreMode: $hardcoreMode)
+                                RecentAchievementsView(hardcoreMode: $hardcoreMode, showUnofficial: $showUnofficial)
                             }
                             
                             Section(header: Label("Awards", systemImage: "trophy")) {
@@ -136,7 +137,11 @@ extension View {
 
 #Preview {
     @Previewable @State var hardcoreMode: Bool = true
+    @Previewable @State var showUnofficial = false
     let network = Network()
-    Task { await network.authenticateCredentials(webAPIUsername: "debugUser", webAPIKey: "debugKey") }
-    return ProfileView(hardcoreMode: $hardcoreMode).environmentObject(network)
+    Task {
+        await network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
+        await network.fetchAllProfileData()
+    }
+    return ProfileView(hardcoreMode: $hardcoreMode, showUnofficial: $showUnofficial).environmentObject(network)
 }
