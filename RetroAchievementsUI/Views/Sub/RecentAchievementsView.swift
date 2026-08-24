@@ -2,8 +2,6 @@
 //  RecentAchievementsView.swift
 //  RetroAchievementsUI
 //
-//  Created by Michael Rosenberg on 12/28/24.
-//
 
 import SwiftUI
 
@@ -12,27 +10,52 @@ struct RecentAchievementsView: View {
     @Environment(\.selectedGameID) var selectedGameID: Binding<GameSheetItem?>
     @Binding var hardcoreMode: Bool
     @Binding var showUnofficial: Bool
+    /// Derived by ProfileView from the height the deck was given.
+    var cardWidth: CGFloat = RACardMetrics.carouselWidth
+
+    /// The carousel scrolls, so this is far above the old three-row list.
+    var limit: Int = 30
+
+    private var achievements: [RecentAchievement] {
+        var list = network.userRecentAchievements
+
+        if !showUnofficial {
+            list = list.filter { !$0.gameTitle.starts(with: "~") }
+        }
+
+        // Filter BEFORE limiting. Taking three and then dropping the softcore
+        // ones meant hardcore mode could show two rows, or none.
+        if hardcoreMode {
+            list = list.filter { $0.hardcoreMode == 1 }
+        }
+
+        // `prefix(_:)`, not `prefix(upTo:)` — the latter traps when the user
+        // has fewer than `limit` achievements.
+        return Array(list.prefix(limit))
+    }
 
     var body: some View {
-        let baseList = showUnofficial ? network.userRecentAchievements : network.userRecentAchievements.filter { !$0.gameTitle.starts(with: "~") }
-        if ((baseList.count) > 0) {
-            ForEach(baseList.prefix(upTo: 3)) { recentAchievement in
-                // Logic to determine if we should show this achievement based on Hardcore toggle
-                let shouldShow = (hardcoreMode && recentAchievement.hardcoreMode == 1) || !hardcoreMode
-                
-                if shouldShow {
-                    // Change NavigationLink to Button to trigger the global sheet
-                    Button {
-                        selectedGameID.wrappedValue = GameSheetItem(id: recentAchievement.gameID)
-                    } label: {
-                        RecentAchievementDetailView(hardcoreMode: $hardcoreMode, achievement: recentAchievement)
-                            .contentShape(Rectangle()) // Ensures the whole row area is tappable
-                    }
-                    .buttonStyle(.plain) // Removes default blue button tinting
-                }
-            }
+        if achievements.isEmpty {
+            RAEmptyRow(icon: "medal",
+                       title: "No Recent Achievements",
+                       message: hardcoreMode
+                            ? "Achievements you unlock in hardcore mode will show up here."
+                            : "Achievements you unlock will show up here.")
+                .raListRow()
         } else {
-            Text("No Recent Achievements!")
+            RACardCarousel(items: achievements, width: cardWidth) { achievement in
+                Button {
+                    // Open the game sheet, which then surfaces this
+                    // achievement's detail on top of it.
+                    selectedGameID.wrappedValue = GameSheetItem(id: achievement.gameID,
+                                                                achievementID: achievement.id)
+                } label: {
+                    RACardCell(face: .achievement(
+                        achievement,
+                        rarity: network.rarity(forAchievement: achievement.id)))
+                }
+                .buttonStyle(CardPressStyle())
+            }
         }
     }
 }
@@ -44,9 +67,12 @@ struct RecentAchievementsView: View {
     Task {
         await network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
     }
-    return Form {
+    return List {
         RecentAchievementsView(hardcoreMode: $hardcoreMode, showUnofficial: $showUnofficial)
     }
+    .listStyle(.plain)
+    .scrollContentBackground(.hidden)
+    .background(Color.raSurface)
     .environmentObject(network)
     .environment(\.selectedGameID, .constant(nil))
 }

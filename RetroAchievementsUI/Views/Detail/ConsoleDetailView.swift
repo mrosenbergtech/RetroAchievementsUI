@@ -2,7 +2,7 @@
 //  ConsoleDetailView.swift
 //  RetroAchievementsUI
 //
-//  Created by Michael Rosenberg on 6/10/24.
+//  Console rows and grid cells.
 //
 
 import SwiftUI
@@ -11,79 +11,96 @@ import Kingfisher
 struct ConsoleDetailView: View {
     var console: Console
     @Binding var hardcoreMode: Bool
-    
+
     var body: some View {
-        HStack(spacing: 16) {
-            // Console Icon
-            KFImage(URL(string: console.iconURL))
-                .resizable() // Added to ensure frame works correctly
-                .placeholder {
-                    Color.gray.opacity(0.2)
-                        .frame(width: 40, height: 40)
-                        .cornerRadius(8)
-                }
-                .scaledToFit()
-                .frame(width: 40, height: 40)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-                        
-            VStack(alignment: .leading, spacing: 4) {
-                // Console Name
-                // Note: Using ScrollingText as per your original design
-                ScrollingText(
-                    text: console.name,
-                    font: .boldSystemFont(ofSize: 18),
-                    leftFade: 10,
-                    rightFade: 10,
-                    startDelay: 1,
-                    alignment: .leading
-                )
-                
+        HStack(spacing: 14) {
+            ConsoleIcon(console: console, size: 42)
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(console.name)
+                    .font(.raNameplate)
+                    .foregroundStyle(Color.raTextPrimary)
+                    .lineLimit(2)
+
                 if console.active {
-                    Text("Active System")
-                        .font(.caption2)
+                    Text("Active system")
+                        .font(.raNameplateSub)
                         .foregroundStyle(.green)
                 }
             }
-            
-            Spacer()
+
+            Spacer(minLength: 0)
         }
-        .padding(.vertical, 4)
-        // Helps the separator line up nicely with the text
-        .alignmentGuide(.listRowSeparatorLeading) { d in d[.leading] + 56 }
+        .padding(.vertical, 5)
+        .contentShape(Rectangle())
     }
 }
 
+/// Console icons are transparent logos on no background, so they get a plate to
+/// sit on rather than the cropped-fill treatment game art uses.
+struct ConsoleIcon: View {
+    var console: Console
+    var size: CGFloat = 42
+
+    var body: some View {
+        KFImage(URL(string: console.iconURL))
+            .resizable()
+            .placeholder {
+                Image(systemName: "gamecontroller")
+                    .font(.system(size: size * 0.4))
+                    .foregroundStyle(Color.raTextTertiary)
+            }
+            .fade(duration: 0.2)
+            .aspectRatio(contentMode: .fit)
+            .padding(size * 0.16)
+            .frame(width: size, height: size)
+            .background(Color.raSurfaceSunken)
+            .clipShape(RoundedRectangle(cornerRadius: size * 0.24, style: .continuous))
+    }
+}
+
+/// Grid cell for the Consoles tab.
 struct ConsoleGridItemView: View {
     var console: Console
-    
+
     var body: some View {
-        VStack(spacing: 12) {
-            // Larger Icon for the grid
-            KFImage(URL(string: console.iconURL))
-                .resizable()
-                .scaledToFit()
-                .frame(height: 80)
-                .padding(10)
-                .background(Color(UIColor.secondarySystemGroupedBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 15))
-                .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
-            
+        VStack(spacing: 10) {
+            ConsoleIcon(console: console, size: 76)
+
             Text(console.name)
-                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                .font(.raNameplateSub.weight(.semibold))
+                .foregroundStyle(Color.raTextPrimary)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
-                .frame(height: 40, alignment: .top)
-                .padding(.horizontal, 4)
+                .minimumScaleFactor(0.85)
+                .frame(height: 30, alignment: .top)
         }
         .frame(maxWidth: .infinity)
+        .padding(.vertical, 14)
+        .padding(.horizontal, 6)
+        .background(Color.raSurfaceRaised)
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .contentShape(Rectangle())
     }
 }
 
 #Preview {
     @Previewable @State var hardcoreMode: Bool = true
-    let mockConsole = Console(id: 2, name: "Nintendo 64", iconURL: "https://static.retroachievements.org/assets/images/system/n64.png", active: true, isGameSystem: true)
-    
-    return List {
-        ConsoleDetailView(console: mockConsole, hardcoreMode: $hardcoreMode)
+    let mockConsole = Console(id: 2, name: "Nintendo 64",
+                              iconURL: "https://static.retroachievements.org/assets/images/system/n64.png",
+                              active: true, isGameSystem: true)
+
+    return VStack(spacing: 20) {
+        List {
+            ConsoleDetailView(console: mockConsole, hardcoreMode: $hardcoreMode)
+        }
+        .frame(height: 120)
+
+        HStack(spacing: 12) {
+            ConsoleGridItemView(console: mockConsole)
+            ConsoleGridItemView(console: mockConsole)
+        }
+        .padding()
     }
+    .background(Color.raSurface)
 }

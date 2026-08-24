@@ -46,7 +46,3 @@ struct UserGamesCompletionProgressResult: Codable {
         case results = "Results"
     }
 }
-
-func getUserGamesForConsole(consoleName: String, userGamesCompletionProgress: [GameCompletionProgress]) -> [GameCompletionProgress]{
-    return userGamesCompletionProgress.filter {$0.consoleName == consoleName}
-}

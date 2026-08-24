@@ -12,68 +12,145 @@ struct GameSummaryHeaderView: View {
     @EnvironmentObject var network: Network
     @Binding var hardcoreMode: Bool
     var gameID: Int
-    
+
+    private var summary: GameSummary? { network.gameSummaryCache[gameID] }
+
     var body: some View {
-        if network.gameSummaryCache[gameID] != nil {
-            HStack{
-                KFImage(URL(string: "https://retroachievements.org/" + (network.gameSummaryCache[gameID]!.imageIcon)))
-                .resizable()
-                .clipShape(.rect(cornerRadius: 10))
-                .frame(width: 64, height: 64)
-                
-                VStack {
-                    ScrollingText(text: network.gameSummaryCache[gameID]!.title, font: .boldSystemFont(ofSize: 15), leftFade: 15, rightFade: 15, startDelay: 1, alignment: .center)
-                        .padding(.horizontal)
-                    
-                    Text(network.gameSummaryCache[gameID]!.consoleName)
-                        .foregroundStyle(.gray)
-                        .font(.footnote)
-                        .lineLimit(1)
-                        .padding(.horizontal)
-                    
-                    if network.gameSummaryCache[gameID]!.numAchievements > 0 {
-                        HStack{
-                            Image(systemName: "trophy.circle")
-                            Text(String(hardcoreMode ? network.gameSummaryCache[gameID]!.numAwardedToUserHardcore : network.gameSummaryCache[gameID]!.numAwardedToUser) + " | " + String(network.gameSummaryCache[gameID]!.numAchievements))
-                                .multilineTextAlignment(.center)
-                                .font(.footnote)
-                        }
-                            
-                        ProgressView(value: Float(hardcoreMode ? network.gameSummaryCache[gameID]!.numAwardedToUserHardcore : network.gameSummaryCache[gameID]!.numAwardedToUser) / Float(network.gameSummaryCache[gameID]!.numAchievements))
-                            .padding(.horizontal)
-                    } else {
-                        Text("No Achievements!")
-                    }
-                    
-                }
-                
-                Image(systemName: "checkmark.circle")
-                    .foregroundStyle(highestAwardColor(highestAwardKind: network.gameSummaryCache[gameID]!.highestAwardKind))
-            }
-        }  else {
+        if let summary {
+            content(summary)
+        } else {
             ProgressView()
-                .task {
-                    await network.getGameSummary(gameID: gameID)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 60)
+                .task { await network.getGameSummary(gameID: gameID) }
+        }
+    }
+
+    // MARK: - Content
+
+    private func content(_ summary: GameSummary) -> some View {
+        let tier = AwardTier(highestAwardKind: summary.highestAwardKind)
+        let earned = hardcoreMode ? summary.numAwardedToUserHardcore : summary.numAwardedToUser
+        let fraction = summary.numAchievements > 0
+            ? Double(earned) / Double(summary.numAchievements)
+            : 0
+
+        return VStack(spacing: 0) {
+            // ImageTitle (the title screen) was decoded but never rendered.
+            // It makes a far better sheet header than another 64pt icon.
+            backdrop(summary)
+
+            VStack(spacing: 12) {
+                VStack(spacing: 4) {
+                    Text(summary.title)
+                        .font(.raDisplay)
+                        .foregroundStyle(Color.raTextPrimary)
+                        .multilineTextAlignment(.center)
+                        .lineLimit(3)
+
+                    Text(summary.consoleName)
+                        .font(.raCaption)
+                        .foregroundStyle(Color.raTextSecondary)
                 }
+
+                if let tier {
+                    RAChip(tier.longDisplayName.uppercased(),
+                           systemImage: tier.isMasteryClass ? "rosette" : "checkmark.seal.fill",
+                           tint: RarityMaterial.of(tier).ink)
+                }
+
+                if summary.numAchievements > 0 {
+                    VStack(spacing: 6) {
+                        HStack(spacing: 14) {
+                            RAMeta(systemImage: "trophy.fill",
+                                   text: "\(earned)/\(summary.numAchievements)")
+                            if let points = summary.pointsTotal {
+                                RAMeta(systemImage: "command.circle.fill", text: "\(points)")
+                            }
+                            Text("\(Int((fraction * 100).rounded()))%")
+                                .font(.raStatSmall)
+                                .foregroundStyle(tier.map { RarityMaterial.of($0).ink }
+                                                 ?? Color.raTextSecondary)
+                        }
+                        RAProgressBar(value: fraction, tier: tier, height: 5)
+                    }
+                    .padding(.horizontal, 40)
+                } else {
+                    Text("No achievements yet")
+                        .font(.raCaption)
+                        .foregroundStyle(Color.raTextTertiary)
+                }
+
+                metadata(summary)
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 14)
+        }
+    }
+
+    /// Title screen behind the game icon.
+    ///
+    /// Shown whole rather than cropped: this was `.fill` inside a fixed 128pt
+    /// frame, which sliced the top and bottom off most title screens. The art
+    /// is the point, so it keeps its own aspect ratio and the header grows to
+    /// fit — capped so an unusually tall image can't take over the sheet.
+    private func backdrop(_ summary: GameSummary) -> some View {
+        ZStack(alignment: .bottom) {
+            KFImage(RAImageURL.titleScreen(summary.imageTitle)
+                    ?? RAImageURL.gameIcon(summary.imageIcon))
+                .resizable()
+                .placeholder {
+                    Color.raSurfaceSunken.frame(height: 160)
+                }
+                .aspectRatio(contentMode: .fit)
+                .frame(maxWidth: .infinity)
+                // Tall enough that the usual 4:3 title screen fills the width
+                // rather than sitting letterboxed between margins.
+                .frame(maxHeight: 300)
+                // Only the lowest strip is veiled, so the icon and the title
+                // below it stay legible without dimming the artwork itself.
+                .overlay(
+                    LinearGradient(
+                        stops: [
+                            .init(color: .clear, location: 0.55),
+                            .init(color: Color.raSurface.opacity(0.65), location: 0.85),
+                            .init(color: Color.raSurface, location: 1),
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+
+            RAThumbnail(url: RAImageURL.gameIcon(summary.imageIcon), size: 68, cornerRadius: 14)
+                .offset(y: 22)
+        }
+        .padding(.bottom, 22)
+        .accessibilityHidden(true)
+    }
+
+    /// Genre, developer and release date were all decoded but never shown.
+    @ViewBuilder
+    private func metadata(_ summary: GameSummary) -> some View {
+        let items: [(String, String)] = [
+            ("Genre", summary.genre),
+            ("Developer", summary.developer),
+            ("Publisher", summary.publisher),
+            ("Released", summary.released),
+        ].compactMap { label, value in
+            guard let value, !value.isEmpty else { return nil }
+            return (label, value)
+        }
+
+        if !items.isEmpty {
+            HStack(spacing: 6) {
+                ForEach(items.prefix(2), id: \.0) { item in
+                    RAChip(item.1, tint: .raTextSecondary)
+                }
+            }
         }
     }
 }
 
-func highestAwardColor(highestAwardKind: String?) -> Color {
-    switch highestAwardKind {
-    case "mastered":
-        return .yellow
-    case "completed":
-        return .orange
-    case "beaten-hardcore":
-        return .green
-    case "beaten-softcore":
-        return .blue
-    default:
-        return .gray
-    }
-}
- 
 #Preview {
     @Previewable @State var hardcoreMode: Bool = true
     let network = Network()
@@ -81,7 +158,7 @@ func highestAwardColor(highestAwardKind: String?) -> Color {
         await network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
         await network.getGameSummary(gameID: 10003)
     }
-    
-    return GameSummaryHeaderView(hardcoreMode: $hardcoreMode, gameID: 10003).environmentObject(network)
-}
 
+    return GameSummaryHeaderView(hardcoreMode: $hardcoreMode, gameID: 10003)
+        .environmentObject(network)
+}

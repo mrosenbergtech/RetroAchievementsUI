@@ -5,7 +5,6 @@
 
 import Foundation
 import SwiftUI
-import Kingfisher
 
 @MainActor
 class Network: ObservableObject {
@@ -24,17 +23,125 @@ class Network: ObservableObject {
         return rf
     }()
 
-    // MARK: - AppStorage
-    @AppStorage("completeRetroAchievementsConsoleListJSONData") var completeRetroAchievementsConsoleListJSONData: Data?
-    @AppStorage("completeRetroAchievementsGameListJSONData") var completeRetroAchievementsGameListJSONData: Data?
-    @AppStorage("cacheDate") var cacheDate: TimeInterval?
-    
+    // MARK: - Storage
+    /// Game and console lists live on disk in Application Support, not in
+    /// UserDefaults — they are multi-megabyte, rebuildable payloads.
+    private let store: GameListStore
+
+    /// Injectable so tests can drive the API layer through MockURLProtocol
+    /// instead of the network.
+    private let session: URLSession
+
+    /// Base delay for 429 backoff. Injectable so rate-limit tests don't sleep
+    /// for real.
+    private let retryBaseDelay: TimeInterval
+
+    init(session: URLSession = .shared,
+         store: GameListStore = GameListStore(),
+         retryBaseDelay: TimeInterval = 1.0) {
+        self.session = session
+        self.store = store
+        self.retryBaseDelay = retryBaseDelay
+
+        // One-time moves off the legacy UserDefaults storage.
+        store.migrateLegacyBlobIfNeeded(.gameList, as: [GameListGame].self)
+        store.migrateLegacyBlobIfNeeded(.consoleList, as: [Console].self)
+
+        rarityIndex = store.load(.rarityIndex, as: [Int: Double].self,
+                                 ttl: GameListStore.rarityIndexTTL) ?? [:]
+    }
+
+    // MARK: - Achievement rarity
+
+    /// Rarity for an achievement the app has seen the parent game for.
+    func rarity(forAchievement id: Int) -> AchievementRarity? {
+        rarityIndex[id].map(AchievementRarity.init(unlockPercentage:))
+    }
+
+    /// Folds a game's achievement set into the index. Called for every summary
+    /// the app fetches, whoever asked for it.
+    private func indexRarities(from summary: GameSummary) {
+        let players = summary.numDistinctPlayers
+        guard players > 0 else { return }
+
+        var changed = false
+        for achievement in summary.achievements.values {
+            let share = min(Double(achievement.numAwarded) / Double(players) * 100, 100)
+            if rarityIndex[achievement.id] != share {
+                rarityIndex[achievement.id] = share
+                changed = true
+            }
+        }
+        if changed { store.save(rarityIndex, to: .rarityIndex) }
+    }
+
+    /// Fills in rarity for the profile's Recent Achievements deck.
+    ///
+    /// Deliberately keyed on *distinct games*, not achievements: thirty recent
+    /// unlocks usually come from a handful of games, and anything already in
+    /// the index costs nothing. On a warm index this makes no requests.
+    private var rarityPrefetchTask: Task<Void, Never>?
+
+    /// Hard ceiling on how many games one prefetch may fetch.
+    ///
+    /// GetUserRecentAchievements is requested with m=999999999 — the user's
+    /// entire history. Walking all of it looked for 40 distinct games on a
+    /// modest account, which is both wasteful and enough for the API to start
+    /// throttling. The deck only ever shows its newest handful, so the newest
+    /// distinct games are all that is worth warming.
+    private static let maxRarityPrefetchGames = 8
+
+    func prefetchRarityForRecentAchievements() {
+        guard rarityPrefetchTask == nil else { return }
+
+        // Ordered-distinct, newest first, then capped.
+        var missing: [Int] = []
+        for achievement in userRecentAchievements
+        where rarityIndex[achievement.id] == nil && !missing.contains(achievement.gameID) {
+            missing.append(achievement.gameID)
+            if missing.count == Self.maxRarityPrefetchGames { break }
+        }
+        guard !missing.isEmpty else { return }
+
+        rarityPrefetchTask = Task { @MainActor in
+            // Small batches: this runs behind an already-rendered screen and
+            // must not contend with anything the user is waiting on.
+            for batch in Array(missing).chunked(into: 4) {
+                await withTaskGroup(of: Void.self) { group in
+                    for gameID in batch {
+                        group.addTask { await self.getGameSummary(gameID: gameID) }
+                    }
+                }
+            }
+            self.rarityPrefetchTask = nil
+        }
+    }
+
+    /// Awaits any in-flight rarity prefetch. Tests only.
+    func awaitRarityPrefetchForTesting() async {
+        await rarityPrefetchTask?.value
+    }
+
+    var gameListLastSynced: Date? { store.cachedAt(.gameList) }
+
     // MARK: - Published Properties
     @Published var profile: Profile? = nil
     @Published var awards: Awards? = nil
     @Published var userRecentlyPlayedGames: [RecentGame] = []
     @Published var userGameCompletionProgress: UserGamesCompletionProgressResult? = nil
     @Published var gameSummaryCache: [Int: GameSummary] = [:]
+    /// Comments keyed by achievement ID, fetched on demand by the achievement
+    /// detail sheet.
+    @Published var commentsCache: [Int: [Comment]] = [:]
+
+    /// Achievement ID → share of the game's players holding it, 0–100.
+    ///
+    /// GetUserRecentAchievements carries no award counts, so the profile deck
+    /// cannot work rarity out on its own. Every GameSummary the app fetches —
+    /// for any reason — contributes its whole achievement set here, and the
+    /// index is persisted, so after the first run the profile shows rarity with
+    /// no extra requests at all.
+    @Published private(set) var rarityIndex: [Int: Double] = [:]
     @Published var initialWebAPIAuthenticationCheckComplete: Bool = false
     @Published var webAPIAuthenticated: Bool = false
     @Published var consolesCache: Consoles? = nil
@@ -42,6 +149,10 @@ class Network: ObservableObject {
     @Published var userRecentAchievements: [RecentAchievement] = []
     @Published var gameList: [GameListGame] = []
     @Published var isFetching: Bool = false
+
+    /// Why the most recent fetch failed, if it did. Cleared as soon as anything
+    /// succeeds, so it never lingers after the connection comes back.
+    @Published var lastError: RANetworkError? = nil
     
     // Tracks the long-running background game list synchronization
     @Published var isFetchingFullGameList: Bool = false
@@ -50,6 +161,24 @@ class Network: ObservableObject {
     // MARK: - Private State
     private var authenticatedWebAPIKey: String = ""
     private var activeProfileTask: Task<Void, Never>?
+
+    /// True when a screen has nothing to show and a failure explains why.
+    var hasNoProfileData: Bool { profile == nil }
+
+    /// Records a failure for the current fetch cycle, keeping the most
+    /// actionable one when several concurrent requests fail together.
+    ///
+    /// Errors are cleared once at the start of a cycle rather than on each
+    /// individual success: the fetchers run concurrently, so clearing per
+    /// success made the surviving error depend on which request happened to
+    /// finish last.
+    private func record(_ error: RANetworkError) {
+        guard let existing = lastError else {
+            lastError = error
+            return
+        }
+        if error.severity > existing.severity { lastError = error }
+    }
 
     var isUserOnline: Bool {
         buildUserStatusMessage().contains("[Playing")
@@ -72,27 +201,36 @@ class Network: ObservableObject {
         self.isFetching = false
         self.isFetchingFullGameList = false
         self.syncProgressPercentage = 0.0
+        self.lastError = nil
     }
-    
+
     func refreshGameList() async {
-        self.completeRetroAchievementsGameListJSONData = nil
-        self.completeRetroAchievementsConsoleListJSONData = nil
-        self.cacheDate = nil
+        store.clearAll()
         self.gameList = []
         await self.getGameConsoles()
         await self.getRAGameList()
     }
     
     // MARK: - Orchestration
+
+    /// Fetches everything the profile screen needs, and returns once it has
+    /// arrived.
+    ///
+    /// This used to assign `activeProfileTask` and return immediately without
+    /// awaiting it, so only a *second* concurrent caller ever waited for the
+    /// data. The first caller — login, and pull-to-refresh — returned before a
+    /// single response landed.
     func fetchAllProfileData() async {
         if let existingTask = activeProfileTask {
             return await existingTask.value
         }
 
-        activeProfileTask = Task {
+        let task = Task { @MainActor in
             self.isFetching = true
-            
-            // Phase 1: Fetch core user identity and recent activity data concurrently
+            // One cycle, one verdict — see record(_:).
+            self.lastError = nil
+
+            // Fetch core user identity and recent activity concurrently.
             await withTaskGroup(of: Void.self) { group in
                 group.addTask { await self.getProfile() }
                 group.addTask { await self.getAwards() }
@@ -101,44 +239,97 @@ class Network: ObservableObject {
                 group.addTask { await self.getUserRecentlyPlayedGames() } // Needed for Status Message
                 group.addTask { await self.getGameConsoles() }
             }
-            
-            // Phase 2: Signal that the login/profile view can now proceed
+
             withAnimation(.easeInOut(duration: 0.5)) {
                 self.isFetching = false
             }
-            
-            // Phase 3: Trigger the long-running game list fetch in the background
+        }
+
+        activeProfileTask = task
+        await task.value
+        activeProfileTask = nil
+
+        // Both of these run behind the rendered screen and are not awaited:
+        // the game-list sync takes minutes, and the rarity prefetch only fires
+        // for games the index has never seen.
+        startGameListSyncIfNeeded()
+        prefetchRarityForRecentAchievements()
+    }
+
+    private var gameListSyncTask: Task<Void, Never>?
+
+    private func startGameListSyncIfNeeded() {
+        guard gameListSyncTask == nil else { return }
+        gameListSyncTask = Task { @MainActor in
             await self.getRAGameList()
-            
-            activeProfileTask = nil
+            self.gameListSyncTask = nil
         }
     }
 
+    /// Awaits any in-flight background game-list sync. Tests use this to keep
+    /// stray requests from bleeding into the next case; the app never needs it.
+    func awaitGameListSyncForTesting() async {
+        await gameListSyncTask?.value
+    }
+
     // MARK: - Network Core
-    nonisolated func makeAPICall(url: URL) async -> Data? {
+
+    /// Performs a request, reporting *why* it failed rather than collapsing
+    /// every outcome into `nil`.
+    nonisolated func makeAPICall(url: URL) async -> Result<Data, RANetworkError> {
         let request = URLRequest(url: url)
         do {
-            let (data, response) = try await URLSession.shared.data(for: request)
-            guard let httpResponse = response as? HTTPURLResponse else { return nil }
-            
-            if httpResponse.statusCode == 200 {
-                return data
-            } else if httpResponse.statusCode == 429 {
-                return await handleRateLimit(request: request)
+            let (data, response) = try await session.data(for: request)
+            guard let httpResponse = response as? HTTPURLResponse else {
+                return .failure(.transport("The server sent an invalid response."))
             }
-            return nil
+
+            switch httpResponse.statusCode {
+            case 200...299:
+                return .success(data)
+            case 401, 403:
+                // The Web API rejected the key — no amount of retrying helps.
+                return .failure(.unauthorized)
+            case 429:
+                if let retried = await handleRateLimit(request: request) {
+                    return .success(retried)
+                }
+                return .failure(.rateLimited)
+            default:
+                return .failure(.server(httpResponse.statusCode))
+            }
         } catch {
-            return nil
+            return .failure(.from(error))
+        }
+    }
+
+    /// Fetches and decodes in one step, so a malformed payload is reported as a
+    /// decoding failure instead of silently leaving the screen empty.
+    nonisolated private func fetch<T: Decodable>(
+        _ url: URL?, as type: T.Type
+    ) async -> Result<T, RANetworkError> {
+        guard let url else {
+            return .failure(.transport("Could not build a valid request URL."))
+        }
+
+        switch await makeAPICall(url: url) {
+        case .success(let data):
+            guard let decoded = try? JSONDecoder().decode(T.self, from: data) else {
+                return .failure(.decoding)
+            }
+            return .success(decoded)
+        case .failure(let error):
+            return .failure(error)
         }
     }
 
     nonisolated private func handleRateLimit(request: URLRequest) async -> Data? {
         var retries = 1
         while retries < 5 {
-            let retryDelay = Int(pow(2.0, Double(retries - 1))) * 1_000_000_000
-            try? await Task.sleep(nanoseconds: UInt64(retryDelay))
-            
-            if let (data, response) = try? await URLSession.shared.data(for: request),
+            let retryDelay = pow(2.0, Double(retries - 1)) * retryBaseDelay
+            try? await Task.sleep(nanoseconds: UInt64(retryDelay * 1_000_000_000))
+
+            if let (data, response) = try? await session.data(for: request),
                (response as? HTTPURLResponse)?.statusCode == 200 {
                 return data
             }
@@ -149,34 +340,45 @@ class Network: ObservableObject {
     
     func authenticateCredentials(webAPIUsername: String, webAPIKey: String) async {
         let auth = buildAuthenticationString(username: webAPIUsername, key: webAPIKey)
-        guard let url = URL(string: "https://retroachievements.org/API/API_GetUserProfile.php?\(auth)&u=\(webAPIUsername)") else { return }
-        
-        if await makeAPICall(url: url) != nil {
-            self.initialWebAPIAuthenticationCheckComplete = true
+        let url = URL(string: "https://retroachievements.org/API/API_GetUserProfile.php?\(auth)&u=\(webAPIUsername)")
+
+        switch await fetch(url, as: Profile.self) {
+        case .success(let profile):
+            self.profile = profile
             self.webAPIAuthenticated = true
             self.authenticatedWebAPIUsername = webAPIUsername
             self.authenticatedWebAPIKey = webAPIKey
-            await self.fetchAllProfileData()
-        } else {
+            self.lastError = nil
             self.initialWebAPIAuthenticationCheckComplete = true
+            await self.fetchAllProfileData()
+
+        case .failure(.unauthorized):
+            // The key really was rejected — sign the user out and say so.
             self.webAPIAuthenticated = false
+            self.lastError = .unauthorized
+            self.initialWebAPIAuthenticationCheckComplete = true
+            self.isFetching = false
+
+        case .failure(let error):
+            // Could not reach the server. That is NOT a credential problem, so
+            // don't dump a signed-in user at the login sheet every time they
+            // lose signal — keep them in and let the screen offer a retry.
+            self.authenticatedWebAPIUsername = webAPIUsername
+            self.authenticatedWebAPIKey = webAPIKey
+            self.webAPIAuthenticated = !webAPIUsername.isEmpty && !webAPIKey.isEmpty
+            self.lastError = error
+            self.initialWebAPIAuthenticationCheckComplete = true
             self.isFetching = false
         }
     }
 
     // MARK: - Game List Fetching
     func getRAGameList() async {
-        let sevenDays: TimeInterval = 604800
-        let currentCacheDate = Date(timeIntervalSince1970: self.cacheDate ?? 0)
-        
-        if let cachedData = self.completeRetroAchievementsGameListJSONData,
-           Date().timeIntervalSince(currentCacheDate) < sevenDays {
-            if let decoded = try? JSONDecoder().decode([GameListGame].self, from: cachedData) {
-                self.gameList = decoded
-                return
-            }
+        if let cached = store.load(.gameList, as: [GameListGame].self, ttl: GameListStore.gameListTTL) {
+            self.gameList = cached
+            return
         }
-        
+
         guard let consoles = self.consolesCache?.consoles else { return }
         self.isFetchingFullGameList = true
         self.syncProgressPercentage = 0.0
@@ -193,9 +395,9 @@ class Network: ObservableObject {
                 for console in batch {
                     group.addTask {
                         let urlString = "https://retroachievements.org/API/API_GetGameList.php?\(authString)&i=\(console.id)&f=1"
-                        guard let url = URL(string: urlString),
-                              let data = await self.makeAPICall(url: url) else { return nil }
-                        return try? JSONDecoder().decode([GameListGame].self, from: data)
+                        // One console failing must not abandon the whole sync.
+                        return try? await self.fetch(URL(string: urlString),
+                                                     as: [GameListGame].self).get()
                     }
                 }
                 
@@ -215,89 +417,138 @@ class Network: ObservableObject {
         }
         
         if !finalAccumulatedList.isEmpty {
-            if let encoded = try? JSONEncoder().encode(finalAccumulatedList) {
-                self.gameList = finalAccumulatedList
-                self.completeRetroAchievementsGameListJSONData = encoded
-                self.cacheDate = Date().timeIntervalSince1970
-            }
+            self.gameList = finalAccumulatedList
+            store.save(finalAccumulatedList, to: .gameList)
         }
-        
+
         self.isFetchingFullGameList = false
     }
 
     // MARK: - Individual Data Fetchers
     func getProfile() async {
         let auth = buildAuthenticationString(username: authenticatedWebAPIUsername, key: authenticatedWebAPIKey)
-        guard let url = URL(string: "https://retroachievements.org/API/API_GetUserProfile.php?\(auth)&u=\(self.authenticatedWebAPIUsername)") else { return }
-        if let data = await makeAPICall(url: url), let decoded = try? JSONDecoder().decode(Profile.self, from: data) {
-            self.profile = decoded
+        let url = URL(string: "https://retroachievements.org/API/API_GetUserProfile.php?\(auth)&u=\(self.authenticatedWebAPIUsername)")
+        switch await fetch(url, as: Profile.self) {
+        case .success(let decoded): self.profile = decoded
+        case .failure(let error): record(error)
         }
     }
 
     func getAwards() async {
         let auth = buildAuthenticationString(username: authenticatedWebAPIUsername, key: authenticatedWebAPIKey)
-        guard let url = URL(string: "https://retroachievements.org/API/API_GetUserAwards.php?\(auth)&u=\(self.authenticatedWebAPIUsername)") else { return }
-        if let data = await makeAPICall(url: url), let decoded = try? JSONDecoder().decode(Awards.self, from: data) {
-            self.awards = decoded
-            
-            let gameAwards = self.filterHighestAwardType(awards: decoded.visibleUserAwards)
-                .filter { $0.consoleID != nil }
-            
-            for gameAward in gameAwards
-            {
-                if let gameID = gameAward.id
-                {
-                    await getGameSummary(gameID: gameID)
-                }
-            }
+        let url = URL(string: "https://retroachievements.org/API/API_GetUserAwards.php?\(auth)&u=\(self.authenticatedWebAPIUsername)")
+        switch await fetch(url, as: Awards.self) {
+        case .success(let decoded): self.awards = decoded
+        case .failure(let error): record(error)
         }
+
+        // NOTE: this method used to loop over every game award and serially
+        // await getGameSummary(gameID:) — one full GetGameInfoAndUserProgress
+        // round-trip per award, inside the profile load. An account with 200
+        // masteries paid 200 sequential requests before the profile could
+        // finish. Everything the award cards need already arrives in the single
+        // GetUserCompletionProgress call that runs in parallel with this one,
+        // so the loop is gone. See awardCards(hardcoreMode:).
+    }
+
+    /// Award cards for the profile/collection screens, joined from the awards
+    /// and completion-progress responses. No additional requests.
+    func awardCards(hardcoreMode: Bool) -> [AwardCardModel] {
+        guard let awards else { return [] }
+
+        let progressByGameID = Dictionary(
+            (userGameCompletionProgress?.results ?? []).map { ($0.id, $0) },
+            uniquingKeysWith: { first, _ in first }
+        )
+
+        return AwardCardModel.build(
+            awards: filterHighestAwardType(awards: awards.visibleUserAwards),
+            progress: progressByGameID,
+            hardcoreMode: hardcoreMode
+        )
     }
 
     func getUserRecentlyPlayedGames() async {
         let auth = buildAuthenticationString(username: authenticatedWebAPIUsername, key: authenticatedWebAPIKey)
-        guard let url = URL(string: "https://retroachievements.org/API/API_GetUserRecentlyPlayedGames.php?\(auth)&u=\(self.authenticatedWebAPIUsername)&c=3") else { return }
-        if let data = await makeAPICall(url: url), let decoded = try? JSONDecoder().decode([RecentGame].self, from: data) {
-            self.userRecentlyPlayedGames = decoded
+        // c=25, not the previous c=3: Recently Played is a scrollable carousel
+        // now, so three games no longer fills it. This also makes the profile
+        // status message far more likely to find the user's last-played game.
+        let url = URL(string: "https://retroachievements.org/API/API_GetUserRecentlyPlayedGames.php?\(auth)&u=\(self.authenticatedWebAPIUsername)&c=25")
+        switch await fetch(url, as: [RecentGame].self) {
+        case .success(let decoded): self.userRecentlyPlayedGames = decoded
+        case .failure(let error): record(error)
         }
     }
 
     func getUserRecentAchievements() async {
         let auth = buildAuthenticationString(username: authenticatedWebAPIUsername, key: authenticatedWebAPIKey)
-        guard let url = URL(string: "https://retroachievements.org/API/API_GetUserRecentAchievements.php?\(auth)&u=\(self.authenticatedWebAPIUsername)&m=999999999") else { return }
-        if let data = await makeAPICall(url: url), let decoded = try? JSONDecoder().decode([RecentAchievement].self, from: data) {
-            self.userRecentAchievements = decoded
+        let url = URL(string: "https://retroachievements.org/API/API_GetUserRecentAchievements.php?\(auth)&u=\(self.authenticatedWebAPIUsername)&m=999999999")
+        switch await fetch(url, as: [RecentAchievement].self) {
+        case .success(let decoded): self.userRecentAchievements = decoded
+        case .failure(let error): record(error)
         }
     }
 
     func getUserGameCompletionProgress() async {
         let auth = buildAuthenticationString(username: authenticatedWebAPIUsername, key: authenticatedWebAPIKey)
-        guard let url = URL(string: "https://retroachievements.org/API/API_GetUserCompletionProgress.php?\(auth)&u=\(self.authenticatedWebAPIUsername)&c=500") else { return }
-        if let data = await makeAPICall(url: url), let decoded = try? JSONDecoder().decode(UserGamesCompletionProgressResult.self, from: data) {
-            self.userGameCompletionProgress = decoded
+        let url = URL(string: "https://retroachievements.org/API/API_GetUserCompletionProgress.php?\(auth)&u=\(self.authenticatedWebAPIUsername)&c=500")
+        switch await fetch(url, as: UserGamesCompletionProgressResult.self) {
+        case .success(let decoded): self.userGameCompletionProgress = decoded
+        case .failure(let error): record(error)
         }
     }
 
     func getGameSummary(gameID: Int) async {
         let auth = buildAuthenticationString(username: authenticatedWebAPIUsername, key: authenticatedWebAPIKey)
-        guard let url = URL(string: "https://retroachievements.org/API/API_GetGameInfoAndUserProgress.php?\(auth)&g=\(gameID)&u=\(self.authenticatedWebAPIUsername)&a=1") else { return }
-        if let data = await makeAPICall(url: url), let decoded = try? JSONDecoder().decode(GameSummary.self, from: data) {
+        let url = URL(string: "https://retroachievements.org/API/API_GetGameInfoAndUserProgress.php?\(auth)&g=\(gameID)&u=\(self.authenticatedWebAPIUsername)&a=1")
+        switch await fetch(url, as: GameSummary.self) {
+        case .success(let decoded):
             self.gameSummaryCache[decoded.id] = decoded
+            indexRarities(from: decoded)
+        case .failure(let error):
+            record(error)
+        }
+    }
+
+    /// Comments for one achievement.
+    ///
+    /// Fetched on demand — the profile load must not pay for comments on every
+    /// achievement the user might tap.
+    ///
+    /// - Returns: the failure, if any, so the sheet can show its own error
+    ///   without disturbing the app-wide banner. A comment thread failing to
+    ///   load is not a reason to tell the user their profile is broken.
+    @discardableResult
+    func getComments(achievementID: Int, limit: Int = 50) async -> RANetworkError? {
+        let auth = buildAuthenticationString(username: authenticatedWebAPIUsername, key: authenticatedWebAPIKey)
+        let url = URL(string: "https://retroachievements.org/API/API_GetComments.php?\(auth)&i=\(achievementID)&t=\(CommentTarget.achievement.rawValue)&c=\(limit)")
+
+        switch await fetch(url, as: CommentsResult.self) {
+        case .success(let decoded):
+            self.commentsCache[achievementID] = decoded.results
+            return nil
+        case .failure(let error):
+            return error
         }
     }
 
     func getGameConsoles() async {
-        if let cachedData = self.completeRetroAchievementsConsoleListJSONData {
-            if let decoded = try? JSONDecoder().decode([Console].self, from: cachedData) {
-                self.consolesCache = Consoles(consoles: decoded)
-                return
-            }
+        // Console list shares the game list's TTL — it was previously cached
+        // forever, so a newly supported console never appeared until the user
+        // manually hit "Refresh Game List".
+        if let cached = store.load(.consoleList, as: [Console].self, ttl: GameListStore.gameListTTL) {
+            self.consolesCache = Consoles(consoles: cached)
+            return
         }
-        
+
         let auth = buildAuthenticationString(username: authenticatedWebAPIUsername, key: authenticatedWebAPIKey)
-        guard let url = URL(string: "https://retroachievements.org/API/API_GetConsoleIDs.php?\(auth)") else { return }
-        if let data = await makeAPICall(url: url), let decoded = try? JSONDecoder().decode([Console].self, from: data) {
+        let url = URL(string: "https://retroachievements.org/API/API_GetConsoleIDs.php?\(auth)")
+        switch await fetch(url, as: [Console].self) {
+        case .success(let decoded):
             self.consolesCache = Consoles(consoles: decoded)
-            self.completeRetroAchievementsConsoleListJSONData = data
+            store.save(decoded, to: .consoleList)
+        case .failure(let error):
+            record(error)
         }
     }
 
@@ -324,13 +575,42 @@ class Network: ObservableObject {
         }
     }
 
+    /// Collapses a user's awards to the single highest tier per game.
+    ///
+    /// A game the user mastered also carries a "Game Beaten" award; only the
+    /// mastery should be shown.
+    ///
+    /// Site awards are passed through untouched. The previous implementation
+    /// grouped by `AwardData` (the game ID), which is `nil` for *every* site
+    /// award — so all of them landed in one group and were then deleted
+    /// wholesale. That went unnoticed because AwardsView read site awards from
+    /// the unfiltered array.
     func filterHighestAwardType(awards: [VisibleUserAward]) -> [VisibleUserAward] {
-        var filtered = awards
-        let grouped = Dictionary(grouping: awards, by: { $0.id })
-        for (id, matches) in grouped where matches.count > 1 {
-            let highest = matches.contains(where: { $0.awardType == "Mastery/Completion" }) ? "Mastery/Completion" : "Game Beaten"
-            filtered.removeAll { $0.id == id && $0.awardType != highest }
+        var highestPerGame: [Int: VisibleUserAward] = [:]
+        var passthrough: [VisibleUserAward] = []
+
+        for award in awards {
+            guard let gameID = award.id, award.consoleID != nil else {
+                passthrough.append(award)
+                continue
+            }
+
+            guard let existing = highestPerGame[gameID] else {
+                highestPerGame[gameID] = award
+                continue
+            }
+
+            // Ranking by AwardTier also resolves the hardcore/softcore duplicate
+            // of the same award type, which the old string comparison did not.
+            if AwardTier(award: award) > AwardTier(award: existing) {
+                highestPerGame[gameID] = award
+            }
         }
-        return filtered
+
+        // Preserve the API's original ordering rather than the dictionary's.
+        let kept = Set(highestPerGame.values.map(\.awardIdentity))
+        return awards.filter { award in
+            award.id == nil || award.consoleID == nil || kept.contains(award.awardIdentity)
+        }
     }
 }

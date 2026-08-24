@@ -1,1 +1,28 @@
-RetroAchievementsUI.xcodeproj/project.xcworkspace/xcuserdata/mike.xcuserdatad/UserInterfaceState.xcuserstate
+# Secrets — real API credentials for #Preview blocks.
+# Copy DebugCredentials.example.swift to create this file locally.
+RetroAchievementsUI/DebugCredentials.swift
+
+# Xcode — user state
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+*.xccheckout
+
+# Xcode — build products
+build/
+DerivedData/
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.build/
+.swiftpm/xcode/package.xcworkspace/xcuserdata/
+
+# Generated marketing/App Store captures — regenerable, and large.
+Screenshots/
+
+# macOS
+.DS_Store

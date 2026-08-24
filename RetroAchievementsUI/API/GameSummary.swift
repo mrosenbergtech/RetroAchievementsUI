@@ -20,7 +20,11 @@ struct GameSummary: Codable {
     let publisher: String?
     let developer: String?
     let genre: String?
-    let released: String
+    /// Null for event games ("Achievement of the Week", "Bounty Hunters
+    /// Villains" and friends), which have no release date. Those turn up in
+    /// recent achievements often, and a non-optional String here failed the
+    /// whole decode.
+    let released: String?
     let isFinal: Bool
     let richPresencePatch: String
     let playersTotal: Int?
@@ -74,5 +78,20 @@ struct GameSummary: Codable {
         case userCompletionHardcore = "UserCompletionHardcore"
         case highestAwardKind = "HighestAwardKind"
         case highestAwardDate = "HighestAwardDate"
+    }
+}
+
+extension GameSummary {
+    /// Achievements in the order the set author intended.
+    ///
+    /// The API delivers these as a dictionary keyed by stringified ID. Sorting
+    /// by that key is lexicographic — "10" lands before "9" — which is what the
+    /// achievements list used to do, so sets appeared shuffled.
+    var orderedAchievements: [Achievement] {
+        achievements.values.sorted {
+            $0.displayOrder == $1.displayOrder
+                ? $0.id < $1.id
+                : $0.displayOrder < $1.displayOrder
+        }
     }
 }

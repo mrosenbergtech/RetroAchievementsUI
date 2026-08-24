@@ -35,7 +35,13 @@ struct ContentView: View {
     
     private var authenticatedInterface: some View {
         TabView(selection: $selectedTab) {
-            ProfileView(hardcoreMode: $hardcoreMode, showUnofficial: $showUnofficial)
+            // Settings is no longer a tab — it opens as a sheet from the gear in
+            // the profile header, which frees the tab bar for content.
+            ProfileView(hardcoreMode: $hardcoreMode,
+                        showUnofficial: $showUnofficial,
+                        webAPIUsername: $webAPIUsername,
+                        webAPIKey: $webAPIKey,
+                        shouldShowLoginSheet: $shouldShowLoginSheet)
                 .tabItem {
                     Label("Profile", systemImage: "person.circle")
                 }
@@ -58,23 +64,12 @@ struct ContentView: View {
                     Label("Search", systemImage: "magnifyingglass.circle")
                 }
                 .tag(4)
-            
-            SettingsView(
-                webAPIUsername: $webAPIUsername,
-                webAPIKey: $webAPIKey,
-                hardcoreMode: $hardcoreMode,
-                showUnofficial: $showUnofficial,
-                shouldShowLoginSheet: $shouldShowLoginSheet
-            )
-            .tabItem {
-                Label("Settings", systemImage: "gear.circle")
-            }
-            .tag(5)
         }
         .environment(\.selectedGameID, $selectedGameID)
         .sheet(item: $selectedGameID) { item in
             // Use item.id to pass the actual Int to GameSummaryView
-            GameSummaryView(hardcoreMode: $hardcoreMode, gameID: item.id)
+            GameSummaryView(hardcoreMode: $hardcoreMode, gameID: item.id,
+                                initialAchievementID: item.achievementID)
                 .presentationDetents([.fraction(0.92)])
                 .presentationDragIndicator(.visible)
         }
@@ -93,15 +88,17 @@ struct ContentView: View {
     
     private var loadingOrLoginInterface: some View {
         ZStack {
-            Color(UIColor.systemBackground).ignoresSafeArea()
-            
+            Color.raSurface.ignoresSafeArea()
+
             if !network.initialWebAPIAuthenticationCheckComplete {
-                VStack(spacing: 20) {
+                VStack(spacing: 16) {
+                    Image(systemName: "trophy.circle.fill")
+                        .font(.system(size: 44))
+                        .foregroundStyle(Color.raAccent)
                     ProgressView()
-                        .scaleEffect(1.5)
-                    Text("Authenticating with RetroAchievements...")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    Text("Signing in to RetroAchievements…")
+                        .font(.raCaption)
+                        .foregroundStyle(Color.raTextSecondary)
                 }
             } else {
                 Color.clear
@@ -138,6 +135,10 @@ struct ContentView: View {
 // The Wrapper Struct
 struct GameSheetItem: Identifiable {
     let id: Int
+    /// When set, the game sheet opens straight onto this achievement's detail.
+    /// Used by the profile's Recent Achievements deck, which should land on the
+    /// achievement the user tapped rather than the top of the game.
+    var achievementID: Int? = nil
 }
 
 // The Environment Key
@@ -151,10 +152,6 @@ extension EnvironmentValues {
         get { self[SelectedGameIDKey.self] }
         set { self[SelectedGameIDKey.self] = newValue }
     }
-}
-
-extension Bool {
-    var inverted: Self { !self }
 }
 
 #Preview {

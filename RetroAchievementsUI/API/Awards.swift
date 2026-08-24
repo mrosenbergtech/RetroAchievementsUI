@@ -55,4 +55,14 @@ struct VisibleUserAward: Codable, Identifiable {
         case flags = "Flags"
         case imageIcon = "ImageIcon"
     }
+
+    /// Uniquely identifies one award.
+    ///
+    /// `id` alone cannot: it is `nil` for every site award and repeats across
+    /// award types for the same game. Use this wherever an award needs a stable
+    /// identity — deduplication, SwiftUI `ForEach`, diffing.
+    var awardIdentity: String {
+        [id.map(String.init) ?? "site", awardType, String(awardDataExtra), awardedAt]
+            .joined(separator: "-")
+    }
 }

@@ -45,3 +45,29 @@ struct RecentAchievement: Codable, Identifiable {
             case gameURL = "GameURL"
         }
     }
+
+extension RecentAchievement {
+
+    /// GetUserRecentAchievements returns "yyyy-MM-dd HH:mm:ss" in UTC.
+    ///
+    /// The formatters are static: the row that used to own this rebuilt two
+    /// DateFormatters on every render, and used "YYYY" — the ISO week-year,
+    /// which reports the following year for dates in late December.
+    private static let apiFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        f.timeZone = TimeZone(abbreviation: "UTC")
+        return f
+    }()
+
+    private static let relativeFormatter: RelativeDateTimeFormatter = {
+        let f = RelativeDateTimeFormatter()
+        f.unitsStyle = .abbreviated
+        return f
+    }()
+
+    static func relativeDate(_ raw: String) -> String? {
+        guard let date = apiFormatter.date(from: raw) else { return nil }
+        return relativeFormatter.localizedString(for: date, relativeTo: Date())
+    }
+}

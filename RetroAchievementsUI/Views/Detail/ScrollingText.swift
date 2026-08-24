@@ -4,9 +4,15 @@
 //
 //  Created by Michael Rosenberg on 6/9/24.
 //  Based on MarqueeText by Joe Kennedy © 2020
+//
+//  The app's only marquee, used for the profile status line. That text is one
+//  long sentence of live rich presence which is genuinely worth reading in
+//  full, so it scrolls rather than truncating. Everywhere else — list rows,
+//  card nameplates — text truncates instead; a screen full of marquees is
+//  noise. This self-sizes to the string height and only animates when the text
+//  actually overflows its container.
 
 import SwiftUI
-import Combine
 
 public struct ScrollingText : View {
     public var text: String
@@ -17,7 +23,6 @@ public struct ScrollingText : View {
     public var alignment: Alignment
     
     @State private var animate = false
-    var isCompact = false
     
     public var body : some View {
         let stringWidth = text.widthOfString(usingFont: font)
@@ -93,7 +98,6 @@ public struct ScrollingText : View {
             }
         }
         .frame(height: stringHeight)
-        .frame(maxWidth: isCompact ? stringWidth : nil)
         .onDisappear { self.animate = false }
 
     }
@@ -105,14 +109,6 @@ public struct ScrollingText : View {
         self.rightFade = rightFade
         self.startDelay = startDelay
         self.alignment = alignment != nil ? alignment! : .topLeading
-    }
-}
-
-extension ScrollingText {
-    public func makeCompact(_ compact: Bool = true) -> Self {
-        var view = self
-        view.isCompact = compact
-        return view
     }
 }
 

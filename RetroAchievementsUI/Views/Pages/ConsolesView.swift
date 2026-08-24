@@ -11,92 +11,160 @@ struct ConsolesView: View {
     @EnvironmentObject var network: Network
     @Binding var hardcoreMode: Bool
     @Binding var showUnofficial: Bool
-    
-    // Controls the visibility of the toast notification
+
     @State private var showSyncCompleteToast: Bool = false
-        
+
+    private let consoleCardWidth: CGFloat = 112
+    /// ConsoleGridItemView's natural height: icon plate + two title lines +
+    /// padding. A carousel row inside a List has to be told its height.
+    private let consoleCardHeight: CGFloat = 154
+
     var body: some View {
         NavigationStack {
             Group {
-                // CASE 1: Full screen loading state if we have NO consoles yet
                 if network.consolesCache == nil {
-                    VStack(spacing: 20) {
-                        ProgressView()
-                            .controlSize(.large)
-                        Text("Loading Consoles...")
-                            .font(.headline)
-                            .foregroundColor(.secondary)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                }
-                // CASE 2: Background fetching is active AND we have no games list yet
-                // This replaces the view during the very first login sync
-                else if network.isFetchingFullGameList && network.gameList.isEmpty {
-                    VStack(spacing: 24) {
-                        // Use a determinate ProgressView to show the percentage
-                        ProgressView(value: network.syncProgressPercentage, total: 100.0) {
-                            Text("Fetching Complete Game Library")
-                                .font(.headline)
-                        } currentValueLabel: {
-                            Text("\(Int(network.syncProgressPercentage))%")
-                                .font(.subheadline.monospacedDigit())
-                                .foregroundColor(.secondary)
-                        }
-                        .progressViewStyle(.linear)
-                        .padding(.horizontal, 40)
-                        
-                        Text("This may take a moment...")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                }
-                // CASE 3: We have data! Show the list.
-                else {
-                    Form {
-                        if let consoleKinds = network.consolesCache?.consolesSortedByKind {
-                            ForEach(consoleKinds.sorted { $0.id.lowercased() < $1.id.lowercased() }) { consoleKind in
-                                Section(header: Text(consoleKind.id)) {
-                                    ForEach(consoleKind.consoleIDList, id: \.self) { consoleID in
-                                        let consoleData = network.consolesCache?.getConsoleDataByID(consoleID: consoleID) ?? Console(id: -1, name: "Unknown", iconURL: "", active: false, isGameSystem: false)
-                                        
-                                        NavigationLink(destination: ConsoleGamesView(hardcoreMode: $hardcoreMode, showUnofficial: $showUnofficial, consoleID: consoleID)) {
-                                            ConsoleDetailView(console: consoleData, hardcoreMode: $hardcoreMode)
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    loading
+                } else if network.isFetchingFullGameList && network.gameList.isEmpty {
+                    firstSync
+                } else {
+                    grid
                 }
             }
+            .background(Color.raSurface)
             .navigationTitle("Consoles")
             .navigationBarTitleDisplayMode(.large)
-            // MARK: - Notification Logic
             .onChange(of: network.isFetchingFullGameList) { oldValue, newValue in
-                // If it just finished (flipped from true to false)
-                if oldValue == true && newValue == false {
-                    withAnimation {
-                        showSyncCompleteToast = true
-                    }
+                if oldValue && !newValue {
+                    withAnimation { showSyncCompleteToast = true }
                 }
             }
-            // Use the toast modifier to show the success message over the list
-            .toast(isShowing: $showSyncCompleteToast, message: "Game Library Synchronized!")
+            .toast(isShowing: $showSyncCompleteToast, message: "Game library synchronised")
+            .navigationDestination(for: ConsoleRoute.self) { route in
+                ConsoleGamesView(hardcoreMode: $hardcoreMode,
+                                 showUnofficial: $showUnofficial,
+                                 consoleID: route.consoleID)
+            }
         }
     }
+
+    // MARK: - Grid
+
+    /// Manufacturer sections in a List, each holding a grid of console plates.
+    ///
+    /// Navigation is value-based (`NavigationLink(value:)` +
+    /// `navigationDestination(for:)`). The eager `NavigationLink(destination:)`
+    /// form built a destination for every console in the grid, and tapping one
+    /// pushed several — so Back stepped through the rest of the manufacturer's
+    /// consoles instead of returning here.
+    private var grid: some View {
+        List {
+            ForEach(manufacturers, id: \.id) { manufacturer in
+                Section {
+                    RACardCarousel(items: consoles(in: manufacturer),
+                                   width: consoleCardWidth) { console in
+                        NavigationLink(value: ConsoleRoute(consoleID: console.id)) {
+                            ConsoleGridItemView(console: console)
+                        }
+                        .buttonStyle(CardPressStyle())
+                    }
+                    .frame(height: consoleCardHeight)
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                } header: {
+                    HStack {
+                        Text(manufacturer.id)
+                            .font(.raTitle)
+                            .foregroundStyle(Color.raTextPrimary)
+                        Spacer()
+                        Text("\(consoles(in: manufacturer).count)")
+                            .font(.raStatSmall)
+                            .foregroundStyle(Color.raTextTertiary)
+                    }
+                    .textCase(nil)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 6)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .listRowInsets(EdgeInsets())
+                    .background(Color.raSurface)
+                }
+            }
+        }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+    }
+
+    /// Resolves a manufacturer's hardcoded console IDs to the consoles the API
+    /// actually returned.
+    private func consoles(in manufacturer: ConsoleByManuFacturer) -> [Console] {
+        manufacturer.consoleIDList.compactMap {
+            network.consolesCache?.getConsoleDataByID(consoleID: $0)
+        }
+    }
+
+    private var manufacturers: [ConsoleByManuFacturer] {
+        (network.consolesCache?.consolesSortedByKind ?? [])
+            .sorted { $0.id.lowercased() < $1.id.lowercased() }
+    }
+
+    // MARK: - Loading states
+
+    private var loading: some View {
+        VStack(spacing: 16) {
+            ProgressView().controlSize(.large)
+            Text("Loading consoles…")
+                .font(.raBody)
+                .foregroundStyle(Color.raTextSecondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    /// The first login syncs the entire RA catalogue, which takes minutes.
+    private var firstSync: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "arrow.triangle.2.circlepath")
+                .font(.system(size: 34))
+                .foregroundStyle(Color.raAccent)
+
+            VStack(spacing: 6) {
+                Text("Building your game library")
+                    .font(.raTitle)
+                    .foregroundStyle(Color.raTextPrimary)
+                Text("This runs once and is cached for a week.")
+                    .font(.raCaption)
+                    .foregroundStyle(Color.raTextSecondary)
+            }
+
+            VStack(spacing: 6) {
+                ProgressView(value: network.syncProgressPercentage, total: 100)
+                    .progressViewStyle(.linear)
+                    .tint(.raAccent)
+                Text("\(Int(network.syncProgressPercentage))%")
+                    .font(.raStatSmall)
+                    .foregroundStyle(Color.raTextTertiary)
+            }
+            .padding(.horizontal, 48)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+/// Typed route so console pushes cannot collide with any other destination
+/// value on the stack.
+struct ConsoleRoute: Hashable {
+    let consoleID: Int
 }
 
 #Preview {
     @Previewable @State var hardcoreMode: Bool = true
     @Previewable @State var showUnofficial = false
     let network = Network()
-    
+
     Task {
         await network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
         await network.getGameConsoles()
     }
-    
+
     return ConsolesView(hardcoreMode: $hardcoreMode, showUnofficial: $showUnofficial)
         .environmentObject(network)
         .environment(\.selectedGameID, .constant(nil))

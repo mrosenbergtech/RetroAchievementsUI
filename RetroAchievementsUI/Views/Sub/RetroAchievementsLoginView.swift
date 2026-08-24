@@ -15,7 +15,7 @@ struct RetroAchievementsLoginView: View {
     var body: some View {
         ZStack {
             // Background Color to match the app theme
-            Color(UIColor.systemGroupedBackground)
+            Color.raSurface
                 .ignoresSafeArea()
             
             VStack(spacing: 24) {
@@ -25,16 +25,15 @@ struct RetroAchievementsLoginView: View {
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 80, height: 80)
-                        .foregroundStyle(.orange.gradient)
-                        .shadow(radius: 5)
-                    
+                        .foregroundStyle(Color.raAccent)
+
                     Text("RetroAchievements")
-                        .font(.largeTitle)
-                        .bold()
-                    
+                        .font(.system(.largeTitle, design: .rounded).weight(.bold))
+                        .foregroundStyle(Color.raTextPrimary)
+
                     Text("Enter your credentials to sync your progress")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .font(.raBody)
+                        .foregroundStyle(Color.raTextSecondary)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal)
                 }
@@ -44,7 +43,7 @@ struct RetroAchievementsLoginView: View {
                 VStack(spacing: 0) {
                     HStack {
                         Image(systemName: "person.fill")
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(Color.raTextTertiary)
                             .frame(width: 30)
                         TextField("Username", text: $webAPIUsername)
                             .textContentType(.username)
@@ -52,19 +51,19 @@ struct RetroAchievementsLoginView: View {
                             .textInputAutocapitalization(.never)
                     }
                     .padding()
-                    .background(Color(UIColor.secondarySystemGroupedBackground))
+                    .background(Color.raSurfaceRaised)
                     
-                    Divider().padding(.leading, 50)
+                    Divider().overlay(Color.raSeparator).padding(.leading, 50)
                     
                     HStack {
                         Image(systemName: "key.fill")
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(Color.raTextTertiary)
                             .frame(width: 30)
                         SecureField("Web API Key", text: $webAPIKey)
                             .textContentType(.password)
                     }
                     .padding()
-                    .background(Color(UIColor.secondarySystemGroupedBackground))
+                    .background(Color.raSurfaceRaised)
                 }
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .padding(.horizontal)
@@ -85,9 +84,11 @@ struct RetroAchievementsLoginView: View {
                         }
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(webAPIUsername.isEmpty || webAPIKey.isEmpty ? Color.gray : Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
+                        .background(webAPIUsername.isEmpty || webAPIKey.isEmpty
+                                    ? Color.raSurfaceSunken : Color.raAccent)
+                        .foregroundStyle(webAPIUsername.isEmpty || webAPIKey.isEmpty
+                                         ? Color.raTextTertiary : .white)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                     }
                     .disabled(webAPIUsername.isEmpty || webAPIKey.isEmpty || loginPending)
                     
@@ -97,8 +98,8 @@ struct RetroAchievementsLoginView: View {
                         }
                     } label: {
                         Text("Where do I find my API Key?")
-                            .font(.footnote)
-                            .foregroundColor(.blue)
+                            .font(.raCaption.weight(.semibold))
+                            .foregroundStyle(Color.raAccent)
                     }
                 }
                 .padding(.horizontal)
@@ -109,10 +110,10 @@ struct RetroAchievementsLoginView: View {
                 if !network.webAPIAuthenticated && !loginPending {
                     HStack {
                         Image(systemName: "lock.shield.fill")
-                        Text("Your API key is stored locally and never shared.")
+                        Text("Your API key is stored in the device Keychain and never shared.")
                     }
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
+                    .font(.raCaption)
+                    .foregroundStyle(Color.raTextTertiary)
                     .padding(.bottom, 20)
                 }
             }

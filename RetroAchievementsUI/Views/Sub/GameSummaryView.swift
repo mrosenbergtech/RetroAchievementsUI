@@ -1,126 +1,127 @@
+//
+//  GameSummaryView.swift
+//  RetroAchievementsUI
+//
+//  The game sheet presented globally from every screen via \.selectedGameID.
+//
+
 import SwiftUI
-import Kingfisher
 
 struct GameSummaryView: View {
     @EnvironmentObject var network: Network
     @Binding var hardcoreMode: Bool
     var gameID: Int
-    
-    // Controls the intentional delay for the skeleton transition
+    /// Set when arriving from the profile's Recent Achievements deck: the sheet
+    /// opens and immediately surfaces this achievement's detail.
+    var initialAchievementID: Int? = nil
+
+    /// Floors the skeleton so a cached game doesn't flash content into place.
     @State private var showSkeleton: Bool = true
-    
+    @State private var selectedAchievement: Achievement?
+
     var body: some View {
-        Form {
+        Group {
             if let gameSummary = network.gameSummaryCache[gameID], !showSkeleton {
-                // REAL CONTENT
-                Group {
-                    GameSummaryHeaderView(hardcoreMode: $hardcoreMode, gameID: gameID)
-                    AchievementsView(hardcoreMode: $hardcoreMode, gameSummary: gameSummary)
-                }
-                .transition(.opacity)
+                content(gameSummary)
             } else {
-                // SKELETON CONTENT
-                gameSummarySkeleton
+                skeleton
             }
         }
+        .background(Color.raSurface)
         .animation(.easeInOut(duration: 0.3), value: showSkeleton)
-        .navigationBarTitleDisplayMode(.inline)
         .task {
-            // Start the refresh timer
-            try? await Task.sleep(nanoseconds: 600_000_000) // 0.6 seconds minimum skeleton time
-            
             if network.gameSummaryCache[gameID] == nil {
                 await network.getGameSummary(gameID: gameID)
+            } else {
+                // Already cached — a short beat still reads better than a snap.
+                try? await Task.sleep(nanoseconds: 250_000_000)
             }
-            
-            // Allow data to show once both network is done AND timer is finished
-            withAnimation {
-                showSkeleton = false
-            }
-        }
-        .refreshable {
-            // Reset skeleton on manual pull-to-refresh
-            showSkeleton = true
-            await network.getGameSummary(gameID: gameID)
-            try? await Task.sleep(nanoseconds: 400_000_000)
-            withAnimation {
-                showSkeleton = false
-            }
+            withAnimation { showSkeleton = false }
+            openInitialAchievementIfNeeded()
         }
     }
-    
-    // MARK: - Skeleton Rows
-    @ViewBuilder
-    private var gameSummarySkeleton: some View {
-        Section {
-            HStack(spacing: 12) {
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(Color.gray.opacity(0.3))
-                    .frame(width: 64, height: 64)
-                
-                VStack(alignment: .center, spacing: 8) {
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(Color.gray.opacity(0.3))
-                        .frame(width: 140, height: 15)
-                    
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(Color.gray.opacity(0.3))
-                        .frame(width: 80, height: 12)
-                    
-                    VStack(spacing: 6) {
-                        RoundedRectangle(cornerRadius: 4)
-                            .fill(Color.gray.opacity(0.3))
-                            .frame(width: 50, height: 10)
-                        
-                        RoundedRectangle(cornerRadius: 2)
-                            .fill(Color.gray.opacity(0.3))
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 4)
-                    }
-                    .padding(.horizontal)
-                }
-                
-                Circle()
-                    .fill(Color.gray.opacity(0.3))
-                    .frame(width: 20, height: 20)
+
+    // MARK: - Content
+
+    /// A List so the achievement rows recycle: large sets run past 200 entries,
+    /// and the filter bar rides along as a sticky section header.
+    private func content(_ gameSummary: GameSummary) -> some View {
+        List {
+            Section {
+                GameSummaryHeaderView(hardcoreMode: $hardcoreMode, gameID: gameID)
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
             }
-            .padding(.vertical, 4)
+
+            AchievementsView(hardcoreMode: $hardcoreMode,
+                             gameSummary: gameSummary,
+                             selectedAchievement: $selectedAchievement)
         }
-        
-        Section(header: Text("Achievements")) {
-            ForEach(0..<6, id: \.self) { _ in
-                HStack(spacing: 12) {
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.gray.opacity(0.3))
-                        .frame(width: 44, height: 44)
-                    
-                    VStack(alignment: .leading, spacing: 8) {
-                        RoundedRectangle(cornerRadius: 4)
-                            .fill(Color.gray.opacity(0.3))
-                            .frame(width: 160, height: 14)
-                        RoundedRectangle(cornerRadius: 4)
-                            .fill(Color.gray.opacity(0.3))
-                            .frame(width: 220, height: 10)
-                    }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .refreshable { await network.getGameSummary(gameID: gameID) }
+        .sheet(item: $selectedAchievement) { achievement in
+            AchievementSheetView(achievement: achievement,
+                                 gameTitle: gameSummary.title,
+                                 totalPlayers: gameSummary.numDistinctPlayers,
+                                 hardcoreMode: $hardcoreMode)
+                .environmentObject(network)
+        }
+    }
+
+    /// Surfaces the deep-linked achievement once the game's data has arrived —
+    /// the achievement list does not exist before then.
+    private func openInitialAchievementIfNeeded() {
+        guard let initialAchievementID,
+              selectedAchievement == nil,
+              let summary = network.gameSummaryCache[gameID],
+              let match = summary.achievements["\(initialAchievementID)"]
+                  ?? summary.orderedAchievements.first(where: { $0.id == initialAchievementID })
+        else { return }
+        selectedAchievement = match
+    }
+
+    // MARK: - Skeleton
+
+    private var skeleton: some View {
+        List {
+            Section {
+                VStack(spacing: 12) {
+                    Rectangle()
+                        .fill(Color.raSurfaceSunken)
+                        .frame(height: 128)
+                    Capsule().fill(Color.raSurfaceSunken).frame(width: 180, height: 18)
+                    Capsule().fill(Color.raSurfaceSunken).frame(width: 110, height: 12)
+                    Capsule().fill(Color.raSurfaceSunken).frame(width: 220, height: 5)
+                        .padding(.top, 4)
                 }
-                .padding(.vertical, 4)
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+            }
+
+            Section {
+                ForEach(0..<6, id: \.self) { _ in
+                    SkeletonRow(imageSize: 56).raListRow()
+                }
             }
         }
-        .redacted(reason: .placeholder)
-        .pulsing() // Custom modifier for shimmer effect
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .scrollDisabled(true)
+        .skeleton()
     }
 }
 
 #Preview {
     @Previewable @State var hardcoreMode: Bool = true
     let network = Network()
-    
+
     Task {
         await network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
     }
-    
-    return NavigationView {
-        GameSummaryView(hardcoreMode: $hardcoreMode, gameID: 10003)
-            .environmentObject(network)
-    }
+
+    return GameSummaryView(hardcoreMode: $hardcoreMode, gameID: 10003)
+        .environmentObject(network)
 }

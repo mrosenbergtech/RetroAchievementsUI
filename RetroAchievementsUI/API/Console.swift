@@ -39,41 +39,43 @@ class Consoles {
     var soConsoles:   ConsoleByManuFacturer = ConsoleByManuFacturer(id: "Sony", consoleIDList: [12, 21, 41])
     var otherConoles: ConsoleByManuFacturer = ConsoleByManuFacturer(id: "Other", consoleIDList: [23, 27, 29, 37, 38, 43, 44, 45, 46, 53, 57, 63, 69, 71, 72, 73, 74, 75, 80, 102])
     
+    /// Index for O(1) lookups. The previous implementation ran a linear filter
+    /// inside a sort comparator, making startup sorting O(n² log n).
+    private var consolesByID: [Int: Console] = [:]
+
     init(consoles: [Console]){
         self.consoles = consoles
-        
-        aConsoles.consoleIDList = aConsoles.consoleIDList.sorted {
-            getConsoleDataByID(consoleID: $0).name.lowercased() < getConsoleDataByID(consoleID: $1).name.lowercased()
+        self.consolesByID = Dictionary(consoles.map { ($0.id, $0) },
+                                       uniquingKeysWith: { first, _ in first })
+
+        // Drop IDs the API did not return before sorting. These lists are
+        // hardcoded, so a console being retired or renamed upstream used to
+        // crash on the force-unwrap in getConsoleDataByID.
+        func prepare(_ group: ConsoleByManuFacturer) -> ConsoleByManuFacturer {
+            var group = group
+            group.consoleIDList = group.consoleIDList
+                .compactMap { consolesByID[$0] }
+                .sorted { $0.name.lowercased() < $1.name.lowercased() }
+                .map(\.id)
+            return group
         }
-        
-        neConsoles.consoleIDList = neConsoles.consoleIDList.sorted {
-            getConsoleDataByID(consoleID: $0).name.lowercased() < getConsoleDataByID(consoleID: $1).name.lowercased()
-        }
-        
-        niConsoles.consoleIDList = niConsoles.consoleIDList.sorted {
-            getConsoleDataByID(consoleID: $0).name.lowercased() < getConsoleDataByID(consoleID: $1).name.lowercased()
-        }
-        
-        seConsoles.consoleIDList = seConsoles.consoleIDList.sorted {
-            getConsoleDataByID(consoleID: $0).name.lowercased() < getConsoleDataByID(consoleID: $1).name.lowercased()
-        }
-        
-        snConsoles.consoleIDList = snConsoles.consoleIDList.sorted {
-            getConsoleDataByID(consoleID: $0).name.lowercased() < getConsoleDataByID(consoleID: $1).name.lowercased()
-        }
-        
-        soConsoles.consoleIDList = soConsoles.consoleIDList.sorted {
-            getConsoleDataByID(consoleID: $0).name.lowercased() < getConsoleDataByID(consoleID: $1).name.lowercased()
-        }
-        
-        otherConoles.consoleIDList = otherConoles.consoleIDList.sorted {
-            getConsoleDataByID(consoleID: $0).name.lowercased() < getConsoleDataByID(consoleID: $1).name.lowercased()
-        }
-        
-        consolesSortedByKind = [aConsoles, neConsoles, niConsoles, seConsoles, soConsoles, otherConoles]
+
+        aConsoles = prepare(aConsoles)
+        neConsoles = prepare(neConsoles)
+        niConsoles = prepare(niConsoles)
+        seConsoles = prepare(seConsoles)
+        snConsoles = prepare(snConsoles)
+        soConsoles = prepare(soConsoles)
+        otherConoles = prepare(otherConoles)
+
+        // snConsoles (SNK) was missing from this list, so SNK consoles never
+        // appeared in the Consoles tab.
+        consolesSortedByKind = [aConsoles, neConsoles, niConsoles, seConsoles,
+                                snConsoles, soConsoles, otherConoles]
+            .filter { !$0.consoleIDList.isEmpty }
     }
-    
-    func getConsoleDataByID(consoleID: Int) -> Console {
-        return self.consoles.filter { $0.id == consoleID}.first!
+
+    func getConsoleDataByID(consoleID: Int) -> Console? {
+        consolesByID[consoleID]
     }
 }
