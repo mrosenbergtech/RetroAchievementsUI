@@ -36,6 +36,8 @@ final class GameListStore {
         case consoleList = "consolelist.json"
         /// achievement ID → share of the game's players holding it.
         case rarityIndex = "rarityindex.json"
+        /// username → index into Network.recentAchievementWindows.
+        case recentWindow = "recentwindow.json"
 
         /// Legacy UserDefaults key this slot was migrated away from.
         var legacyDefaultsKey: String {
@@ -43,6 +45,7 @@ final class GameListStore {
             case .gameList:    return "completeRetroAchievementsGameListJSONData"
             case .consoleList: return "completeRetroAchievementsConsoleListJSONData"
             case .rarityIndex: return ""      // never lived in UserDefaults
+            case .recentWindow: return ""     // never lived in UserDefaults
             }
         }
     }
