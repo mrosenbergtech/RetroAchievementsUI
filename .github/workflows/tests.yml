@@ -1,0 +1,306 @@
+name: Tests
+
+# Deliberately no `pull_request` trigger.
+#
+# This repository is public. A workflow that runs on pull_request will happily
+# execute a fork's code, and on a self-hosted runner that code runs on the
+# owner's own machine. `push` only fires for branches in this repository, which
+# nobody outside it can write to. Think that through before adding triggers.
+on:
+  push:
+    branches: ['**']
+  workflow_dispatch:
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+# Least privilege for GITHUB_TOKEN. Without this the repository default
+# applies, which on older repositories is read *and write* — meaning a
+# compromised or careless step could push commits or move tags. Nothing here
+# needs more than to read the checkout.
+permissions:
+  contents: read
+
+# GitHub-hosted macOS is free for public repositories and runs in a fresh
+# throwaway VM, discarded after the job. Switching each `runs-on` to
+#     runs-on: [self-hosted, macOS]
+# is not a like-for-like swap: a self-hosted runner is a process on a real
+# machine with that machine's filesystem, SSH keys and login Keychain, and it
+# keeps its workspace between jobs, so stale build products can turn a run
+# green or red on their own. GitHub recommends self-hosted runners only for
+# private repositories, for the fork-code reason above. If you do self-host,
+# register the runner on this repository rather than the account, and set
+# Settings > Actions > "Require approval for all external contributors".
+
+jobs:
+  build:
+    name: Build
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Provide placeholder credentials
+        run: |
+          # DebugCredentials.swift is gitignored — on a developer's machine it
+          # holds a real RetroAchievements API key. The app target cannot
+          # compile without it, because #Preview blocks reference its symbols,
+          # so CI writes a placeholder copy from the committed template, then
+          # proves it is the placeholder.
+          cp RetroAchievementsUI/DebugCredentials.example.swift \
+             RetroAchievementsUI/DebugCredentials.swift
+
+          if ! grep -q 'let debugWebAPIKey: String = "api_key"' \
+                 RetroAchievementsUI/DebugCredentials.swift; then
+            echo "::error::DebugCredentials.swift is not the placeholder template."
+            exit 1
+          fi
+          if git ls-files --error-unmatch \
+               RetroAchievementsUI/DebugCredentials.swift 2>/dev/null; then
+            echo "::error::DebugCredentials.swift is tracked by git — it must not be."
+            exit 1
+          fi
+
+      - name: Build for testing
+        run: |
+          set -o pipefail
+          xcodebuild -version
+          # A generic destination keeps the build off any specific simulator;
+          # the Test job picks the device it runs on.
+          xcodebuild build-for-testing \
+            -project RetroAchievementsUI.xcodeproj \
+            -scheme RetroAchievementsUI \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath DerivedData \
+            2>&1 | tee build.log
+
+      - name: Package test bundle
+        run: |
+          # tar rather than uploading the directory directly: artifacts do not
+          # preserve the executable bit or symlinks, and the .app and its
+          # embedded frameworks need both. Products alone is ~57 MB; the whole
+          # of DerivedData is ~640 MB and the Test job needs none of the rest.
+          tar -czf test-products.tar.gz -C DerivedData/Build Products
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: test-products
+          path: test-products.tar.gz
+          retention-days: 3
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: build-log
+          path: build.log
+          retention-days: 14
+
+  test:
+    name: Test
+    needs: build
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: test-products
+
+      - name: Unpack test bundle
+        run: |
+          mkdir -p DerivedData/Build
+          tar -xzf test-products.tar.gz -C DerivedData/Build
+          # The .xctestrun refers to its payload through __TESTROOT__, so it
+          # relocates cleanly to this runner without any path rewriting.
+          ls DerivedData/Build/Products/*.xctestrun
+
+      - name: Test
+        run: |
+          set -o pipefail
+          # Do not hardcode a device name. Runner images roll their Xcode
+          # forward and retire old simulators with it — pinning "iPhone 16"
+          # broke the moment the image moved to Xcode 26, which ships only the
+          # iPhone 17 family. Pick the newest available iPhone at run time and
+          # address it by UDID, which is unambiguous.
+          SIM=$(xcrun simctl list devices available --json | python3 -c "
+          import json, sys
+          data = json.load(sys.stdin)['devices']
+          best = None
+          for runtime, devices in data.items():
+              if 'iOS' not in runtime:
+                  continue
+              raw = runtime.rsplit('iOS-', 1)[-1]
+              try:
+                  version = tuple(int(part) for part in raw.split('-'))
+              except ValueError:
+                  continue
+              for device in devices:
+                  name = device['name']
+                  if not device.get('isAvailable') or not name.startswith('iPhone'):
+                      continue
+                  # Newest iOS wins; among ties prefer the plainest model name
+                  # ('iPhone 17' over 'iPhone 17 Pro Max').
+                  key = (version, -len(name), name)
+                  if best is None or key > best[0]:
+                      best = (key, device['udid'], name, '.'.join(map(str, version)))
+          if best is None:
+              sys.exit('No available iPhone simulator on this runner.')
+          print(f'{best[1]}\t{best[2]} (iOS {best[3]})')
+          ")
+          echo "$(echo "$SIM" | cut -f2)" > simulator.txt
+          echo "Testing on $(cat simulator.txt)"
+
+          xcodebuild test-without-building \
+            -xctestrun DerivedData/Build/Products/*.xctestrun \
+            -destination "id=$(echo "$SIM" | cut -f1)" \
+            -resultBundlePath TestResults.xcresult \
+            -parallel-testing-enabled NO \
+            2>&1 | tee test.log
+
+      - name: Per-suite breakdown
+        if: always()
+        run: |
+          # xcodebuild already emits a line per test; group them so a reader
+          # can see which suites ran and how long each took, without digging
+          # through the raw log.
+          echo "Suites:"
+          grep -oE '✔ Suite "[^"]+" passed after [0-9.]+ seconds' test.log \
+            | sed -E 's/✔ Suite /  /' | sort || true
+          echo
+          # `grep -c` prints its count and still exits 1 on no match, so the
+          # fallback must be `true` — `echo 0` would append a second zero.
+          PASSED=$(grep -cE '✔ Test "' test.log || true)
+          FAILED=$(grep -cE '✘ Test "' test.log || true)
+          echo "Tests: ${PASSED} passed, ${FAILED} failed"
+          echo
+          echo "Slowest tests:"
+          grep -oE '✔ Test "[^"]+" passed after [0-9.]+ seconds' test.log \
+            | sed -E 's/✔ Test "([^"]+)" passed after ([0-9.]+) seconds/\2\t\1/' \
+            | sort -rn | head -10 | awk -F'\t' '{printf "  %6.3fs  %s\n", $1, $2}' || true
+
+      - name: Redact and verify logs
+        if: always()
+        run: |
+          # The suite is network-free (MockURLProtocol) and the build used
+          # placeholder credentials, so nothing secret should exist here. These
+          # two steps make that a guarantee rather than an assumption.
+          #
+          # Python rather than sed/grep: `sed -i` and `grep -P` differ between
+          # BSD and GNU userlands, and this must behave identically on a hosted
+          # runner and on a self-hosted Mac.
+          python3 - <<'PY'
+          import pathlib, re, sys
+
+          # `z` is the RA username and `y` the API key. Anchoring on ? or &
+          # means this cannot fire on ordinary prose such as "...ErrorKey=".
+          AUTH = re.compile(rb'([?&](?:y|z)=)(?!REDACTED)[^&"\s]+')
+
+          log = pathlib.Path('test.log')
+          if log.exists():
+              original = log.read_bytes()
+              scrubbed, hits = AUTH.subn(rb'\1REDACTED', original)
+              if hits:
+                  log.write_bytes(scrubbed)
+              print(f'test.log: redacted {hits} auth parameter(s)')
+
+          # The result bundle is published too, and nothing rewrites it, so a
+          # match there has to fail the job rather than be scrubbed.
+          offenders = []
+          bundle = pathlib.Path('TestResults.xcresult')
+          if bundle.exists():
+              for path in bundle.rglob('*'):
+                  if not path.is_file():
+                      continue
+                  try:
+                      if AUTH.search(path.read_bytes()):
+                          offenders.append(str(path))
+                  except OSError:
+                      pass
+
+          if offenders:
+              print('::error::Credential-shaped parameter in result bundle; not publishing.')
+              for path in offenders[:10]:
+                  print(f'  {path}')
+              sys.exit(1)
+          print('No credential-shaped content in the published artifacts.')
+          PY
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          # Produced from a placeholder-credential, network-free build.
+          name: test-results
+          path: |
+            TestResults.xcresult
+            test.log
+            simulator.txt
+          retention-days: 14
+
+  post-run:
+    name: Post-Run
+    needs: [build, test]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Reads the artifacts the two jobs above produced.
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: '{build-log,test-results}'
+          merge-multiple: true
+        continue-on-error: true
+
+      - name: Summarise
+        run: |
+          {
+            echo "## Test results"
+            echo
+            if [ -f test.log ] && grep -qE '✔ Test run with .* passed' test.log; then
+              grep -oE '✔ Test run with .*' test.log | tail -1
+              echo
+              echo "| Suite | Time |"
+              echo "| --- | --- |"
+              grep -oE '✔ Suite "[^"]+" passed after [0-9.]+ seconds' test.log \
+                | sed -E 's/✔ Suite "([^"]+)" passed after ([0-9.]+) seconds/| \1 | \2s |/' \
+                | sort
+            elif [ -f test.log ]; then
+              echo "### Failures"
+              echo '```'
+              grep -E '✘|error:' test.log | sed 's|.*/RetroAchievementsUI/||' \
+                | sort -u | head -40
+              echo '```'
+            else
+              echo "No test log — the Build job did not produce a test bundle."
+            fi
+
+            # Warnings are worth seeing even on a green run; they are how a
+            # Swift 6 concurrency error arrives a release early.
+            if [ -f build.log ]; then
+              COUNT=$(grep -cE '^.*warning: ' build.log || true)
+              echo
+              echo "### Warnings ($COUNT)"
+              if [ "$COUNT" -gt 0 ]; then
+                echo '```'
+                grep -oE 'warning: .*' build.log | sed 's/ (in target.*//' \
+                  | sort | uniq -c | sort -rn | head -20
+                echo '```'
+              else
+                echo "None."
+              fi
+            fi
+
+            echo
+            SIM=$([ -f simulator.txt ] && cat simulator.txt || echo 'unknown device')
+            echo "\`${GITHUB_SHA:0:7}\` on \`${GITHUB_REF_NAME}\` · $SIM"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Reflect job status
+        # `if: always()` means this job runs even when Build or Test failed;
+        # without this it would report success and mask them.
+        if: needs.build.result != 'success' || needs.test.result != 'success'
+        run: |
+          echo "::error::Build=${{ needs.build.result }} Test=${{ needs.test.result }}"
+          exit 1
