@@ -7,8 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0CA2E149A49EC6F75EE2765C /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = C785AC18871AA5AE9C1178EA /* PrivacyInfo.xcprivacy */; };
 		00428A50E6C031EA989C64B6 /* AchievementRarity.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEDB06B1A9F90AAD4FC2F506 /* AchievementRarity.swift */; };
+		0CA2E149A49EC6F75EE2765C /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = C785AC18871AA5AE9C1178EA /* PrivacyInfo.xcprivacy */; };
 		0F7068BE68703C41FEEE7E72 /* RACardShowcase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19851F8CEEAACE7B8432E1BE /* RACardShowcase.swift */; };
 		1B915E5869DDC17179BC0D27 /* Fixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DB14483B934FFA2D2CC855F /* Fixtures.swift */; };
 		2701F1122D2319840036405D /* GameListGame.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2701F1112D2319840036405D /* GameListGame.swift */; };
@@ -92,7 +92,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		C785AC18871AA5AE9C1178EA /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		011E52D2742B940D27D9307B /* AwardTierTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AwardTierTests.swift; sourceTree = "<group>"; };
 		0480D844C8F3A7CE8AED2E7B /* AwardCardModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AwardCardModelTests.swift; sourceTree = "<group>"; };
 		101BE79BAF253538C1811F8D /* AwardCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AwardCardView.swift; sourceTree = "<group>"; };
@@ -159,6 +158,7 @@
 		B348860D3DF0D921040098F8 /* ScrollingText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollingText.swift; sourceTree = "<group>"; };
 		B42F3CD47552C10899B417DE /* PresentationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresentationTests.swift; sourceTree = "<group>"; };
 		B892667EB4A00836C962E836 /* AchievementSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementSheetView.swift; sourceTree = "<group>"; };
+		C785AC18871AA5AE9C1178EA /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		CAB009D90EAA730A7FF65473 /* NetworkTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkTests.swift; sourceTree = "<group>"; };
 		CCBC3EEA1C07A0BEC24C36E0 /* RARow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RARow.swift; sourceTree = "<group>"; };
 		DEDB06B1A9F90AAD4FC2F506 /* AchievementRarity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementRarity.swift; sourceTree = "<group>"; };
@@ -680,7 +680,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "\"RetroAchievementsUI/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -699,7 +699,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 4.0.0;
+				MARKETING_VERSION = 4.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mrosenbergtech.RetroAchievementsUI;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -714,7 +714,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "\"RetroAchievementsUI/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -733,7 +733,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 4.0.0;
+				MARKETING_VERSION = 4.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mrosenbergtech.RetroAchievementsUI;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

@@ -121,7 +121,7 @@ struct NetworkTests {
         #expect(urls.contains { $0.contains("API_GetUserProfile.php") })
         #expect(urls.contains { $0.contains("API_GetUserAwards.php") })
         #expect(urls.contains { $0.contains("API_GetUserRecentlyPlayedGames.php") && $0.contains("c=25") })
-        #expect(urls.contains { $0.contains("API_GetUserRecentAchievements.php") && $0.contains("m=999999999") })
+        #expect(urls.contains { $0.contains("API_GetUserRecentAchievements.php") && $0.contains("m=43200") })
         #expect(urls.contains { $0.contains("API_GetUserCompletionProgress.php") && $0.contains("c=500") })
         #expect(urls.allSatisfy { $0.contains("z=mrosen97") && $0.contains("y=key") })
     }
@@ -473,6 +473,416 @@ struct NetworkTests {
         await subject.awaitRarityPrefetchForTesting()
 
         #expect(subject.lastError == .unauthorized)
+    }
+
+    // MARK: - Recent achievements window
+
+    /// Serves `capped` rows for any window at or above `capAbove` minutes, and
+    /// a small recent set below it — mirroring how the real API behaves.
+    private func routeRecentAchievements(capAbove: Int) {
+        MockURLProtocol.handler = { request in
+            let url = request.url!
+            let text = url.absoluteString
+
+            if text.contains("API_GetUserRecentAchievements") {
+                let minutes = URLComponents(string: text)?
+                    .queryItems?.first { $0.name == "m" }
+                    .flatMap { $0.value }
+                    .flatMap(Int.init) ?? 0
+                let body = minutes >= capAbove
+                    ? Fixtures.recentAchievements(count: Network.recentAchievementResultCap)
+                    : Fixtures.recentAchievements
+                return (MockURLProtocol.response(url, status: 200), body)
+            }
+
+            for (fragment, data) in [
+                ("API_GetUserProfile", Fixtures.userProfile),
+                ("API_GetUserAwards", Fixtures.userAwards),
+                ("API_GetUserCompletionProgress", Fixtures.completionProgress),
+                ("API_GetUserRecentlyPlayedGames", Fixtures.recentlyPlayed),
+                ("API_GetConsoleIDs", Fixtures.consoleIDs),
+                ("API_GetGameList", Fixtures.gameList),
+                ("API_GetGameInfoAndUserProgress", Fixtures.gameInfoAndUserProgress),
+            ] where text.contains(fragment) {
+                return (MockURLProtocol.response(url, status: 200), data)
+            }
+            return (MockURLProtocol.response(url, status: 404), Data())
+        }
+    }
+
+    @Test("A capped window is narrowed rather than trusted")
+    func narrowsWhenCapped() async {
+        let subject = makeSubject()
+        // 30 days (the default) comes back capped; 7 days does not.
+        routeRecentAchievements(capAbove: 43_200)
+
+        await subject.authenticateCredentials(webAPIUsername: "mrosen97", webAPIKey: "key")
+        await subject.awaitGameListSyncForTesting()
+        await subject.awaitRarityPrefetchForTesting()
+
+        // The API answers a capped request with an OLD slice, not the newest
+        // rows, so a capped response must never be the one we keep.
+        #expect(subject.userRecentAchievements.count < Network.recentAchievementResultCap)
+
+        let windows = MockURLProtocol.recordedURLs
+            .filter { $0.absoluteString.contains("API_GetUserRecentAchievements") }
+            .compactMap { URLComponents(string: $0.absoluteString)?.queryItems?
+                .first { $0.name == "m" }?.value }
+        #expect(windows.first == "43200")     // tried 30 days
+        #expect(windows.contains("10080"))    // narrowed to 7 days
+    }
+
+    @Test("An idle player's window is widened until something is found")
+    func widensWhenEmpty() async {
+        let subject = makeSubject()
+        MockURLProtocol.handler = { request in
+            let url = request.url!
+            let text = url.absoluteString
+            if text.contains("API_GetUserRecentAchievements") {
+                let minutes = URLComponents(string: text)?.queryItems?
+                    .first { $0.name == "m" }.flatMap { $0.value }.flatMap(Int.init) ?? 0
+                // Nothing in the last 30 days; something within 180.
+                let body = minutes >= 259_200 ? Fixtures.recentAchievements : Fixtures.emptyArray
+                return (MockURLProtocol.response(url, status: 200), body)
+            }
+            for (fragment, data) in [
+                ("API_GetUserProfile", Fixtures.userProfile),
+                ("API_GetUserAwards", Fixtures.userAwards),
+                ("API_GetUserCompletionProgress", Fixtures.completionProgress),
+                ("API_GetUserRecentlyPlayedGames", Fixtures.recentlyPlayed),
+                ("API_GetConsoleIDs", Fixtures.consoleIDs),
+                ("API_GetGameList", Fixtures.gameList),
+                ("API_GetGameInfoAndUserProgress", Fixtures.gameInfoAndUserProgress),
+            ] where text.contains(fragment) {
+                return (MockURLProtocol.response(url, status: 200), data)
+            }
+            return (MockURLProtocol.response(url, status: 404), Data())
+        }
+
+        await subject.authenticateCredentials(webAPIUsername: "mrosen97", webAPIKey: "key")
+        await subject.awaitGameListSyncForTesting()
+        await subject.awaitRarityPrefetchForTesting()
+
+        #expect(subject.userRecentAchievements.isEmpty == false)
+    }
+
+    @Test("An active player costs a single request")
+    func activePlayerIsOneRequest() async {
+        let subject = makeSubject()
+        var routes = fullRoutes
+        // An active player: plenty of rows in the default 30-day window, and
+        // comfortably under the cap. Nothing to narrow, nothing to widen.
+        routes["API_GetUserRecentAchievements"] = Fixtures.recentAchievements(count: 200)
+        MockURLProtocol.route(routes)
+
+        await subject.authenticateCredentials(webAPIUsername: "mrosen97", webAPIKey: "key")
+        await subject.awaitGameListSyncForTesting()
+        await subject.awaitRarityPrefetchForTesting()
+
+        #expect(MockURLProtocol.callCount(containing: "API_GetUserRecentAchievements") == 1)
+    }
+
+    @Test("A sparse window is widened to give the filtered deck room")
+    func widensWhenSparse() async {
+        let subject = makeSubject()
+        MockURLProtocol.handler = { request in
+            let url = request.url!
+            let text = url.absoluteString
+            if text.contains("API_GetUserRecentAchievements") {
+                let minutes = URLComponents(string: text)?.queryItems?
+                    .first { $0.name == "m" }.flatMap { $0.value }.flatMap(Int.init) ?? 0
+                // 30 days holds a handful; 180 days holds plenty. The deck
+                // filters by Hardcore Mode on top of this, so a handful of raw
+                // rows can leave it nearly empty — worth widening for.
+                let body = minutes >= 259_200
+                    ? Fixtures.recentAchievements(count: 200)
+                    : Fixtures.recentAchievements(count: 5)
+                return (MockURLProtocol.response(url, status: 200), body)
+            }
+            for (fragment, data) in [
+                ("API_GetUserProfile", Fixtures.userProfile),
+                ("API_GetUserAwards", Fixtures.userAwards),
+                ("API_GetUserCompletionProgress", Fixtures.completionProgress),
+                ("API_GetUserRecentlyPlayedGames", Fixtures.recentlyPlayed),
+                ("API_GetConsoleIDs", Fixtures.consoleIDs),
+                ("API_GetGameList", Fixtures.gameList),
+                ("API_GetGameInfoAndUserProgress", Fixtures.gameInfoAndUserProgress),
+            ] where text.contains(fragment) {
+                return (MockURLProtocol.response(url, status: 200), data)
+            }
+            return (MockURLProtocol.response(url, status: 404), Data())
+        }
+
+        await subject.authenticateCredentials(webAPIUsername: "mrosen97", webAPIKey: "key")
+        await subject.awaitGameListSyncForTesting()
+        await subject.awaitRarityPrefetchForTesting()
+
+        // Kept the wider window's richer result, not the sparse first answer.
+        #expect(subject.userRecentAchievements.count == 200)
+    }
+
+    @Test("Widening never keeps a capped result over a smaller clean one")
+    func neverKeepsCappedOverClean() async {
+        let subject = makeSubject()
+        MockURLProtocol.handler = { request in
+            let url = request.url!
+            let text = url.absoluteString
+            if text.contains("API_GetUserRecentAchievements") {
+                let minutes = URLComponents(string: text)?.queryItems?
+                    .first { $0.name == "m" }.flatMap { $0.value }.flatMap(Int.init) ?? 0
+                // Sparse at 30 days, capped beyond it — the shape that makes
+                // "just use the widest window" wrong.
+                let body = minutes >= 259_200
+                    ? Fixtures.recentAchievements(count: Network.recentAchievementResultCap)
+                    : Fixtures.recentAchievements(count: 5)
+                return (MockURLProtocol.response(url, status: 200), body)
+            }
+            for (fragment, data) in [
+                ("API_GetUserProfile", Fixtures.userProfile),
+                ("API_GetUserAwards", Fixtures.userAwards),
+                ("API_GetUserCompletionProgress", Fixtures.completionProgress),
+                ("API_GetUserRecentlyPlayedGames", Fixtures.recentlyPlayed),
+                ("API_GetConsoleIDs", Fixtures.consoleIDs),
+                ("API_GetGameList", Fixtures.gameList),
+                ("API_GetGameInfoAndUserProgress", Fixtures.gameInfoAndUserProgress),
+            ] where text.contains(fragment) {
+                return (MockURLProtocol.response(url, status: 200), data)
+            }
+            return (MockURLProtocol.response(url, status: 404), Data())
+        }
+
+        await subject.authenticateCredentials(webAPIUsername: "mrosen97", webAPIKey: "key")
+        await subject.awaitGameListSyncForTesting()
+        await subject.awaitRarityPrefetchForTesting()
+
+        // 5 correct rows beat 500 stale ones.
+        #expect(subject.userRecentAchievements.count == 5)
+    }
+
+    /// A Network sharing an existing store, to model a later launch.
+    private func makeSubject(sharing store: GameListStore) -> Network {
+        Network(session: MockURLProtocol.makeSession(), store: store, retryBaseDelay: 0.001)
+    }
+
+    @Test("The settled window is remembered, so later refreshes cost one request")
+    func remembersWindow() async {
+        let store = GameListStore(
+            directory: FileManager.default.temporaryDirectory
+                .appendingPathComponent("ra-window-\(UUID().uuidString)", isDirectory: true),
+            defaults: UserDefaults(suiteName: "ra-window-\(UUID().uuidString)")!
+        )
+
+        // A dormant player: nothing for 30 or 180 days, plenty within 2 years.
+        func routeIdlePlayer() {
+            MockURLProtocol.handler = { request in
+                let url = request.url!
+                let text = url.absoluteString
+                if text.contains("API_GetUserRecentAchievements") {
+                    let minutes = URLComponents(string: text)?.queryItems?
+                        .first { $0.name == "m" }.flatMap { $0.value }.flatMap(Int.init) ?? 0
+                    let body = minutes >= 1_051_200
+                        ? Fixtures.recentAchievements(count: 200)
+                        : Fixtures.emptyArray
+                    return (MockURLProtocol.response(url, status: 200), body)
+                }
+                for (fragment, data) in [
+                    ("API_GetUserProfile", Fixtures.userProfile),
+                    ("API_GetUserAwards", Fixtures.userAwards),
+                    ("API_GetUserCompletionProgress", Fixtures.completionProgress),
+                    ("API_GetUserRecentlyPlayedGames", Fixtures.recentlyPlayed),
+                    ("API_GetConsoleIDs", Fixtures.consoleIDs),
+                    ("API_GetGameList", Fixtures.gameList),
+                    ("API_GetGameInfoAndUserProgress", Fixtures.gameInfoAndUserProgress),
+                ] where text.contains(fragment) {
+                    return (MockURLProtocol.response(url, status: 200), data)
+                }
+                return (MockURLProtocol.response(url, status: 404), Data())
+            }
+        }
+
+        // First run: 30d → 180d → 2y.
+        MockURLProtocol.reset()
+        routeIdlePlayer()
+        let first = makeSubject(sharing: store)
+        await first.authenticateCredentials(webAPIUsername: "mrosen97", webAPIKey: "key")
+        await first.awaitGameListSyncForTesting()
+        await first.awaitRarityPrefetchForTesting()
+        #expect(MockURLProtocol.callCount(containing: "API_GetUserRecentAchievements") == 3)
+
+        // A later launch reading the same store starts where it left off.
+        MockURLProtocol.reset()
+        routeIdlePlayer()
+        let second = makeSubject(sharing: store)
+        await second.authenticateCredentials(webAPIUsername: "mrosen97", webAPIKey: "key")
+        await second.awaitGameListSyncForTesting()
+        await second.awaitRarityPrefetchForTesting()
+
+        #expect(MockURLProtocol.callCount(containing: "API_GetUserRecentAchievements") == 1)
+        #expect(second.userRecentAchievements.count == 200)
+        let used = MockURLProtocol.recordedURLs
+            .first { $0.absoluteString.contains("API_GetUserRecentAchievements") }?
+            .absoluteString
+        #expect(used?.contains("m=1051200") == true)
+    }
+
+    @Test("A remembered window is not inherited across accounts")
+    func windowIsPerUser() async {
+        let store = GameListStore(
+            directory: FileManager.default.temporaryDirectory
+                .appendingPathComponent("ra-window2-\(UUID().uuidString)", isDirectory: true),
+            defaults: UserDefaults(suiteName: "ra-window2-\(UUID().uuidString)")!
+        )
+
+        MockURLProtocol.reset()
+        MockURLProtocol.route(fullRoutes)
+        let first = makeSubject(sharing: store)
+        await first.authenticateCredentials(webAPIUsername: "idle_player", webAPIKey: "key")
+        await first.awaitGameListSyncForTesting()
+        await first.awaitRarityPrefetchForTesting()
+
+        // A different account must start from the default, not inherit the
+        // first account's history shape.
+        MockURLProtocol.reset()
+        var routes = fullRoutes
+        routes["API_GetUserRecentAchievements"] = Fixtures.recentAchievements(count: 200)
+        MockURLProtocol.route(routes)
+        let second = makeSubject(sharing: store)
+        await second.authenticateCredentials(webAPIUsername: "other_player", webAPIKey: "key")
+        await second.awaitGameListSyncForTesting()
+        await second.awaitRarityPrefetchForTesting()
+
+        let firstWindow = MockURLProtocol.recordedURLs
+            .first { $0.absoluteString.contains("API_GetUserRecentAchievements") }?
+            .absoluteString
+        #expect(firstWindow?.contains("m=43200") == true)   // the default
+    }
+
+    @Test("A remembered window still adapts when the player's activity changes")
+    func rememberedWindowAdapts() async {
+        let store = GameListStore(
+            directory: FileManager.default.temporaryDirectory
+                .appendingPathComponent("ra-window3-\(UUID().uuidString)", isDirectory: true),
+            defaults: UserDefaults(suiteName: "ra-window3-\(UUID().uuidString)")!
+        )
+
+        // Settle on the widest window while dormant.
+        MockURLProtocol.reset()
+        MockURLProtocol.handler = { request in
+            let url = request.url!
+            let text = url.absoluteString
+            if text.contains("API_GetUserRecentAchievements") {
+                let minutes = URLComponents(string: text)?.queryItems?
+                    .first { $0.name == "m" }.flatMap { $0.value }.flatMap(Int.init) ?? 0
+                return (MockURLProtocol.response(url, status: 200),
+                        minutes >= 1_051_200 ? Fixtures.recentAchievements(count: 200)
+                                             : Fixtures.emptyArray)
+            }
+            return (MockURLProtocol.response(url, status: 200), Fixtures.userProfile)
+        }
+        let first = makeSubject(sharing: store)
+        await first.authenticateCredentials(webAPIUsername: "mrosen97", webAPIKey: "key")
+        await first.awaitGameListSyncForTesting()
+        await first.awaitRarityPrefetchForTesting()
+
+        // Now they binge: the remembered widest window comes back capped and
+        // must be narrowed rather than trusted.
+        MockURLProtocol.reset()
+        MockURLProtocol.handler = { request in
+            let url = request.url!
+            let text = url.absoluteString
+            if text.contains("API_GetUserRecentAchievements") {
+                let minutes = URLComponents(string: text)?.queryItems?
+                    .first { $0.name == "m" }.flatMap { $0.value }.flatMap(Int.init) ?? 0
+                return (MockURLProtocol.response(url, status: 200),
+                        minutes >= 259_200
+                            ? Fixtures.recentAchievements(count: Network.recentAchievementResultCap)
+                            : Fixtures.recentAchievements(count: 300))
+            }
+            return (MockURLProtocol.response(url, status: 200), Fixtures.userProfile)
+        }
+        let second = makeSubject(sharing: store)
+        await second.authenticateCredentials(webAPIUsername: "mrosen97", webAPIKey: "key")
+        await second.awaitGameListSyncForTesting()
+        await second.awaitRarityPrefetchForTesting()
+
+        #expect(second.userRecentAchievements.count == 300)
+        #expect(second.userRecentAchievements.count < Network.recentAchievementResultCap)
+
+        // Recovery must also re-persist, or every refresh from here on would
+        // pay for the same narrowing again.
+        MockURLProtocol.reset()
+        MockURLProtocol.handler = { request in
+            let url = request.url!
+            let text = url.absoluteString
+            if text.contains("API_GetUserRecentAchievements") {
+                let minutes = URLComponents(string: text)?.queryItems?
+                    .first { $0.name == "m" }.flatMap { $0.value }.flatMap(Int.init) ?? 0
+                return (MockURLProtocol.response(url, status: 200),
+                        minutes >= 259_200
+                            ? Fixtures.recentAchievements(count: Network.recentAchievementResultCap)
+                            : Fixtures.recentAchievements(count: 300))
+            }
+            return (MockURLProtocol.response(url, status: 200), Fixtures.userProfile)
+        }
+        let third = makeSubject(sharing: store)
+        await third.authenticateCredentials(webAPIUsername: "mrosen97", webAPIKey: "key")
+        await third.awaitGameListSyncForTesting()
+        await third.awaitRarityPrefetchForTesting()
+
+        #expect(MockURLProtocol.callCount(containing: "API_GetUserRecentAchievements") == 1)
+        #expect(third.userRecentAchievements.count == 300)
+    }
+
+    @Test("A remembered window that goes empty widens and re-persists")
+    func rememberedWindowRecoversFromEmpty() async {
+        let store = GameListStore(
+            directory: FileManager.default.temporaryDirectory
+                .appendingPathComponent("ra-window4-\(UUID().uuidString)", isDirectory: true),
+            defaults: UserDefaults(suiteName: "ra-window4-\(UUID().uuidString)")!
+        )
+
+        /// Achievements exist only within `visibleFrom` minutes.
+        func route(visibleFrom: Int) {
+            MockURLProtocol.handler = { request in
+                let url = request.url!
+                let text = url.absoluteString
+                if text.contains("API_GetUserRecentAchievements") {
+                    let minutes = URLComponents(string: text)?.queryItems?
+                        .first { $0.name == "m" }.flatMap { $0.value }.flatMap(Int.init) ?? 0
+                    return (MockURLProtocol.response(url, status: 200),
+                            minutes >= visibleFrom ? Fixtures.recentAchievements(count: 200)
+                                                   : Fixtures.emptyArray)
+                }
+                return (MockURLProtocol.response(url, status: 200), Fixtures.userProfile)
+            }
+        }
+
+        // Settle on 30 days while active.
+        MockURLProtocol.reset(); route(visibleFrom: 43_200)
+        let first = makeSubject(sharing: store)
+        await first.authenticateCredentials(webAPIUsername: "mrosen97", webAPIKey: "key")
+        await first.awaitGameListSyncForTesting()
+        await first.awaitRarityPrefetchForTesting()
+        #expect(first.userRecentAchievements.count == 200)
+
+        // The player stops playing: 30 days now returns nothing, so the
+        // remembered window has to widen rather than show an empty deck.
+        MockURLProtocol.reset(); route(visibleFrom: 1_051_200)
+        let second = makeSubject(sharing: store)
+        await second.authenticateCredentials(webAPIUsername: "mrosen97", webAPIKey: "key")
+        await second.awaitGameListSyncForTesting()
+        await second.awaitRarityPrefetchForTesting()
+        #expect(second.userRecentAchievements.count == 200)
+
+        // And the widened window sticks.
+        MockURLProtocol.reset(); route(visibleFrom: 1_051_200)
+        let third = makeSubject(sharing: store)
+        await third.authenticateCredentials(webAPIUsername: "mrosen97", webAPIKey: "key")
+        await third.awaitGameListSyncForTesting()
+        await third.awaitRarityPrefetchForTesting()
+
+        #expect(MockURLProtocol.callCount(containing: "API_GetUserRecentAchievements") == 1)
+        #expect(third.userRecentAchievements.count == 200)
     }
 
     // MARK: - Rarity index

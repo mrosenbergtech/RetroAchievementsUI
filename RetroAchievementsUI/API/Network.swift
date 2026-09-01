@@ -49,6 +49,7 @@ class Network: ObservableObject {
 
         rarityIndex = store.load(.rarityIndex, as: [Int: Double].self,
                                  ttl: GameListStore.rarityIndexTTL) ?? [:]
+        recentWindowByUser = store.load(.recentWindow, as: [String: Int].self) ?? [:]
     }
 
     // MARK: - Achievement rarity
@@ -480,12 +481,122 @@ class Network: ObservableObject {
         }
     }
 
+    /// GetUserRecentAchievements caps its response at 500 rows — and when the
+    /// cap is hit it does **not** return the newest 500. It returns an older
+    /// slice.
+    ///
+    /// `nonisolated` because tests read it from `MockURLProtocol`'s request
+    /// handler, which is a Sendable closure running off the main actor. Both
+    /// constants are immutable value types, so this is free of risk — and
+    /// without it the reference is an error under the Swift 6 language mode.
+    nonisolated static let recentAchievementResultCap = 500
+
+    /// Look-back windows in minutes: 1 day, 7 days, 30 days, 180 days, 2 years.
+    nonisolated static let recentAchievementWindows = [1_440, 10_080, 43_200, 259_200, 1_051_200]
+
+    /// Index of the window to try first for a user never seen before. 30 days
+    /// suits an active player: one request, comfortably under the cap.
+    private static let defaultRecentWindowIndex = 2
+
+    /// The window that last worked, per username, persisted across launches.
+    ///
+    /// How much history a player has does not change between refreshes, so
+    /// re-deriving the window every time is wasted work: only the first refresh
+    /// for a given account should pay for narrowing or widening. Keyed by
+    /// username so switching accounts — or viewing someone else — cannot
+    /// inherit the wrong starting point.
+    private var recentWindowByUser: [String: Int] = [:]
+
+    /// Remembers the window that settled, if it is not what we already had.
+    private func rememberRecentWindow(_ index: Int, for user: String) {
+        guard recentWindowByUser[user] != index else { return }
+        recentWindowByUser[user] = index
+        store.save(recentWindowByUser, to: .recentWindow)
+    }
+
+    /// Below this many rows the window is widened, provided widening does not
+    /// hit the cap.
+    ///
+    /// The deck shows 30 achievements *after* the Hardcore Mode and unofficial
+    /// filters run, so the raw list needs headroom: a player who mixes softcore
+    /// and hardcore could see most of a small window filtered away. Four times
+    /// the deck's size leaves room for that without chasing history nobody
+    /// looks at.
+    private static let comfortableRecentCount = 120
+
+    /// Recent achievements, over the widest window that stays under the API's cap.
+    ///
+    /// This used to ask for `m=999999999` — "everything". For any player with
+    /// more than 500 achievements in range that hits the cap, and the API then
+    /// answers with an *old* slice rather than the newest rows. A real account
+    /// (x1b2, ~19.5k points) got achievements ending 2025-10-27 while actively
+    /// playing in August 2026 — ten months stale, and nothing to do with
+    /// hardcore/softcore.
+    ///
+    /// The goal is the widest window that is still under the cap: capped rows
+    /// are wrong, and a too-narrow window starves the filtered deck. Rather
+    /// than start at the widest and discard two 500-row (~230 KB) responses on
+    /// the way down, this starts where an active player usually lands, then
+    /// narrows if capped or widens if there is room. Common case: one request.
     func getUserRecentAchievements() async {
-        let auth = buildAuthenticationString(username: authenticatedWebAPIUsername, key: authenticatedWebAPIKey)
-        let url = URL(string: "https://retroachievements.org/API/API_GetUserRecentAchievements.php?\(auth)&u=\(self.authenticatedWebAPIUsername)&m=999999999")
-        switch await fetch(url, as: [RecentAchievement].self) {
-        case .success(let decoded): self.userRecentAchievements = decoded
-        case .failure(let error): record(error)
+        let windows = Self.recentAchievementWindows
+        let user = authenticatedWebAPIUsername
+        // Start where this account settled last time; a first-time account
+        // starts at the default and pays the search once.
+        var index = recentWindowByUser[user] ?? Self.defaultRecentWindowIndex
+        var visited = Set<Int>()
+        var best: [RecentAchievement]?
+        var bestIndex = index
+
+        while !visited.contains(index) {
+            visited.insert(index)
+
+            let auth = buildAuthenticationString(username: authenticatedWebAPIUsername, key: authenticatedWebAPIKey)
+            let url = URL(string: "https://retroachievements.org/API/API_GetUserRecentAchievements.php?\(auth)&u=\(self.authenticatedWebAPIUsername)&m=\(windows[index])")
+
+            switch await fetch(url, as: [RecentAchievement].self) {
+            case .failure(let error):
+                // Keep anything a narrower window already produced rather than
+                // discarding good rows over a failed widening attempt.
+                if let best { self.userRecentAchievements = best } else { record(error) }
+                return
+
+            case .success(let decoded):
+                if decoded.count >= Self.recentAchievementResultCap {
+                    // Capped: these rows are an old slice, not the newest, so
+                    // they can never be the answer. Narrow and retry.
+                    guard index > 0 else {
+                        // Even the narrowest window is capped — a player with
+                        // 500+ unlocks in a day. Best effort.
+                        self.userRecentAchievements = best ?? decoded
+                        rememberRecentWindow(best == nil ? index : bestIndex, for: user)
+                        return
+                    }
+                    index -= 1
+                    continue
+                }
+
+                // Under the cap, so trustworthy. Keep the largest such result.
+                if decoded.count >= (best?.count ?? -1) {
+                    best = decoded
+                    bestIndex = index
+                }
+
+                if decoded.count < Self.comfortableRecentCount, index < windows.count - 1 {
+                    // Room for more history without risking the cap.
+                    index += 1
+                    continue
+                }
+
+                self.userRecentAchievements = best ?? decoded
+                rememberRecentWindow(bestIndex, for: user)
+                return
+            }
+        }
+
+        if let best {
+            self.userRecentAchievements = best
+            rememberRecentWindow(bestIndex, for: user)
         }
     }
 

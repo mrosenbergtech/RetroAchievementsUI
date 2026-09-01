@@ -499,6 +499,26 @@ enum Fixtures {
     }
     """)
 
+    /// Exactly `count` recent-achievement rows.
+    ///
+    /// Used both for a capped response (count == the API's 500-row ceiling,
+    /// where the rows returned are an old slice rather than the newest) and for
+    /// a healthy active-player response comfortably under it.
+    static func recentAchievements(count: Int) -> Data {
+        let entries = (0..<count).map { index in
+            """
+            { "Date": "2025-10-27 17:59:10", "HardcoreMode": 1,
+              "AchievementID": \(90_000 + index), "Title": "Stale \(index)",
+              "Description": "", "BadgeName": "b", "Points": 5, "TrueRatio": 5,
+              "Type": null, "Author": "a", "GameID": 11278,
+              "GameTitle": "Super Mario 64", "GameIcon": "/i.png",
+              "ConsoleName": "N64", "BadgeURL": "/Badge/b.png",
+              "GameURL": "/game/11278" }
+            """
+        }.joined(separator: ",")
+        return data("[\(entries)]")
+    }
+
     static let malformed = data("{ this is not valid json ")
     static let emptyArray = data("[]")
 }
