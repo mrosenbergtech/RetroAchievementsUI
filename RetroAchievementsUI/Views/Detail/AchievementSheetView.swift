@@ -30,6 +30,8 @@ struct AchievementSheetView: View {
     /// Comments routinely spell out how to earn the achievement, so they stay
     /// behind a tap until the reader asks for them.
     @State private var commentsRevealed = false
+    @State private var copyConfirmation = ""
+    @State private var showCopyConfirmation = false
 
     private var unlockedDate: String? {
         hardcoreMode ? achievement.dateEarnedHardcore : achievement.dateEarned
@@ -54,6 +56,7 @@ struct AchievementSheetView: View {
             .listStyle(.insetGrouped)
             .scrollContentBackground(.hidden)
             .background(Color.raSurface)
+            .toast(isShowing: $showCopyConfirmation, message: copyConfirmation)
             .navigationTitle("Achievement")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -243,6 +246,11 @@ struct AchievementSheetView: View {
         .buttonStyle(.plain)
     }
 
+    /// Threads are where players paste video guides, so the body renders its
+    /// URLs as links and the whole comment is selectable — previously the only
+    /// way to follow a guide was to retype it off the screen. The context menu
+    /// covers the same ground without a long-press-and-drag selection, which is
+    /// fiddly on a scrolling list.
     private func commentRow(_ comment: Comment) -> some View {
         VStack(alignment: .leading, spacing: 5) {
             HStack(spacing: 6) {
@@ -257,12 +265,39 @@ struct AchievementSheetView: View {
                 }
             }
 
-            Text(comment.text)
+            Text(comment.linkedText)
                 .font(.raBody)
                 .foregroundStyle(Color.raTextSecondary)
+                .tint(Color.raAccent)
+                .textSelection(.enabled)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(.vertical, 3)
+        .contextMenu {
+            Button {
+                copy(comment.text, confirmation: "Comment copied")
+            } label: {
+                Label("Copy Comment", systemImage: "doc.on.doc")
+            }
+
+            // Indexed rather than keyed on the URL: a comment that pastes the
+            // same link twice would otherwise collapse to one menu item.
+            ForEach(Array(comment.links.enumerated()), id: \.offset) { _, link in
+                Button {
+                    copy(link.absoluteString, confirmation: "Link copied")
+                } label: {
+                    Label(comment.links.count == 1 ? "Copy Link"
+                                                   : "Copy \(link.host ?? link.absoluteString)",
+                          systemImage: "link")
+                }
+            }
+        }
+    }
+
+    private func copy(_ value: String, confirmation: String) {
+        UIPasteboard.general.string = value
+        copyConfirmation = confirmation
+        showCopyConfirmation = true
     }
 
     /// The API dates these "yyyy-MM-dd HH:mm:ss".

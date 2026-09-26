@@ -88,3 +88,61 @@ enum CommentTarget: Int {
     case achievement = 2
     case user = 3
 }
+
+extension Comment {
+    /// The comment text with any URLs in it marked up as tappable links.
+    ///
+    /// RetroAchievements comments are plain text — the site offers no markup —
+    /// so a player sharing a video guide just pastes the URL, and the thread is
+    /// full of bare "https://youtu.be/…" runs. NSDataDetector finds those, and
+    /// knows to leave trailing punctuation out of the match, so "…see
+    /// https://youtu.be/x." links the URL and not the full stop.
+    ///
+    /// The string is assembled span by span rather than by mapping String
+    /// ranges onto an AttributedString's indices: the two index spaces are only
+    /// convertible while the characters match exactly, and that is an easy
+    /// guarantee to lose later.
+    var linkedText: AttributedString {
+        var result = AttributedString()
+        var cursor = text.startIndex
+
+        for match in Self.linkMatches(in: text) {
+            guard let url = match.url,
+                  let range = Range(match.range, in: text),
+                  range.lowerBound >= cursor else { continue }
+
+            result.append(AttributedString(String(text[cursor..<range.lowerBound])))
+
+            var link = AttributedString(String(text[range]))
+            link.link = url
+            result.append(link)
+
+            cursor = range.upperBound
+        }
+
+        result.append(AttributedString(String(text[cursor...])))
+        return result
+    }
+
+    /// Every URL the comment mentions, in the order they appear.
+    ///
+    /// Drives the "Copy Link" actions, and lets a test assert on what was
+    /// detected without picking an AttributedString apart.
+    var links: [URL] {
+        Self.linkMatches(in: text).compactMap(\.url)
+    }
+
+    private static func linkMatches(in text: String) -> [NSTextCheckingResult] {
+        guard let detector = linkDetector, !text.isEmpty else { return [] }
+        return detector.matches(in: text, range: NSRange(text.startIndex..., in: text))
+    }
+
+    /// `.link` also resolves bare "www.youtube.com/…" — which players write at
+    /// least as often as the full URL — supplying an http:// scheme. That
+    /// scheme is left alone rather than upgraded: guessing https on the
+    /// author's behalf breaks http-only fan sites, and the destination
+    /// redirects if it supports it.
+    private static let linkDetector: NSDataDetector? = {
+        try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue)
+    }()
+}
