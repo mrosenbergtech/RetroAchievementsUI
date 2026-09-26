@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A8035373D804AF1182A21321 /* RecentAchievementsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6CE19F7CFA9D8AD2B48D00A /* RecentAchievementsListView.swift */; };
+		11511E3339698B6883E48A5A /* AwardsStripView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ADA4E0D4D6DB54E79D05224 /* AwardsStripView.swift */; };
 		91E82EE1A4AB887C3065B26F /* BrowseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73672FD82ADC4E750B0F2271 /* BrowseView.swift */; };
 		CED64A178548C859E633C772 /* UserGameProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CB2DD2FD083DEDB9303E190 /* UserGameProgressView.swift */; };
 		A7936132046C87AC0AC0E9A2 /* RAUsernameLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39208E23FE926D58D9FCFADA /* RAUsernameLink.swift */; };
@@ -104,6 +106,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		B6CE19F7CFA9D8AD2B48D00A /* RecentAchievementsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentAchievementsListView.swift; sourceTree = "<group>"; };
+		2ADA4E0D4D6DB54E79D05224 /* AwardsStripView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AwardsStripView.swift; sourceTree = "<group>"; };
 		73672FD82ADC4E750B0F2271 /* BrowseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowseView.swift; sourceTree = "<group>"; };
 		1CB2DD2FD083DEDB9303E190 /* UserGameProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserGameProgressView.swift; sourceTree = "<group>"; };
 		39208E23FE926D58D9FCFADA /* RAUsernameLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RAUsernameLink.swift; sourceTree = "<group>"; };
@@ -235,6 +239,7 @@
 		2702F0482C25420700EC3364 /* Sub */ = {
 			isa = PBXGroup;
 			children = (
+				B6CE19F7CFA9D8AD2B48D00A /* RecentAchievementsListView.swift */,
 				B1247FBB1523AC6D47D7BEC4 /* AchievementOfTheWeekCard.swift */,
 				2752C8882C166D81002E25E2 /* AchievementsView.swift */,
 				27ED5A002C18041100D4167F /* ConsoleGamesView.swift */,
@@ -364,6 +369,7 @@
 		885E7478ADF60690DCF9346A /* Awards */ = {
 			isa = PBXGroup;
 			children = (
+				2ADA4E0D4D6DB54E79D05224 /* AwardsStripView.swift */,
 				F77B22B956A72C301449EF90 /* AwardCardGallery.swift */,
 				EB1D20937EF3722973F6AE65 /* AwardsShelfView.swift */,
 				4F2CB9EE2871E368CAD95553 /* AwardCardDetailView.swift */,
@@ -500,6 +506,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A8035373D804AF1182A21321 /* RecentAchievementsListView.swift in Sources */,
+				11511E3339698B6883E48A5A /* AwardsStripView.swift in Sources */,
 				91E82EE1A4AB887C3065B26F /* BrowseView.swift in Sources */,
 				CED64A178548C859E633C772 /* UserGameProgressView.swift in Sources */,
 				A7936132046C87AC0AC0E9A2 /* RAUsernameLink.swift in Sources */,

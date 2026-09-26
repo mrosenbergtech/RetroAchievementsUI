@@ -434,3 +434,106 @@ struct UserGameProgressTests {
     }
 }
 
+@Suite("Completion summary")
+struct CompletionSummaryTests {
+
+    @MainActor
+    private func makeNetwork() -> Network {
+        let dir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("ra-summary-\(UUID().uuidString)", isDirectory: true)
+        let defaults = UserDefaults(suiteName: "ra-summary-\(UUID().uuidString)")!
+        return Network(session: MockURLProtocol.makeSession(),
+                       store: GameListStore(directory: dir, defaults: defaults))
+    }
+
+    @Test("Reads as a sentence, dropping whatever has nothing to say")
+    func formatsLine() {
+        #expect(CompletionSummary(mastered: 12, beaten: 5, averageCompletion: 45.4).line
+                == "12 mastered · 5 beaten · 45% complete")
+        #expect(CompletionSummary(mastered: 0, beaten: 3, averageCompletion: nil).line
+                == "3 beaten")
+        // A player with nothing finished gets no line at all rather than a
+        // row of zeroes.
+        #expect(CompletionSummary(mastered: 0, beaten: 0, averageCompletion: nil).line == nil)
+    }
+
+    @Test("No awards means no summary")
+    @MainActor
+    func noAwardsNoSummary() {
+        #expect(makeNetwork().completionSummary(hardcoreMode: true) == nil)
+    }
+
+    @Test("Beaten count follows the hardcore switch")
+    @MainActor
+    func beatenFollowsMode() throws {
+        let network = makeNetwork()
+        network.awards = try JSONDecoder().decode(Awards.self, from: Fixtures.userAwards)
+
+        let hardcore = try #require(network.completionSummary(hardcoreMode: true))
+        let softcore = try #require(network.completionSummary(hardcoreMode: false))
+
+        #expect(hardcore.mastered == softcore.mastered)
+        // Different fields of the same payload — showing the hardcore count
+        // in softcore mode would overstate what the player has done.
+        #expect(hardcore.beaten != softcore.beaten || hardcore.beaten == 0)
+    }
+
+    @Test("Average completion is the mean across tracked games, clamped at 100%")
+    @MainActor
+    func averagesCompletion() throws {
+        let network = makeNetwork()
+        network.awards = try JSONDecoder().decode(Awards.self, from: Fixtures.userAwards)
+        network.userGameCompletionProgress = try JSONDecoder().decode(
+            UserGamesCompletionProgressResult.self, from: Fixtures.completionProgress)
+
+        let summary = try #require(network.completionSummary(hardcoreMode: false))
+        let average = try #require(summary.averageCompletion)
+
+        #expect(average >= 0 && average <= 100)
+    }
+
+    @Test("A revised-down set cannot report more than 100% complete")
+    @MainActor
+    func clampsOverCompletion() throws {
+        // numAwarded above maxPossible happens when a set is revised
+        // downwards; "112% complete" reads as a bug.
+        let json = Data(#"""
+        { "Count": 1, "Total": 1, "Results": [
+          { "GameID": 1, "Title": "g", "ImageIcon": "", "ConsoleID": 1,
+            "ConsoleName": "c", "MaxPossible": 10, "NumAwarded": 14,
+            "NumAwardedHardcore": 14, "MostRecentAwardedDate": "2024-01-01T00:00:00+00:00",
+            "HighestAwardKind": null, "HighestAwardDate": null } ] }
+        """#.utf8)
+        let network = makeNetwork()
+        network.awards = try JSONDecoder().decode(Awards.self, from: Fixtures.userAwards)
+        network.userGameCompletionProgress = try JSONDecoder().decode(
+            UserGamesCompletionProgressResult.self, from: json)
+
+        #expect(network.completionSummary(hardcoreMode: true)?.averageCompletion == 100)
+    }
+
+    @Test("Games with no achievements are left out rather than counted as zero")
+    @MainActor
+    func ignoresEmptyGames() throws {
+        let json = Data(#"""
+        { "Count": 2, "Total": 2, "Results": [
+          { "GameID": 1, "Title": "empty", "ImageIcon": "", "ConsoleID": 1,
+            "ConsoleName": "c", "MaxPossible": 0, "NumAwarded": 0,
+            "NumAwardedHardcore": 0, "MostRecentAwardedDate": "2024-01-01T00:00:00+00:00",
+            "HighestAwardKind": null, "HighestAwardDate": null },
+          { "GameID": 2, "Title": "half", "ImageIcon": "", "ConsoleID": 1,
+            "ConsoleName": "c", "MaxPossible": 10, "NumAwarded": 5,
+            "NumAwardedHardcore": 5, "MostRecentAwardedDate": "2024-01-01T00:00:00+00:00",
+            "HighestAwardKind": null, "HighestAwardDate": null } ] }
+        """#.utf8)
+        let network = makeNetwork()
+        network.awards = try JSONDecoder().decode(Awards.self, from: Fixtures.userAwards)
+        network.userGameCompletionProgress = try JSONDecoder().decode(
+            UserGamesCompletionProgressResult.self, from: json)
+
+        // 50%, not 25% — a game with no achievements published is not a game
+        // the player has failed to complete.
+        #expect(network.completionSummary(hardcoreMode: true)?.averageCompletion == 50)
+    }
+}
+

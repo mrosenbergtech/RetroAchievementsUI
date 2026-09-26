@@ -11,6 +11,10 @@ struct ProfileHeaderView: View {
     @Binding var hardcoreMode: Bool
     /// Settings lives in a sheet raised from here rather than in a tab.
     var onOpenSettings: (() -> Void)?
+    /// Stats that lead somewhere. Games Played switches to the Games tab;
+    /// Achievements pushes the full recent list.
+    var onOpenGames: (() -> Void)?
+    var onOpenAchievements: (() -> Void)?
 
     @State private var pulseAlpha: Double = 1.0
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -85,6 +89,8 @@ struct ProfileHeaderView: View {
 
             stats
 
+            completionLine
+
             statusLine
         }
         .padding(.bottom, 8)
@@ -120,9 +126,22 @@ struct ProfileHeaderView: View {
 
     private var stats: some View {
         HStack(spacing: 0) {
-            stat("Games Played", value: gamesPlayed)
+            // Two of the three lead somewhere; points has nowhere to go, so it
+            // stays a plain figure rather than a button that does nothing.
+            Button { onOpenGames?() } label: {
+                stat("Games Played", value: gamesPlayed)
+            }
+            .buttonStyle(.plain)
+            .accessibilityHint("Opens your games")
+
             divider
-            stat("Achievements", value: achievementsEarned)
+
+            Button { onOpenAchievements?() } label: {
+                stat("Achievements", value: achievementsEarned)
+            }
+            .buttonStyle(.plain)
+            .accessibilityHint("Opens your recent achievements")
+
             divider
             // Follows the Hardcore Mode toggle, and says which it is showing so
             // the number is never ambiguous.
@@ -132,6 +151,21 @@ struct ProfileHeaderView: View {
         .background(Color.raSurfaceRaised)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .padding(.horizontal, 16)
+    }
+
+    /// "12 mastered · 5 beaten · 45% complete" — all of it from data the
+    /// profile already holds. Absent entirely for a player with nothing
+    /// finished, rather than a row of zeroes.
+    @ViewBuilder
+    private var completionLine: some View {
+        if let line = network.completionSummary(hardcoreMode: hardcoreMode)?.line {
+            Text(line)
+                .font(.raStatSmall)
+                .foregroundStyle(Color.raTextTertiary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                .padding(.horizontal, 16)
+        }
     }
 
     private func stat(_ label: String, value: Int) -> some View {

@@ -41,7 +41,8 @@ struct ContentView: View {
                         showUnofficial: $showUnofficial,
                         webAPIUsername: $webAPIUsername,
                         webAPIKey: $webAPIKey,
-                        shouldShowLoginSheet: $shouldShowLoginSheet)
+                        shouldShowLoginSheet: $shouldShowLoginSheet,
+                        selectedTab: $selectedTab)
                 .tabItem {
                     Label("Profile", systemImage: "person.circle")
                 }
