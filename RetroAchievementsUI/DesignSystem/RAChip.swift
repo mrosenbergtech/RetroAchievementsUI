@@ -26,7 +26,15 @@ struct RAChip<Leading: View>: View {
             leading
             Text(text)
                 .raMicroLabel()
+                // A chip is a label, not a paragraph: wrapping breaks it
+                // mid-word ("AUTHENTICA / TED") the moment the row is tight.
+                // It shrinks to fit instead, and only so far before the row
+                // has to give it the space.
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+                .fixedSize(horizontal: false, vertical: true)
         }
+        .layoutPriority(1)
         .foregroundStyle(style == .solid ? Color.white : tint)
         .padding(.horizontal, 7)
         .padding(.vertical, 3.5)
@@ -47,6 +55,30 @@ struct RAChip<Leading: View>: View {
             RoundedRectangle(cornerRadius: 4, style: .continuous)
                 .fill(tint)
         }
+    }
+}
+
+/// A chip with no label, for rows too tight to carry another word.
+///
+/// Same shape, padding and tint as RAChip so it reads as one of the family;
+/// the meaning has to come from the symbol, so use it only where the symbol
+/// is unambiguous and the full-text chip exists somewhere else.
+struct RAIconChip: View {
+    let systemImage: String
+    var tint: Color = .raTextSecondary
+    var accessibilityLabel: String
+
+    var body: some View {
+        Image(systemName: systemImage)
+            .font(.system(size: 10, weight: .bold))
+            .foregroundStyle(tint)
+            .padding(.horizontal, 7)
+            .padding(.vertical, 4.5)
+            .background(
+                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                    .fill(tint.opacity(0.12))
+            )
+            .accessibilityLabel(accessibilityLabel)
     }
 }
 

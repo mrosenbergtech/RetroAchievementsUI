@@ -16,7 +16,7 @@ struct SettingsView: View {
 
     @State private var showingLogoutAlert = false
     @State private var showCacheClearedToast = false
-    @StateObject private var tips = TipStore()
+    @EnvironmentObject var tips: TipStore
 
     /// Settings is presented as a sheet from the profile header, not as a tab.
     @Environment(\.dismiss) private var dismiss
@@ -72,6 +72,20 @@ struct SettingsView: View {
             .task {
                 tips.refreshFromCloud()
                 await tips.loadProducts()
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var accountChips: some View {
+        HStack(spacing: 6) {
+            RAChip(text: network.webAPIAuthenticated ? "AUTHENTICATED" : "ACTION REQUIRED",
+                   tint: network.webAPIAuthenticated ? .green : .red) {
+                RAStatusDot()
+            }
+
+            if tips.hasTipped {
+                RAChip("CONTRIBUTED", systemImage: "heart.fill", tint: Color.raAccent)
             }
         }
     }
@@ -140,16 +154,15 @@ struct SettingsView: View {
                         .foregroundStyle(Color.raTextPrimary)
                         .lineLimit(1)
 
-                    HStack(spacing: 6) {
-                        RAChip(text: network.webAPIAuthenticated ? "AUTHENTICATED" : "ACTION REQUIRED",
-                               tint: network.webAPIAuthenticated ? .green : .red) {
-                            RAStatusDot()
+                    // Two chips and a Log Out button share this row, so they
+                    // scroll horizontally rather than compressing into
+                    // hyphenless wraps on a narrow phone or at large type.
+                    ViewThatFits(in: .horizontal) {
+                        accountChips
+                        ScrollView(.horizontal) {
+                            accountChips
                         }
-
-                        if tips.hasTipped {
-                            RAChip("CONTRIBUTED", systemImage: "heart.fill",
-                                   tint: Color.raAccent)
-                        }
+                        .scrollIndicators(.hidden)
                     }
                 }
 
@@ -278,4 +291,5 @@ struct SettingsView: View {
                         hardcoreMode: $hardcoreMode, showUnofficial: $showUnofficial,
                         shouldShowLoginSheet: $shouldShowLoginSheet)
         .environmentObject(network)
+        .environmentObject(TipStore())
 }

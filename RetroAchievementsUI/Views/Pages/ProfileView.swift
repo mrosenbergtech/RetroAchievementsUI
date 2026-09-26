@@ -19,6 +19,7 @@ import SwiftUI
 
 struct ProfileView: View {
     @EnvironmentObject var network: Network
+    @EnvironmentObject var tips: TipStore
     @Environment(\.selectedGameID) var selectedGameID: Binding<GameSheetItem?>
     @Binding var hardcoreMode: Bool
     @Binding var showUnofficial: Bool
@@ -136,6 +137,7 @@ struct ProfileView: View {
                          showUnofficial: $showUnofficial,
                          shouldShowLoginSheet: $shouldShowLoginSheet)
                 .environmentObject(network)
+                .environmentObject(tips)
         }
         .task {
             if network.profile == nil {
@@ -292,4 +294,5 @@ struct ProfileView: View {
                        webAPIUsername: $username, webAPIKey: $key,
                        shouldShowLoginSheet: $showLogin, selectedTab: .constant(1))
         .environmentObject(network)
+        .environmentObject(TipStore())
 }

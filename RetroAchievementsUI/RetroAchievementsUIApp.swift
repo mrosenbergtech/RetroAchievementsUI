@@ -22,6 +22,9 @@ struct RetroAchievementsUIApp: App {
     @State private var webAPIKey: String = KeychainStore.migrateLegacyAPIKeyIfNeeded() ?? ""
 
     @StateObject private var network = Network()
+    /// One tip jar for the whole app: Settings buys, the profile header
+    /// shows the badge, and a tip has to light both up at once.
+    @StateObject private var tips = TipStore()
 
     /// Child views still take a plain Binding<String>; writes are persisted to
     /// the Keychain here rather than in each call site. Both credentials go to
@@ -56,6 +59,7 @@ struct RetroAchievementsUIApp: App {
     private var mainInterface: some View {
         ContentView(webAPIUsername: webAPIUsernameBinding, webAPIKey: webAPIKeyBinding, hardcoreMode: $hardcoreMode, showUnofficial: $showUnofficial)
             .environmentObject(network)
+            .environmentObject(tips)
             .task {
                 // A new device gets the username from iCloud Keychain, where
                 // @AppStorage — which is per-device — has nothing.

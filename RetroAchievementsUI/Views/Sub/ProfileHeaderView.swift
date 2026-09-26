@@ -8,6 +8,7 @@ import Kingfisher
 
 struct ProfileHeaderView: View {
     @EnvironmentObject var network: Network
+    @EnvironmentObject var tips: TipStore
     @Binding var hardcoreMode: Bool
     /// Settings lives in a sheet raised from here rather than in a tab.
     var onOpenSettings: (() -> Void)?
@@ -55,15 +56,13 @@ struct ProfileHeaderView: View {
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
 
-                    HStack(spacing: 6) {
-                        RAChip(text: network.isUserOnline ? "ONLINE" : "OFFLINE",
-                               tint: network.isUserOnline ? .green : .raTextSecondary) {
-                            RAStatusDot()
-                        }
-
-                        RAChip(hardcoreMode ? "HARDCORE" : "STANDARD",
-                               systemImage: hardcoreMode ? "flame.fill" : "bolt.fill",
-                               tint: hardcoreMode ? .orange : .blue)
+                    // Three chips beside an avatar and a settings button is
+                    // a tight row, so they scroll rather than compress once
+                    // the contributed badge joins them.
+                    ViewThatFits(in: .horizontal) {
+                        chips
+                        ScrollView(.horizontal) { chips }
+                            .scrollIndicators(.hidden)
                     }
                 }
 
@@ -93,6 +92,27 @@ struct ProfileHeaderView: View {
         }
         .padding(.bottom, 8)
         .background(Color.raSurface)
+    }
+
+    private var chips: some View {
+        HStack(spacing: 6) {
+            RAChip(text: network.isUserOnline ? "ONLINE" : "OFFLINE",
+                   tint: network.isUserOnline ? .green : .raTextSecondary) {
+                RAStatusDot()
+            }
+
+            RAChip(hardcoreMode ? "HARDCORE" : "STANDARD",
+                   systemImage: hardcoreMode ? "flame.fill" : "bolt.fill",
+                   tint: hardcoreMode ? .orange : .blue)
+
+            if tips.hasTipped {
+                // Icon only: the avatar, three chips and the settings button
+                // share one row, and the full word gets clipped to "CONTRIB".
+                // Settings has the space and carries the word in full.
+                RAIconChip(systemImage: "heart.fill", tint: Color.raAccent,
+                           accessibilityLabel: "Contributed")
+            }
+        }
     }
 
     // MARK: - Avatar
@@ -212,5 +232,6 @@ struct ProfileHeaderView: View {
         await network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
     }
     return ProfileHeaderView(hardcoreMode: $hardcoreMode)
+        .environmentObject(TipStore())
         .environmentObject(network)
 }
