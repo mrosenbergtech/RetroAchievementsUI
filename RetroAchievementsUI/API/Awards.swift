@@ -66,27 +66,3 @@ struct VisibleUserAward: Codable, Identifiable {
             .joined(separator: "-")
     }
 }
-
-/// What the profile says about a player's finished games, in one line.
-///
-/// Separate from Awards because it blends two responses: the award counts come
-/// from GetUserAwards, the average from GetUserCompletionProgress.
-struct CompletionSummary: Equatable {
-    let mastered: Int
-    let beaten: Int
-    /// Mean completion across tracked games, 0–100. Nil when nothing is
-    /// tracked yet — an average of no games is not zero.
-    let averageCompletion: Double?
-
-    /// "12 mastered · 5 beaten · 45% complete", dropping any part that has
-    /// nothing to say.
-    var line: String? {
-        var parts: [String] = []
-        if mastered > 0 { parts.append("\(mastered) mastered") }
-        if beaten > 0 { parts.append("\(beaten) beaten") }
-        if let averageCompletion {
-            parts.append("\(Int(averageCompletion.rounded()))% complete")
-        }
-        return parts.isEmpty ? nil : parts.joined(separator: " · ")
-    }
-}

@@ -89,8 +89,6 @@ struct ProfileHeaderView: View {
 
             stats
 
-            completionLine
-
             statusLine
         }
         .padding(.bottom, 8)
@@ -151,21 +149,6 @@ struct ProfileHeaderView: View {
         .background(Color.raSurfaceRaised)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .padding(.horizontal, 16)
-    }
-
-    /// "12 mastered · 5 beaten · 45% complete" — all of it from data the
-    /// profile already holds. Absent entirely for a player with nothing
-    /// finished, rather than a row of zeroes.
-    @ViewBuilder
-    private var completionLine: some View {
-        if let line = network.completionSummary(hardcoreMode: hardcoreMode)?.line {
-            Text(line)
-                .font(.raStatSmall)
-                .foregroundStyle(Color.raTextTertiary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
-                .padding(.horizontal, 16)
-        }
     }
 
     private func stat(_ label: String, value: Int) -> some View {

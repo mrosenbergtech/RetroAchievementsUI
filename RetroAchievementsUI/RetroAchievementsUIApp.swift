@@ -24,13 +24,25 @@ struct RetroAchievementsUIApp: App {
     @StateObject private var network = Network()
 
     /// Child views still take a plain Binding<String>; writes are persisted to
-    /// the Keychain here rather than in each call site.
+    /// the Keychain here rather than in each call site. Both credentials go to
+    /// the Keychain so iCloud Keychain carries them to the user's other
+    /// devices; @AppStorage keeps the username for cheap local reads.
     private var webAPIKeyBinding: Binding<String> {
         Binding(
             get: { webAPIKey },
             set: { newValue in
                 webAPIKey = newValue
                 KeychainStore.save(newValue, for: .webAPIKey)
+            }
+        )
+    }
+
+    private var webAPIUsernameBinding: Binding<String> {
+        Binding(
+            get: { webAPIUsername },
+            set: { newValue in
+                webAPIUsername = newValue
+                KeychainStore.save(newValue, for: .webAPIUsername)
             }
         )
     }
@@ -42,9 +54,15 @@ struct RetroAchievementsUIApp: App {
     }
 
     private var mainInterface: some View {
-        ContentView(webAPIUsername: $webAPIUsername, webAPIKey: webAPIKeyBinding, hardcoreMode: $hardcoreMode, showUnofficial: $showUnofficial)
+        ContentView(webAPIUsername: webAPIUsernameBinding, webAPIKey: webAPIKeyBinding, hardcoreMode: $hardcoreMode, showUnofficial: $showUnofficial)
             .environmentObject(network)
             .task {
+                // A new device gets the username from iCloud Keychain, where
+                // @AppStorage — which is per-device — has nothing.
+                if webAPIUsername.isEmpty,
+                   let synced = KeychainStore.read(.webAPIUsername) {
+                    webAPIUsername = synced
+                }
                 await network.authenticateCredentials(webAPIUsername: webAPIUsername, webAPIKey: webAPIKey)
             }
     }

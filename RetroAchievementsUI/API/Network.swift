@@ -502,33 +502,6 @@ class Network: ObservableObject {
 
     /// Award cards for the profile/collection screens, joined from the awards
     /// and completion-progress responses. No additional requests.
-    /// The one-line summary under the profile's stat row.
-    ///
-    /// Built entirely from data the profile already fetched — awards for the
-    /// counts, completion progress for the average — so it costs no requests.
-    func completionSummary(hardcoreMode: Bool) -> CompletionSummary? {
-        guard let awards else { return nil }
-
-        let tracked = userGameCompletionProgress?.results ?? []
-        let shares: [Double] = tracked.compactMap { game in
-            guard game.maxPossible > 0 else { return nil }
-            let earned = hardcoreMode ? game.numAwardedHardcore : game.numAwarded
-            // Clamped: a game can report more awards than its current maximum
-            // after a set is revised downwards, and "112% complete" reads as a
-            // bug rather than as a quirk of the data.
-            return min(Double(earned) / Double(game.maxPossible), 1) * 100
-        }
-
-        return CompletionSummary(
-            mastered: awards.masteryAwardsCount,
-            beaten: hardcoreMode ? awards.beatenHardcoreAwardsCount
-                                 : awards.beatenSoftcoreAwardsCount,
-            averageCompletion: shares.isEmpty
-                ? nil
-                : shares.reduce(0, +) / Double(shares.count)
-        )
-    }
-
     func awardCards(hardcoreMode: Bool) -> [AwardCardModel] {
         guard let awards else { return [] }
 

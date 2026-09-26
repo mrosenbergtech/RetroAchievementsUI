@@ -110,7 +110,7 @@ struct RetroAchievementsLoginView: View {
                 if !network.webAPIAuthenticated && !loginPending {
                     HStack {
                         Image(systemName: "lock.shield.fill")
-                        Text("Your API key is stored in the device Keychain and never shared.")
+                        Text("Your API key is stored in the Keychain and synced to your other devices via iCloud Keychain. It is never sent anywhere but RetroAchievements.")
                     }
                     .font(.raCaption)
                     .foregroundStyle(Color.raTextTertiary)

@@ -44,7 +44,12 @@ struct BrowseView: View {
             .background(Color.raSurface)
             .navigationTitle(isSearching ? "Search" : "Browse")
             .navigationBarTitleDisplayMode(.large)
-            .searchable(text: $searchQuery, prompt: "Search all supported games")
+            // Always visible, not revealed by pulling down: search is half of
+            // what this tab is for, and a field you have to know to scroll for
+            // is a field most people never find.
+            .searchable(text: $searchQuery,
+                        placement: .navigationBarDrawer(displayMode: .always),
+                        prompt: "Search all supported games")
             // Lives here rather than on the console grid: a console tapped
             // from either half pushes onto this one stack.
             .navigationDestination(for: ConsoleRoute.self) { route in

@@ -16,6 +16,7 @@ struct SettingsView: View {
 
     @State private var showingLogoutAlert = false
     @State private var showCacheClearedToast = false
+    @StateObject private var tips = TipStore()
 
     /// Settings is presented as a sheet from the profile header, not as a tab.
     @Environment(\.dismiss) private var dismiss
@@ -28,6 +29,7 @@ struct SettingsView: View {
                 accountSection
                 preferencesSection
                 dataSection
+                tipSection
 
                 Section("About") {
                     Link(destination: URL(string: "https://retroachievements.org")!) {
@@ -60,6 +62,61 @@ struct SettingsView: View {
                 Text("You will need your Web API key to sign back in.")
             }
             .toast(isShowing: $showCacheClearedToast, message: "Image cache cleared")
+            .toast(isShowing: $tips.justTipped, message: "Thank you!", systemImage: "heart.fill")
+            .alert("Tip", isPresented: Binding(get: { tips.failureMessage != nil },
+                                               set: { if !$0 { tips.failureMessage = nil } })) {
+                Button("OK", role: .cancel) { tips.failureMessage = nil }
+            } message: {
+                Text(tips.failureMessage ?? "")
+            }
+            .task {
+                tips.refreshFromCloud()
+                await tips.loadProducts()
+            }
+        }
+    }
+
+    // MARK: - Tips
+
+    /// Absent entirely when StoreKit has no products to sell — an unreachable
+    /// store, or a build whose products are not live yet. A row of dead tip
+    /// buttons is worse than no tip jar.
+    @ViewBuilder
+    private var tipSection: some View {
+        if !tips.products.isEmpty {
+            Section {
+                ForEach(tips.products) { product in
+                    Button {
+                        Task { await tips.purchase(product) }
+                    } label: {
+                        HStack {
+                            Label(product.displayName, systemImage: "heart")
+                                .font(.raBody)
+                                .foregroundStyle(Color.raTextPrimary)
+                            Spacer(minLength: 8)
+                            if tips.purchasing == product.id {
+                                ProgressView().controlSize(.small)
+                            } else {
+                                // StoreKit's own formatting, so a reader
+                                // outside the US sees their own currency.
+                                Text(product.displayPrice)
+                                    .font(.system(.subheadline, design: .monospaced)
+                                        .weight(.semibold))
+                                    .foregroundStyle(Color.raAccent)
+                            }
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(tips.purchasing != nil)
+                }
+            } header: {
+                Text("Tip Jar")
+            } footer: {
+                Text(tips.hasTipped
+                     ? "Thank you — you’ve contributed. Tips unlock nothing; the app is free and stays that way."
+                     : "Entirely optional. Tips unlock nothing; the app is free and stays that way.")
+            }
         }
     }
 
@@ -83,9 +140,16 @@ struct SettingsView: View {
                         .foregroundStyle(Color.raTextPrimary)
                         .lineLimit(1)
 
-                    RAChip(text: network.webAPIAuthenticated ? "AUTHENTICATED" : "ACTION REQUIRED",
-                           tint: network.webAPIAuthenticated ? .green : .red) {
-                        RAStatusDot()
+                    HStack(spacing: 6) {
+                        RAChip(text: network.webAPIAuthenticated ? "AUTHENTICATED" : "ACTION REQUIRED",
+                               tint: network.webAPIAuthenticated ? .green : .red) {
+                            RAStatusDot()
+                        }
+
+                        if tips.hasTipped {
+                            RAChip("CONTRIBUTED", systemImage: "heart.fill",
+                                   tint: Color.raAccent)
+                        }
                     }
                 }
 
@@ -108,7 +172,7 @@ struct SettingsView: View {
             Text("Account")
         } footer: {
             if network.webAPIAuthenticated {
-                Text("Your API key is stored in the device Keychain.")
+                Text("Your API key is stored in the Keychain and synced via iCloud Keychain.")
             } else {
                 Text("Enter your credentials to access your achievements and progress.")
             }

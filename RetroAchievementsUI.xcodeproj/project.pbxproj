@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2086B8E0648786A13E418A43 /* TipStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 090EAE85E66EEF35E4E2A2FF /* TipStoreTests.swift */; };
+		1A4F4699D89D60750BA3D66B /* TipStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 368577916BAFB5736692956B /* TipStore.swift */; };
 		A8035373D804AF1182A21321 /* RecentAchievementsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6CE19F7CFA9D8AD2B48D00A /* RecentAchievementsListView.swift */; };
 		11511E3339698B6883E48A5A /* AwardsStripView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ADA4E0D4D6DB54E79D05224 /* AwardsStripView.swift */; };
 		91E82EE1A4AB887C3065B26F /* BrowseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73672FD82ADC4E750B0F2271 /* BrowseView.swift */; };
@@ -106,6 +108,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		090EAE85E66EEF35E4E2A2FF /* TipStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TipStoreTests.swift; sourceTree = "<group>"; };
+		24C7B1FF42039A7EF7C5A5A2 /* Tips.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Tips.storekit; sourceTree = "<group>"; };
+		368577916BAFB5736692956B /* TipStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TipStore.swift; sourceTree = "<group>"; };
 		B6CE19F7CFA9D8AD2B48D00A /* RecentAchievementsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentAchievementsListView.swift; sourceTree = "<group>"; };
 		2ADA4E0D4D6DB54E79D05224 /* AwardsStripView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AwardsStripView.swift; sourceTree = "<group>"; };
 		73672FD82ADC4E750B0F2271 /* BrowseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowseView.swift; sourceTree = "<group>"; };
@@ -275,6 +280,7 @@
 		2757FA642C138FDE008A8B7A /* RetroAchievementsUI */ = {
 			isa = PBXGroup;
 			children = (
+				24C7B1FF42039A7EF7C5A5A2 /* Tips.storekit */,
 				C785AC18871AA5AE9C1178EA /* PrivacyInfo.xcprivacy */,
 				1EB479DB81651B2943E31696 /* DesignSystem */,
 				672C3DC273C0C6EDBCCA4428 /* DebugCredentials.swift */,
@@ -299,6 +305,7 @@
 		2757FA872C1420DB008A8B7A /* API */ = {
 			isa = PBXGroup;
 			children = (
+				368577916BAFB5736692956B /* TipStore.swift */,
 				95258F573E13C5D48A51B484 /* SetClaim.swift */,
 				8C1B191FEAEA48920AED9E8A /* AchievementOfTheWeek.swift */,
 				A8567A0980DA640B2FB87298 /* FollowedUser.swift */,
@@ -382,6 +389,7 @@
 		AD053DFEDFA4F46673CB989E /* RetroAchievementsUITests */ = {
 			isa = PBXGroup;
 			children = (
+				090EAE85E66EEF35E4E2A2FF /* TipStoreTests.swift */,
 				650E795E170622A2A27053AD /* SocialTests.swift */,
 				62EB3EDDED83C88BA7FB0991 /* CommentTests.swift */,
 				B42F3CD47552C10899B417DE /* PresentationTests.swift */,
@@ -506,6 +514,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1A4F4699D89D60750BA3D66B /* TipStore.swift in Sources */,
 				A8035373D804AF1182A21321 /* RecentAchievementsListView.swift in Sources */,
 				11511E3339698B6883E48A5A /* AwardsStripView.swift in Sources */,
 				91E82EE1A4AB887C3065B26F /* BrowseView.swift in Sources */,
@@ -582,6 +591,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2086B8E0648786A13E418A43 /* TipStoreTests.swift in Sources */,
 				7738B3485AB2AF25B8F9AB23 /* SocialTests.swift in Sources */,
 				DAB23715A80E4ABB4FFC6E65 /* CommentTests.swift in Sources */,
 				B02E28CE15DC0C88B916A543 /* PresentationTests.swift in Sources */,
