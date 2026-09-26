@@ -8,12 +8,26 @@
 
 import SwiftUI
 
+/// Shared chip geometry, so a row of chips lines up whatever is inside them.
+enum RAChipMetrics {
+    /// Tall enough for an 8pt label with breathing room; scales with Dynamic
+    /// Type through the @ScaledMetric wrappers below.
+    static let height: CGFloat = 22
+    /// Leading symbols are sized explicitly. Without this they inherit the
+    /// body font — 17pt — and a chip with an icon stands visibly taller than
+    /// its text-only neighbour, which is what put HARDCORE out of line with
+    /// OFFLINE.
+    static let symbolSize: CGFloat = 10
+}
+
 struct RAChip<Leading: View>: View {
     let text: String
     var tint: Color = .raTextSecondary
     /// Filled chips read as active; outline chips as available-but-off.
     var style: Style = .filled
     @ViewBuilder var leading: Leading
+
+    @ScaledMetric(relativeTo: .caption2) private var height = RAChipMetrics.height
 
     enum Style {
         case filled
@@ -24,6 +38,7 @@ struct RAChip<Leading: View>: View {
     var body: some View {
         HStack(spacing: 4) {
             leading
+                .font(.system(size: RAChipMetrics.symbolSize, weight: .bold))
             Text(text)
                 .raMicroLabel()
                 // A chip is a label, not a paragraph: wrapping breaks it
@@ -37,7 +52,10 @@ struct RAChip<Leading: View>: View {
         .layoutPriority(1)
         .foregroundStyle(style == .solid ? Color.white : tint)
         .padding(.horizontal, 7)
-        .padding(.vertical, 3.5)
+        // A fixed height rather than vertical padding: padding makes the chip
+        // as tall as its contents, so a dot, a symbol and a bare label each
+        // produced a different height in the same row.
+        .frame(height: height)
         .background(background)
         .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
     }
@@ -68,16 +86,20 @@ struct RAIconChip: View {
     var tint: Color = .raTextSecondary
     var accessibilityLabel: String
 
+    @ScaledMetric(relativeTo: .caption2) private var height = RAChipMetrics.height
+
     var body: some View {
         Image(systemName: systemImage)
-            .font(.system(size: 10, weight: .bold))
+            .font(.system(size: RAChipMetrics.symbolSize, weight: .bold))
             .foregroundStyle(tint)
             .padding(.horizontal, 7)
-            .padding(.vertical, 4.5)
+            // Same height as its lettered siblings — it sits beside them.
+            .frame(height: height)
             .background(
                 RoundedRectangle(cornerRadius: 4, style: .continuous)
                     .fill(tint.opacity(0.12))
             )
+            .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
             .accessibilityLabel(accessibilityLabel)
     }
 }
