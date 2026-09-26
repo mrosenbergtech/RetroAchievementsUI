@@ -63,17 +63,14 @@ struct ContentView: View {
                 }
                 .tag(2)
             
-            ConsolesView(hardcoreMode: $hardcoreMode, showUnofficial: $showUnofficial)
+            // Consoles and Search merged: one job, and four tabs keep the
+            // selected item's capsule from colliding with its neighbours on
+            // iOS 26's floating tab bar.
+            BrowseView(hardcoreMode: $hardcoreMode, showUnofficial: $showUnofficial)
                 .tabItem {
-                    Label("Consoles", systemImage: "arcade.stick.console")
+                    Label("Browse", systemImage: "square.grid.2x2")
                 }
                 .tag(3)
-            
-            SearchView(hardcoreMode: $hardcoreMode, showUnofficial: $showUnofficial)
-                .tabItem {
-                    Label("Search", systemImage: "magnifyingglass.circle")
-                }
-                .tag(4)
         }
         .environment(\.selectedGameID, $selectedGameID)
         .sheet(item: $selectedGameID) { item in

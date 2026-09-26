@@ -4,10 +4,12 @@
 //
 //  Created by Michael Rosenberg on 6/10/24.
 //
+//  The console catalogue. Content only: it lives inside BrowseView, which
+//  owns the navigation stack and the search field.
 
 import SwiftUI
 
-struct ConsolesView: View {
+struct ConsolesListView: View {
     @EnvironmentObject var network: Network
     @Binding var hardcoreMode: Bool
     @Binding var showUnofficial: Bool
@@ -20,31 +22,22 @@ struct ConsolesView: View {
     private let consoleCardHeight: CGFloat = 154
 
     var body: some View {
-        NavigationStack {
-            Group {
-                if network.consolesCache == nil {
-                    loading
-                } else if network.isFetchingFullGameList && network.gameList.isEmpty {
-                    firstSync
-                } else {
-                    grid
-                }
-            }
-            .background(Color.raSurface)
-            .navigationTitle("Consoles")
-            .navigationBarTitleDisplayMode(.large)
-            .onChange(of: network.isFetchingFullGameList) { oldValue, newValue in
-                if oldValue && !newValue {
-                    withAnimation { showSyncCompleteToast = true }
-                }
-            }
-            .toast(isShowing: $showSyncCompleteToast, message: "Game library synchronised")
-            .navigationDestination(for: ConsoleRoute.self) { route in
-                ConsoleGamesView(hardcoreMode: $hardcoreMode,
-                                 showUnofficial: $showUnofficial,
-                                 consoleID: route.consoleID)
+        Group {
+            if network.consolesCache == nil {
+                loading
+            } else if network.isFetchingFullGameList && network.gameList.isEmpty {
+                firstSync
+            } else {
+                grid
             }
         }
+        .background(Color.raSurface)
+        .onChange(of: network.isFetchingFullGameList) { oldValue, newValue in
+            if oldValue && !newValue {
+                withAnimation { showSyncCompleteToast = true }
+            }
+        }
+        .toast(isShowing: $showSyncCompleteToast, message: "Game library synchronised")
     }
 
     // MARK: - Grid
@@ -165,7 +158,7 @@ struct ConsoleRoute: Hashable {
         await network.getGameConsoles()
     }
 
-    return ConsolesView(hardcoreMode: $hardcoreMode, showUnofficial: $showUnofficial)
+    return ConsolesListView(hardcoreMode: $hardcoreMode, showUnofficial: $showUnofficial)
         .environmentObject(network)
         .environment(\.selectedGameID, .constant(nil))
 }

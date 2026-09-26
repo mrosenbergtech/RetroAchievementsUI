@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		91E82EE1A4AB887C3065B26F /* BrowseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73672FD82ADC4E750B0F2271 /* BrowseView.swift */; };
 		CED64A178548C859E633C772 /* UserGameProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CB2DD2FD083DEDB9303E190 /* UserGameProgressView.swift */; };
 		A7936132046C87AC0AC0E9A2 /* RAUsernameLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39208E23FE926D58D9FCFADA /* RAUsernameLink.swift */; };
 		55C85F61D1A28661B0334C6A /* NewSetsFeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4685DC9A67ACE8345192AC5F /* NewSetsFeedView.swift */; };
@@ -103,6 +104,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		73672FD82ADC4E750B0F2271 /* BrowseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowseView.swift; sourceTree = "<group>"; };
 		1CB2DD2FD083DEDB9303E190 /* UserGameProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserGameProgressView.swift; sourceTree = "<group>"; };
 		39208E23FE926D58D9FCFADA /* RAUsernameLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RAUsernameLink.swift; sourceTree = "<group>"; };
 		4685DC9A67ACE8345192AC5F /* NewSetsFeedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewSetsFeedView.swift; sourceTree = "<group>"; };
@@ -346,6 +348,7 @@
 		276E50B82C16E09200CDB015 /* Pages */ = {
 			isa = PBXGroup;
 			children = (
+				73672FD82ADC4E750B0F2271 /* BrowseView.swift */,
 				4685DC9A67ACE8345192AC5F /* NewSetsFeedView.swift */,
 				566726AC0A5CF9D2DD790C37 /* CommunityView.swift */,
 				8C01FC7F1D141F27163E7D05 /* FriendsView.swift */,
@@ -497,6 +500,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				91E82EE1A4AB887C3065B26F /* BrowseView.swift in Sources */,
 				CED64A178548C859E633C772 /* UserGameProgressView.swift in Sources */,
 				A7936132046C87AC0AC0E9A2 /* RAUsernameLink.swift in Sources */,
 				55C85F61D1A28661B0334C6A /* NewSetsFeedView.swift in Sources */,
