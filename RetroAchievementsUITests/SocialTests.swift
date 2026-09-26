@@ -403,3 +403,34 @@ struct AchievementOfTheWeekPresentationTests {
     }
 }
 
+@Suite("Another user's game progress")
+struct UserGameProgressTests {
+
+    @Test("A summary's achievements carry the unlock dates of whoever was asked for")
+    func summaryCarriesUnlockDates() throws {
+        // The whole point of fetching with &u=<them>: the achievements come
+        // back with that user's unlock state, which is what the visitor's page
+        // renders. This asserts the dates survive decoding at all — that they
+        // are *their* dates is the network test below, which checks the
+        // username actually reaches the URL and the result lands in the
+        // per-user cache rather than the signed-in user's.
+        let summary = try JSONDecoder().decode(
+            GameSummary.self, from: Fixtures.gameInfoAndUserProgress)
+        let achievement = try #require(summary.achievements["12345"])
+
+        #expect(achievement.dateEarned == "2023-05-01 10:00:00")
+        #expect(achievement.dateEarnedHardcore == "2023-05-01 10:00:00")
+    }
+
+    @Test("A route identifies a game, and a game opened at one achievement")
+    func routeIdentity() {
+        let game = UserGameRoute(gameID: 11278)
+        let achievement = UserGameRoute(gameID: 11278, achievementID: 12345)
+
+        // Distinct ids, so pushing the same game at a different achievement
+        // is a different destination rather than a no-op.
+        #expect(game.id != achievement.id)
+        #expect(UserGameRoute(gameID: 11278).id == game.id)
+    }
+}
+

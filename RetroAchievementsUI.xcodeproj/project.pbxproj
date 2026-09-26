@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CED64A178548C859E633C772 /* UserGameProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CB2DD2FD083DEDB9303E190 /* UserGameProgressView.swift */; };
 		A7936132046C87AC0AC0E9A2 /* RAUsernameLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39208E23FE926D58D9FCFADA /* RAUsernameLink.swift */; };
 		55C85F61D1A28661B0334C6A /* NewSetsFeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4685DC9A67ACE8345192AC5F /* NewSetsFeedView.swift */; };
 		1ED8F49A3F25B69DCCF6984C /* CommunityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566726AC0A5CF9D2DD790C37 /* CommunityView.swift */; };
@@ -102,6 +103,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		1CB2DD2FD083DEDB9303E190 /* UserGameProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserGameProgressView.swift; sourceTree = "<group>"; };
 		39208E23FE926D58D9FCFADA /* RAUsernameLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RAUsernameLink.swift; sourceTree = "<group>"; };
 		4685DC9A67ACE8345192AC5F /* NewSetsFeedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewSetsFeedView.swift; sourceTree = "<group>"; };
 		566726AC0A5CF9D2DD790C37 /* CommunityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityView.swift; sourceTree = "<group>"; };
@@ -329,6 +331,7 @@
 		276E50B72C16DFFB00CDB015 /* Detail */ = {
 			isa = PBXGroup;
 			children = (
+				1CB2DD2FD083DEDB9303E190 /* UserGameProgressView.swift */,
 				3AEE8874EE1F29593A5462AC /* UserProfileView.swift */,
 				B892667EB4A00836C962E836 /* AchievementSheetView.swift */,
 				B348860D3DF0D921040098F8 /* ScrollingText.swift */,
@@ -494,6 +497,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CED64A178548C859E633C772 /* UserGameProgressView.swift in Sources */,
 				A7936132046C87AC0AC0E9A2 /* RAUsernameLink.swift in Sources */,
 				55C85F61D1A28661B0334C6A /* NewSetsFeedView.swift in Sources */,
 				1ED8F49A3F25B69DCCF6984C /* CommunityView.swift in Sources */,

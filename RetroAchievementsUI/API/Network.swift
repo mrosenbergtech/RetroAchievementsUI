@@ -146,6 +146,10 @@ class Network: ObservableObject {
     @Published var otherAwardsCache: [String: Awards] = [:]
     @Published var otherRecentAchievementsCache: [String: [RecentAchievement]] = [:]
     @Published var otherRecentGamesCache: [String: [RecentGame]] = [:]
+    /// Another user's progress on a game: lowercased username → game ID.
+    /// Separate from `gameSummaryCache`, which is always the signed-in user's
+    /// own progress — mixing them would show your unlocks on their profile.
+    @Published var otherGameSummaryCache: [String: [Int: GameSummary]] = [:]
 
     /// The signed-in user's follow list — this app's "friends".
     @Published var followedUsers: [FollowedUser] = []
@@ -234,6 +238,7 @@ class Network: ObservableObject {
         self.otherAwardsCache = [:]
         self.otherRecentAchievementsCache = [:]
         self.otherRecentGamesCache = [:]
+        self.otherGameSummaryCache = [:]
         self.followedUsers = []
         self.followedUsersLoaded = false
         self.achievementOfTheWeek = nil
@@ -773,6 +778,31 @@ class Network: ObservableObject {
     /// the response under the API's 500-row cap (see getUserRecentAchievements);
     /// a visitor's page shows a short recent slice, where the cap cannot bite.
     static let otherUserRecentWindowMinutes = 43_200
+
+    /// One game, as another user has played it.
+    ///
+    /// GetGameInfoAndUserProgress takes the username, so the achievements come
+    /// back carrying *their* unlock dates — which is what makes a visitor's
+    /// game page show their progress rather than yours.
+    @discardableResult
+    func getGameSummary(gameID: Int, username: String) async -> RANetworkError? {
+        let key = Self.userKey(username)
+        let auth = buildAuthenticationString(username: authenticatedWebAPIUsername,
+                                             key: authenticatedWebAPIKey)
+        let url = URL(string: "https://retroachievements.org/API/API_GetGameInfoAndUserProgress.php?\(auth)&g=\(gameID)&u=\(username)&a=1")
+
+        switch await fetch(url, as: GameSummary.self) {
+        case .success(let decoded):
+            self.otherGameSummaryCache[key, default: [:]][decoded.id] = decoded
+            // Unlock shares are a property of the game, not of whose progress
+            // was asked for, so a visit feeds the rarity index like any other
+            // fetch.
+            indexRarities(from: decoded)
+            return nil
+        case .failure(let error):
+            return error
+        }
+    }
 
     // MARK: - Friends
 

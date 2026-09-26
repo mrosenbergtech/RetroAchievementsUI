@@ -1211,6 +1211,31 @@ struct NetworkTests {
         #expect(subject.lastError == nil)
     }
 
+    @Test("Another user's game progress is asked for by name and cached apart from yours")
+    func fetchesOtherUserGameProgress() async {
+        let subject = makeSubject()
+        MockURLProtocol.route(fullRoutes)
+        await subject.authenticateCredentials(webAPIUsername: "mrosen97", webAPIKey: "key")
+        await subject.awaitGameListSyncForTesting()
+        await subject.awaitRarityPrefetchForTesting()
+
+        // Your own progress on the same game, for comparison.
+        await subject.getGameSummary(gameID: 11278)
+        #expect(subject.gameSummaryCache[11278] != nil)
+
+        MockURLProtocol.reset()
+        MockURLProtocol.route(["API_GetGameInfoAndUserProgress": Fixtures.gameInfoAndUserProgress])
+        let error = await subject.getGameSummary(gameID: 11278, username: "Pawlie_")
+
+        #expect(error == nil)
+        // Theirs lands under their key; yours is untouched. Sharing one cache
+        // would put the reader's unlocks on somebody else's profile.
+        #expect(subject.otherGameSummaryCache["pawlie_"]?[11278] != nil)
+        #expect(subject.otherGameSummaryCache["mrosen97"] == nil)
+        #expect(MockURLProtocol.recordedURLs.map(\.absoluteString)
+            .contains { $0.contains("u=Pawlie_") && $0.contains("g=11278") })
+    }
+
     @Test("Signing out drops other users' data with everything else")
     func logoutClearsSocialCaches() async {
         let subject = makeSubject()

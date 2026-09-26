@@ -18,13 +18,14 @@ import Kingfisher
 
 struct UserProfileView: View {
     @EnvironmentObject var network: Network
-    @Environment(\.selectedGameID) var selectedGameID: Binding<GameSheetItem?>
     @Binding var hardcoreMode: Bool
 
     let username: String
 
     @State private var isLoading = true
     @State private var loadError: RANetworkError?
+    /// The game of theirs being opened, if any.
+    @State private var route: UserGameRoute?
 
     private var key: String { Network.userKey(username) }
     private var profile: Profile? { network.otherProfileCache[key] }
@@ -58,6 +59,12 @@ struct UserProfileView: View {
             .padding(.bottom, 28)
         }
         .background(Color.raSurface)
+        .navigationDestination(item: $route) { route in
+            UserGameProgressView(hardcoreMode: $hardcoreMode,
+                                 username: username,
+                                 gameID: route.gameID,
+                                 initialAchievementID: route.achievementID)
+        }
         .navigationTitle(profile?.user ?? username)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -170,7 +177,8 @@ struct UserProfileView: View {
             sectionHeading("Recent Achievements")
             RACardCarousel(items: recentAchievements) { achievement in
                 Button {
-                    selectedGameID.wrappedValue = GameSheetItem(id: achievement.gameID)
+                    route = UserGameRoute(gameID: achievement.gameID,
+                                          achievementID: achievement.id)
                 } label: {
                     RACardCell(face: .achievement(
                         achievement,
@@ -186,7 +194,7 @@ struct UserProfileView: View {
             sectionHeading("Recently Played")
             RACardCarousel(items: recentGames) { game in
                 Button {
-                    selectedGameID.wrappedValue = GameSheetItem(id: game.id)
+                    route = UserGameRoute(gameID: game.id)
                 } label: {
                     RACardCell(face: .game(game,
                                            hardcoreMode: hardcoreMode,
@@ -262,3 +270,12 @@ struct UserProfileView: View {
         return formatter
     }()
 }
+
+/// A game on somebody else's profile, optionally opened at one achievement.
+struct UserGameRoute: Identifiable, Hashable {
+    let gameID: Int
+    var achievementID: Int?
+
+    var id: String { "\(gameID)-\(achievementID.map(String.init) ?? "")" }
+}
+
