@@ -55,7 +55,11 @@ struct ContentView: View {
             
             MyGamesView(hardcoreMode: $hardcoreMode, showUnofficial: $showUnofficial)
                 .tabItem {
-                    Label("My Games", systemImage: "gamecontroller")
+                    // "Games", not "My Games": five titles crowd iOS 26's
+                    // floating tab bar, and the selected item's capsule
+                    // expands into its neighbours. This is the longest title
+                    // that can shed characters without renaming a tab.
+                    Label("Games", systemImage: "gamecontroller")
                 }
                 .tag(2)
             
