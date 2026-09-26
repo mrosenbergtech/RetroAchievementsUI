@@ -345,6 +345,7 @@ enum Fixtures {
       "NumDistinctPlayersCasual": 900,
       "NumDistinctPlayersHardcore": 700,
       "UserCompletion": "100.00%",
+      "UserTotalPlaytime": 195,
       "UserCompletionHardcore": "100.00%",
       "HighestAwardKind": "mastered",
       "HighestAwardDate": "2023-05-21T13:16:27+00:00"
@@ -518,6 +519,100 @@ enum Fixtures {
         }.joined(separator: ",")
         return data("[\(entries)]")
     }
+
+    static let usersIFollow = data("""
+    {
+      "Count": 3,
+      "Total": 3,
+      "Results": [
+        { "User": "zuliman92", "ULID": "00003EMFWR7XB8SDPEHB3K56ZQ",
+          "Points": 1882, "PointsSoftcore": 258, "IsFollowingMe": true },
+        { "User": "Pawlie_", "ULID": "00003EMFWR7XB8SDPEHB3K56ZR",
+          "Points": 12045, "PointsSoftcore": 0, "IsFollowingMe": false },
+        { "User": "David_io", "ULID": "00003EMFWR7XB8SDPEHB3K56ZS",
+          "Points": 640, "PointsSoftcore": 1120, "IsFollowingMe": true }
+      ]
+    }
+    """)
+
+    static let achievementOfTheWeek = data("""
+    {
+      "Achievement": {
+        "ID": 178634, "Title": "Saved Summer",
+        "Description": "Defeat the Flower and let Summer Get Busy",
+        "Points": 10, "TrueRatio": 11, "Type": null, "Author": "StingX2",
+        "DateCreated": "2021-10-16", "DateModified": "2021-10-17"
+      },
+      "Console": { "ID": 3, "Title": "SNES" },
+      "ForumTopic": { "ID": 19685 },
+      "Game": { "ID": 2865, "Title": "~Hack~ Plumber For All Seasons, A" },
+      "StartAt": "2023-10-23T00:00:00.000000Z",
+      "TotalPlayers": 427,
+      "Unlocks": [
+        { "User": "Agnam", "ULID": "00003EMFWR7XB8SDPEHB3K56ZQ",
+          "RAPoints": 56120, "RASoftcorePoints": 1267,
+          "DateAwarded": "2023-10-26T22:13:34.000000Z", "HardcoreMode": 1 },
+        { "User": "softcoreSam", "ULID": "00003EMFWR7XB8SDPEHB3K56ZT",
+          "RAPoints": 900, "RASoftcorePoints": 4200,
+          "DateAwarded": "2023-10-27T09:00:00.000000Z", "HardcoreMode": 0 }
+      ],
+      "UnlocksCount": 280,
+      "UnlocksHardcoreCount": 268
+    }
+    """)
+
+    static let otherUserProfile = data("""
+    {
+      "User": "Pawlie_",
+      "ULID": "00003EMFWR7XB8SDPEHB3K56ZR",
+      "UserPic": "/UserPic/Pawlie_.png",
+      "MemberSince": "2016-01-02 00:43:04",
+      "RichPresenceMsg": "Playing Super Mario 64",
+      "LastGameID": 11278,
+      "ContribCount": 0, "ContribYield": 0,
+      "TotalPoints": 12045, "TotalSoftcorePoints": 0, "TotalTruePoints": 30112,
+      "Permissions": 1, "Untracked": 0, "ID": 16446, "UserWallActive": 1,
+      "Motto": "Just here for the cheevos"
+    }
+    """)
+
+    /// Completed claims — API_GetClaims.php?k=1. Includes a game claimed by
+    /// two developers (primary + collaboration), which the feed must show once.
+    static let completedClaims = data("""
+    [
+      { "ID": 11246, "User": "WanderingHeiho", "ULID": "00003EMFWR7XB8SDPEHB3K56ZQ",
+        "GameID": 26971, "GameTitle": "~Homebrew~ No Place To Hide",
+        "GameIcon": "/Images/084916.png", "ConsoleID": 18, "ConsoleName": "Nintendo DS",
+        "ClaimType": 0, "SetType": 0, "Status": 1, "Extension": 0, "Special": 0,
+        "Created": "2023-10-27 23:27:16", "DoneTime": "2024-01-27 23:27:16",
+        "Updated": "2024-01-27 23:27:16", "UserIsJrDev": 0, "MinutesLeft": -41266 },
+      { "ID": 11300, "User": "SporyTike", "ULID": "00003EMFWR7XB8SDPEHB3K56ZR",
+        "GameID": 11278, "GameTitle": "Super Mario 64",
+        "GameIcon": "/Images/047942.png", "ConsoleID": 2, "ConsoleName": "Nintendo 64",
+        "ClaimType": 0, "SetType": 1, "Status": 1, "Extension": 0, "Special": 0,
+        "Created": "2024-02-01 10:00:00", "DoneTime": "2024-03-02 10:00:00",
+        "Updated": "2024-03-02 10:00:00", "UserIsJrDev": 0, "MinutesLeft": -100 },
+      { "ID": 11301, "User": "Collaborator", "ULID": "00003EMFWR7XB8SDPEHB3K56ZS",
+        "GameID": 11278, "GameTitle": "Super Mario 64",
+        "GameIcon": "/Images/047942.png", "ConsoleID": 2, "ConsoleName": "Nintendo 64",
+        "ClaimType": 1, "SetType": 1, "Status": 1, "Extension": 0, "Special": 0,
+        "Created": "2024-02-02 10:00:00", "DoneTime": "2024-03-03 10:00:00",
+        "Updated": "2024-03-03 10:00:00", "UserIsJrDev": 0, "MinutesLeft": -100 }
+    ]
+    """)
+
+    /// Active claims — API_GetActiveClaims.php. DoneTime here is an expiry
+    /// date in the future, not a completion date.
+    static let activeClaims = data("""
+    [
+      { "ID": 11999, "User": "inprogressdev", "ULID": "00003EMFWR7XB8SDPEHB3K56ZT",
+        "GameID": 4321, "GameTitle": "Some Game In Progress",
+        "GameIcon": "/Images/000321.png", "ConsoleID": 3, "ConsoleName": "SNES",
+        "ClaimType": 0, "SetType": 0, "Status": 0, "Extension": 0, "Special": 0,
+        "Created": "2026-09-01 08:00:00", "DoneTime": "2026-12-01 08:00:00",
+        "Updated": "2026-09-01 08:00:00", "UserIsJrDev": 0, "MinutesLeft": 43200 }
+    ]
+    """)
 
     static let malformed = data("{ this is not valid json ")
     static let emptyArray = data("[]")

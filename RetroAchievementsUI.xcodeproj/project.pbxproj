@@ -7,6 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		55C85F61D1A28661B0334C6A /* NewSetsFeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4685DC9A67ACE8345192AC5F /* NewSetsFeedView.swift */; };
+		1ED8F49A3F25B69DCCF6984C /* CommunityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566726AC0A5CF9D2DD790C37 /* CommunityView.swift */; };
+		085B81437F7E6D93AEB48FD1 /* SetClaim.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95258F573E13C5D48A51B484 /* SetClaim.swift */; };
+		7738B3485AB2AF25B8F9AB23 /* SocialTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 650E795E170622A2A27053AD /* SocialTests.swift */; };
+		BF14497BE02BE03C102C39EE /* AchievementOfTheWeekCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1247FBB1523AC6D47D7BEC4 /* AchievementOfTheWeekCard.swift */; };
+		0084B4B130FBF3050FE04288 /* FriendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C01FC7F1D141F27163E7D05 /* FriendsView.swift */; };
+		DF9CF517C8F8BE1D8FA286F6 /* UserProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AEE8874EE1F29593A5462AC /* UserProfileView.swift */; };
+		8905AD9765601CA30338AE75 /* AchievementOfTheWeek.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C1B191FEAEA48920AED9E8A /* AchievementOfTheWeek.swift */; };
+		F15952FB497A9B11009B9244 /* FollowedUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8567A0980DA640B2FB87298 /* FollowedUser.swift */; };
 		00428A50E6C031EA989C64B6 /* AchievementRarity.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEDB06B1A9F90AAD4FC2F506 /* AchievementRarity.swift */; };
 		0CA2E149A49EC6F75EE2765C /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = C785AC18871AA5AE9C1178EA /* PrivacyInfo.xcprivacy */; };
 		0F7068BE68703C41FEEE7E72 /* RACardShowcase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19851F8CEEAACE7B8432E1BE /* RACardShowcase.swift */; };
@@ -92,6 +101,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		4685DC9A67ACE8345192AC5F /* NewSetsFeedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewSetsFeedView.swift; sourceTree = "<group>"; };
+		566726AC0A5CF9D2DD790C37 /* CommunityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityView.swift; sourceTree = "<group>"; };
+		95258F573E13C5D48A51B484 /* SetClaim.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetClaim.swift; sourceTree = "<group>"; };
+		650E795E170622A2A27053AD /* SocialTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocialTests.swift; sourceTree = "<group>"; };
+		B1247FBB1523AC6D47D7BEC4 /* AchievementOfTheWeekCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementOfTheWeekCard.swift; sourceTree = "<group>"; };
+		8C01FC7F1D141F27163E7D05 /* FriendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsView.swift; sourceTree = "<group>"; };
+		3AEE8874EE1F29593A5462AC /* UserProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfileView.swift; sourceTree = "<group>"; };
+		8C1B191FEAEA48920AED9E8A /* AchievementOfTheWeek.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementOfTheWeek.swift; sourceTree = "<group>"; };
+		A8567A0980DA640B2FB87298 /* FollowedUser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FollowedUser.swift; sourceTree = "<group>"; };
 		011E52D2742B940D27D9307B /* AwardTierTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AwardTierTests.swift; sourceTree = "<group>"; };
 		0480D844C8F3A7CE8AED2E7B /* AwardCardModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AwardCardModelTests.swift; sourceTree = "<group>"; };
 		101BE79BAF253538C1811F8D /* AwardCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AwardCardView.swift; sourceTree = "<group>"; };
@@ -210,6 +228,7 @@
 		2702F0482C25420700EC3364 /* Sub */ = {
 			isa = PBXGroup;
 			children = (
+				B1247FBB1523AC6D47D7BEC4 /* AchievementOfTheWeekCard.swift */,
 				2752C8882C166D81002E25E2 /* AchievementsView.swift */,
 				27ED5A002C18041100D4167F /* ConsoleGamesView.swift */,
 				2757FA812C140D93008A8B7A /* GameSummaryView.swift */,
@@ -268,6 +287,9 @@
 		2757FA872C1420DB008A8B7A /* API */ = {
 			isa = PBXGroup;
 			children = (
+				95258F573E13C5D48A51B484 /* SetClaim.swift */,
+				8C1B191FEAEA48920AED9E8A /* AchievementOfTheWeek.swift */,
+				A8567A0980DA640B2FB87298 /* FollowedUser.swift */,
 				DEDB06B1A9F90AAD4FC2F506 /* AchievementRarity.swift */,
 				29A786D9E7385CA415DEF18C /* Comment.swift */,
 				533600E501BD91E9B63648C5 /* RANetworkError.swift */,
@@ -304,6 +326,7 @@
 		276E50B72C16DFFB00CDB015 /* Detail */ = {
 			isa = PBXGroup;
 			children = (
+				3AEE8874EE1F29593A5462AC /* UserProfileView.swift */,
 				B892667EB4A00836C962E836 /* AchievementSheetView.swift */,
 				B348860D3DF0D921040098F8 /* ScrollingText.swift */,
 				2752C88A2C167BA6002E25E2 /* AchievementDetailView.swift */,
@@ -317,6 +340,9 @@
 		276E50B82C16E09200CDB015 /* Pages */ = {
 			isa = PBXGroup;
 			children = (
+				4685DC9A67ACE8345192AC5F /* NewSetsFeedView.swift */,
+				566726AC0A5CF9D2DD790C37 /* CommunityView.swift */,
+				8C01FC7F1D141F27163E7D05 /* FriendsView.swift */,
 				2757FA772C13A951008A8B7A /* ProfileView.swift */,
 				2757FA8A2C142571008A8B7A /* MyGamesView.swift */,
 				27ED59FE2C17FCE200D4167F /* ConsolesView.swift */,
@@ -341,6 +367,7 @@
 		AD053DFEDFA4F46673CB989E /* RetroAchievementsUITests */ = {
 			isa = PBXGroup;
 			children = (
+				650E795E170622A2A27053AD /* SocialTests.swift */,
 				62EB3EDDED83C88BA7FB0991 /* CommentTests.swift */,
 				B42F3CD47552C10899B417DE /* PresentationTests.swift */,
 				900DBC452BC15B9E589E2533 /* SupportTests.swift */,
@@ -464,6 +491,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				55C85F61D1A28661B0334C6A /* NewSetsFeedView.swift in Sources */,
+				1ED8F49A3F25B69DCCF6984C /* CommunityView.swift in Sources */,
+				085B81437F7E6D93AEB48FD1 /* SetClaim.swift in Sources */,
+				BF14497BE02BE03C102C39EE /* AchievementOfTheWeekCard.swift in Sources */,
+				0084B4B130FBF3050FE04288 /* FriendsView.swift in Sources */,
+				DF9CF517C8F8BE1D8FA286F6 /* UserProfileView.swift in Sources */,
+				8905AD9765601CA30338AE75 /* AchievementOfTheWeek.swift in Sources */,
+				F15952FB497A9B11009B9244 /* FollowedUser.swift in Sources */,
 				00428A50E6C031EA989C64B6 /* AchievementRarity.swift in Sources */,
 				0F7068BE68703C41FEEE7E72 /* RACardShowcase.swift in Sources */,
 				8FF1F10F16DD414730C7A43C /* AchievementSheetView.swift in Sources */,
@@ -527,6 +562,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7738B3485AB2AF25B8F9AB23 /* SocialTests.swift in Sources */,
 				DAB23715A80E4ABB4FFC6E65 /* CommentTests.swift in Sources */,
 				B02E28CE15DC0C88B916A543 /* PresentationTests.swift in Sources */,
 				778F1A7B0948EBD4582A6176 /* SupportTests.swift in Sources */,
@@ -699,7 +735,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 4.0.2;
+				MARKETING_VERSION = 5.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mrosenbergtech.RetroAchievementsUI;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -733,7 +769,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 4.0.2;
+				MARKETING_VERSION = 5.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mrosenbergtech.RetroAchievementsUI;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

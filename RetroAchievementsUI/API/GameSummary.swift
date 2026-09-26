@@ -42,6 +42,10 @@ struct GameSummary: Codable {
     let numDistinctPlayersHardcore: Int
     let userCompletion: String
     let userCompletionHardcore: String
+    /// Minutes this user has spent in the game, as RetroAchievements
+    /// measures it. Optional: absent on games the user has never opened,
+    /// and the field itself postdates some of the API's own examples.
+    let userTotalPlaytime: Int?
     let highestAwardKind: String?
     let highestAwardDate: String?
     
@@ -74,6 +78,7 @@ struct GameSummary: Codable {
         case numAwardedToUserHardcore = "NumAwardedToUserHardcore"
         case numDistinctPlayersCasual = "NumDistinctPlayersCasual"
         case numDistinctPlayersHardcore = "NumDistinctPlayersHardcore"
+        case userTotalPlaytime = "UserTotalPlaytime"
         case userCompletion = "UserCompletion"
         case userCompletionHardcore = "UserCompletionHardcore"
         case highestAwardKind = "HighestAwardKind"
@@ -93,5 +98,25 @@ extension GameSummary {
                 ? $0.id < $1.id
                 : $0.displayOrder < $1.displayOrder
         }
+    }
+}
+
+extension GameSummary {
+    /// Playtime as a human reads it: "45m", "3h 12m", "1h".
+    ///
+    /// Nil rather than "0m" when the user has never played the game, so a
+    /// caller can leave the stat out entirely instead of printing a zero that
+    /// looks like a measurement.
+    var playtimeDescription: String? {
+        Self.playtimeDescription(minutes: userTotalPlaytime)
+    }
+
+    static func playtimeDescription(minutes: Int?) -> String? {
+        guard let minutes, minutes > 0 else { return nil }
+        let hours = minutes / 60
+        let remainder = minutes % 60
+        if hours == 0 { return "\(remainder)m" }
+        if remainder == 0 { return "\(hours)h" }
+        return "\(hours)h \(remainder)m"
     }
 }

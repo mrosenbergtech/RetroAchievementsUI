@@ -135,6 +135,37 @@ class Network: ObservableObject {
     /// detail sheet.
     @Published var commentsCache: [Int: [Comment]] = [:]
 
+    // MARK: Other users
+    //
+    // Everything about a user other than the signed-in one is cached by
+    // lowercased username. The signed-in user keeps its own dedicated
+    // properties above: the profile screen is the app's centrepiece and its
+    // loading rules are tuned, so pointing it at a shared dictionary would
+    // risk that for no gain.
+    @Published var otherProfileCache: [String: Profile] = [:]
+    @Published var otherAwardsCache: [String: Awards] = [:]
+    @Published var otherRecentAchievementsCache: [String: [RecentAchievement]] = [:]
+    @Published var otherRecentGamesCache: [String: [RecentGame]] = [:]
+
+    /// The signed-in user's follow list — this app's "friends".
+    @Published var followedUsers: [FollowedUser] = []
+    @Published var followedUsersLoaded: Bool = false
+
+    /// Usernames pinned to the top of the Friends tab, oldest first.
+    @Published private(set) var pinnedUsernames: [String] = []
+
+    /// This week's featured achievement.
+    @Published var achievementOfTheWeek: AchievementOfTheWeek? = nil
+
+    /// The new-sets feed: claims completed recently, and claims in progress.
+    @Published var completedSetClaims: [SetClaim] = []
+    @Published var activeSetClaims: [SetClaim] = []
+    @Published var setClaimsLoaded: Bool = false
+
+    /// Usernames with a profile fetch in flight, so a list of rows that each
+    /// ask for the same user on appear makes one request rather than several.
+    private var inFlightUserProfiles: Set<String> = []
+
     /// Achievement ID → share of the game's players holding it, 0–100.
     ///
     /// GetUserRecentAchievements carries no award counts, so the profile deck
@@ -199,6 +230,16 @@ class Network: ObservableObject {
         self.userRecentlyPlayedGames = []
         self.awards = nil
         self.profile = nil
+        self.otherProfileCache = [:]
+        self.otherAwardsCache = [:]
+        self.otherRecentAchievementsCache = [:]
+        self.otherRecentGamesCache = [:]
+        self.followedUsers = []
+        self.followedUsersLoaded = false
+        self.achievementOfTheWeek = nil
+        self.completedSetClaims = []
+        self.activeSetClaims = []
+        self.setClaimsLoaded = false
         self.isFetching = false
         self.isFetchingFullGameList = false
         self.syncProgressPercentage = 0.0
@@ -234,6 +275,8 @@ class Network: ObservableObject {
             // Fetch core user identity and recent activity concurrently.
             await withTaskGroup(of: Void.self) { group in
                 group.addTask { await self.getProfile() }
+                // Cheap, once per refresh, and the profile is where it shows.
+                group.addTask { await self.getAchievementOfTheWeek() }
                 group.addTask { await self.getAwards() }
                 group.addTask { await self.getUserRecentAchievements() }
                 group.addTask { await self.getUserGameCompletionProgress() }
@@ -641,6 +684,197 @@ class Network: ObservableObject {
         case .failure(let error):
             return error
         }
+    }
+
+    // MARK: - Other users
+
+    /// Key for the per-username caches. Usernames are case-insensitive on
+    /// RetroAchievements, and arrive with different casing depending on which
+    /// endpoint named them, so everything keys on the lowercased form.
+    nonisolated static func userKey(_ username: String) -> String {
+        username.lowercased()
+    }
+
+    /// One other user's profile.
+    ///
+    /// - Returns: the failure, if any, so a friend row or profile page can show
+    ///   its own error without disturbing the app-wide banner.
+    @discardableResult
+    func getUserProfile(username: String) async -> RANetworkError? {
+        let key = Self.userKey(username)
+        // A screen full of rows all asking on appear should make one request.
+        guard !inFlightUserProfiles.contains(key) else { return nil }
+        inFlightUserProfiles.insert(key)
+        defer { inFlightUserProfiles.remove(key) }
+
+        let auth = buildAuthenticationString(username: authenticatedWebAPIUsername,
+                                             key: authenticatedWebAPIKey)
+        let url = URL(string: "https://retroachievements.org/API/API_GetUserProfile.php?\(auth)&u=\(username)")
+
+        switch await fetch(url, as: Profile.self) {
+        case .success(let decoded):
+            self.otherProfileCache[key] = decoded
+            return nil
+        case .failure(let error):
+            return error
+        }
+    }
+
+    /// Everything the other-user profile page shows, fetched concurrently.
+    ///
+    /// Four requests per user, so it runs when a profile is opened rather than
+    /// for every row of a friends list — the API rate-limits hard enough that a
+    /// list of thirty friends eagerly loading four calls each would trip it.
+    @discardableResult
+    func getUserOverview(username: String) async -> RANetworkError? {
+        let key = Self.userKey(username)
+        let auth = buildAuthenticationString(username: authenticatedWebAPIUsername,
+                                             key: authenticatedWebAPIKey)
+        let encoded = username
+
+        async let profile = fetch(
+            URL(string: "https://retroachievements.org/API/API_GetUserProfile.php?\(auth)&u=\(encoded)"),
+            as: Profile.self)
+        async let awards = fetch(
+            URL(string: "https://retroachievements.org/API/API_GetUserAwards.php?\(auth)&u=\(encoded)"),
+            as: Awards.self)
+        async let recentGames = fetch(
+            URL(string: "https://retroachievements.org/API/API_GetUserRecentlyPlayedGames.php?\(auth)&u=\(encoded)&c=25"),
+            as: [RecentGame].self)
+        async let recentAchievements = fetch(
+            URL(string: "https://retroachievements.org/API/API_GetUserRecentAchievements.php?\(auth)&u=\(encoded)&m=\(Self.otherUserRecentWindowMinutes)"),
+            as: [RecentAchievement].self)
+
+        var failure: RANetworkError?
+
+        switch await profile {
+        case .success(let decoded): self.otherProfileCache[key] = decoded
+        // The profile is the one request this page cannot do without, so its
+        // failure is the one worth reporting even if another also failed.
+        case .failure(let error): failure = error
+        }
+        switch await awards {
+        case .success(let decoded): self.otherAwardsCache[key] = decoded
+        case .failure(let error): failure = failure ?? error
+        }
+        switch await recentGames {
+        case .success(let decoded): self.otherRecentGamesCache[key] = decoded
+        case .failure(let error): failure = failure ?? error
+        }
+        switch await recentAchievements {
+        case .success(let decoded): self.otherRecentAchievementsCache[key] = decoded
+        case .failure(let error): failure = failure ?? error
+        }
+
+        return failure
+    }
+
+    /// Thirty days. The signed-in user's deck searches for a window that keeps
+    /// the response under the API's 500-row cap (see getUserRecentAchievements);
+    /// a visitor's page shows a short recent slice, where the cap cannot bite.
+    static let otherUserRecentWindowMinutes = 43_200
+
+    // MARK: - Friends
+
+    /// The signed-in user's follow list.
+    @discardableResult
+    func getFollowedUsers() async -> RANetworkError? {
+        let auth = buildAuthenticationString(username: authenticatedWebAPIUsername,
+                                             key: authenticatedWebAPIKey)
+        let url = URL(string: "https://retroachievements.org/API/API_GetUsersIFollow.php?\(auth)&c=500")
+
+        switch await fetch(url, as: FollowedUsersResult.self) {
+        case .success(let decoded):
+            self.followedUsers = decoded.results
+            self.followedUsersLoaded = true
+            return nil
+        case .failure(let error):
+            return error
+        }
+    }
+
+    func loadPinnedUsernames() {
+        pinnedUsernames = store.load(.pinnedUsers, as: [String].self) ?? []
+    }
+
+    /// - Returns: false when the name is already pinned or is the signed-in
+    ///   user, so the caller can say why nothing happened.
+    @discardableResult
+    func pinUser(_ username: String) -> Bool {
+        let trimmed = username.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return false }
+        guard Self.userKey(trimmed) != Self.userKey(authenticatedWebAPIUsername) else { return false }
+        guard !pinnedUsernames.contains(where: { Self.userKey($0) == Self.userKey(trimmed) })
+        else { return false }
+
+        pinnedUsernames.append(trimmed)
+        _ = store.save(pinnedUsernames, to: .pinnedUsers)
+        return true
+    }
+
+    func unpinUser(_ username: String) {
+        pinnedUsernames.removeAll { Self.userKey($0) == Self.userKey(username) }
+        _ = store.save(pinnedUsernames, to: .pinnedUsers)
+    }
+
+    func isPinned(_ username: String) -> Bool {
+        pinnedUsernames.contains { Self.userKey($0) == Self.userKey(username) }
+    }
+
+    // MARK: - Achievement of the Week
+
+    @discardableResult
+    func getAchievementOfTheWeek() async -> RANetworkError? {
+        let auth = buildAuthenticationString(username: authenticatedWebAPIUsername,
+                                             key: authenticatedWebAPIKey)
+        let url = URL(string: "https://retroachievements.org/API/API_GetAchievementOfTheWeek.php?\(auth)")
+
+        switch await fetch(url, as: AchievementOfTheWeek.self) {
+        case .success(let decoded):
+            self.achievementOfTheWeek = decoded
+            return nil
+        case .failure(let error):
+            return error
+        }
+    }
+
+    // MARK: - New sets and revisions
+
+    /// The new-sets feed: completed claims (work that landed) and active ones
+    /// (work under way).
+    ///
+    /// Two requests, run together. Neither records into `lastError` — the feed
+    /// is one tab of the app, and a claims outage is no reason to tell the
+    /// reader their profile is broken.
+    @discardableResult
+    func getSetClaims() async -> RANetworkError? {
+        let auth = buildAuthenticationString(username: authenticatedWebAPIUsername,
+                                             key: authenticatedWebAPIKey)
+
+        // k=1: completed. Dropped (2) and expired (3) claims are not news —
+        // they are sets that never shipped.
+        async let completed = fetch(
+            URL(string: "https://retroachievements.org/API/API_GetClaims.php?\(auth)&k=1"),
+            as: [SetClaim].self)
+        async let active = fetch(
+            URL(string: "https://retroachievements.org/API/API_GetActiveClaims.php?\(auth)"),
+            as: [SetClaim].self)
+
+        var failure: RANetworkError?
+
+        switch await completed {
+        case .success(let decoded): self.completedSetClaims = decoded.asFeed()
+        case .failure(let error): failure = error
+        }
+        switch await active {
+        case .success(let decoded): self.activeSetClaims = decoded.asFeed()
+        case .failure(let error): failure = failure ?? error
+        }
+
+        // Loaded means "we have something to show", so a half-failure still
+        // counts and the tab does not sit on a spinner.
+        self.setClaimsLoaded = !completedSetClaims.isEmpty || !activeSetClaims.isEmpty
+        return failure
     }
 
     func getGameConsoles() async {

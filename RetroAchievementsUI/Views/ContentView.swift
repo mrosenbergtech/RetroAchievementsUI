@@ -47,6 +47,12 @@ struct ContentView: View {
                 }
                 .tag(1)
             
+            CommunityView(hardcoreMode: $hardcoreMode)
+                .tabItem {
+                    Label("Community", systemImage: "person.2")
+                }
+                .tag(5)
+            
             MyGamesView(hardcoreMode: $hardcoreMode, showUnofficial: $showUnofficial)
                 .tabItem {
                     Label("My Games", systemImage: "gamecontroller")
