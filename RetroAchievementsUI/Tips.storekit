@@ -1,60 +1,60 @@
 {
-  "identifier" : "RA-TIPS-LOCAL",
-  "nonRenewingSubscriptions" : [],
-  "products" : [
+  "identifier": "RA-TIPS-LOCAL",
+  "nonRenewingSubscriptions": [],
+  "products": [
     {
-      "displayPrice" : "1.00",
-      "familyShareable" : false,
-      "internalID" : "TIP-SMALL",
-      "localizations" : [
+      "displayPrice": "1.00",
+      "familyShareable": false,
+      "internalID": "TIP-SMALL",
+      "localizations": [
         {
-          "description" : "A small thank-you. Unlocks nothing.",
-          "displayName" : "Small Tip",
-          "locale" : "en_US"
+          "description": "Drop a coin in the jar. Nothing unlocks.",
+          "displayName": "Insert Coin",
+          "locale": "en_US"
         }
       ],
-      "productID" : "com.mrosenbergtech.RetroAchievementsUI.tip.small",
-      "referenceName" : "Tip Small",
-      "type" : "Consumable"
+      "productID": "com.mrosenbergtech.RetroAchievementsUI.tip.small",
+      "referenceName": "Tip Small",
+      "type": "Consumable"
     },
     {
-      "displayPrice" : "5.00",
-      "familyShareable" : false,
-      "internalID" : "TIP-MEDIUM",
-      "localizations" : [
+      "displayPrice": "5.00",
+      "familyShareable": false,
+      "internalID": "TIP-MEDIUM",
+      "localizations": [
         {
-          "description" : "A generous thank-you. Unlocks nothing.",
-          "displayName" : "Medium Tip",
-          "locale" : "en_US"
+          "description": "Keep the project running. Nothing unlocks.",
+          "displayName": "Continue",
+          "locale": "en_US"
         }
       ],
-      "productID" : "com.mrosenbergtech.RetroAchievementsUI.tip.medium",
-      "referenceName" : "Tip Medium",
-      "type" : "Consumable"
+      "productID": "com.mrosenbergtech.RetroAchievementsUI.tip.medium",
+      "referenceName": "Tip Medium",
+      "type": "Consumable"
     },
     {
-      "displayPrice" : "10.00",
-      "familyShareable" : false,
-      "internalID" : "TIP-LARGE",
-      "localizations" : [
+      "displayPrice": "10.00",
+      "familyShareable": false,
+      "internalID": "TIP-LARGE",
+      "localizations": [
         {
-          "description" : "A very generous thank-you. Unlocks nothing.",
-          "displayName" : "Large Tip",
-          "locale" : "en_US"
+          "description": "Go all out. Nothing unlocks, just thanks.",
+          "displayName": "High Score",
+          "locale": "en_US"
         }
       ],
-      "productID" : "com.mrosenbergtech.RetroAchievementsUI.tip.large",
-      "referenceName" : "Tip Large",
-      "type" : "Consumable"
+      "productID": "com.mrosenbergtech.RetroAchievementsUI.tip.large",
+      "referenceName": "Tip Large",
+      "type": "Consumable"
     }
   ],
-  "settings" : {
-    "_failTransactionsEnabled" : false,
-    "_storeKitErrors" : []
+  "settings": {
+    "_failTransactionsEnabled": false,
+    "_storeKitErrors": []
   },
-  "subscriptionGroups" : [],
-  "version" : {
-    "major" : 3,
-    "minor" : 0
+  "subscriptionGroups": [],
+  "version": {
+    "major": 3,
+    "minor": 0
   }
 }
