@@ -57,6 +57,7 @@ struct AchievementSheetView: View {
             .scrollContentBackground(.hidden)
             .background(Color.raSurface)
             .toast(isShowing: $showCopyConfirmation, message: copyConfirmation)
+            .userProfileNavigation(hardcoreMode: $hardcoreMode)
             .navigationTitle("Achievement")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -124,7 +125,7 @@ struct AchievementSheetView: View {
             detailRow("Unlocks", "\(achievement.numAwarded)")
             detailRow("Hardcore Unlocks", "\(achievement.numAwardedHardcore)")
             detailRow("RetroPoints", "\(achievement.trueRatio)")
-            detailRow("Author", achievement.author)
+            authorRow(achievement.author)
             if let created = Self.shortDate(achievement.dateCreated) {
                 detailRow("Created", created)
             }
@@ -143,6 +144,17 @@ struct AchievementSheetView: View {
         guard let totalPlayers, totalPlayers > 0 else { return nil }
         let share = Double(achievement.numAwarded) / Double(totalPlayers) * 100
         return String(format: "%.1f%% of players", min(share, 100))
+    }
+
+    /// Same shape as detailRow, with the value as a link to that developer.
+    private func authorRow(_ author: String) -> some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text("Author")
+                .font(.raBody)
+                .foregroundStyle(Color.raTextSecondary)
+            Spacer(minLength: 12)
+            RAUsernameLink(author)
+        }
     }
 
     private func detailRow(_ label: String, _ value: String) -> some View {
@@ -254,9 +266,9 @@ struct AchievementSheetView: View {
     private func commentRow(_ comment: Comment) -> some View {
         VStack(alignment: .leading, spacing: 5) {
             HStack(spacing: 6) {
-                Text(comment.user)
-                    .font(.raBody.weight(.semibold))
-                    .foregroundStyle(Color.raTextPrimary)
+                // The author is a real player — automated "Server" entries
+                // are filtered out before the thread is drawn.
+                RAUsernameLink(comment.user)
                 Spacer(minLength: 8)
                 if let relative = comment.relativeSubmitted {
                     Text(relative)
@@ -279,6 +291,7 @@ struct AchievementSheetView: View {
             } label: {
                 Label("Copy Comment", systemImage: "doc.on.doc")
             }
+
 
             // Indexed rather than keyed on the URL: a comment that pastes the
             // same link twice would otherwise collapse to one menu item.
@@ -338,3 +351,4 @@ struct AchievementSheetView: View {
                                 hardcoreMode: $hardcoreMode)
         .environmentObject(Network())
 }
+

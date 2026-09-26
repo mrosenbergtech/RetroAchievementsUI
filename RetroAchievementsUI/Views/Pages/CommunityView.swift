@@ -20,7 +20,7 @@ struct CommunityView: View {
 
     enum Segment: String, CaseIterable, Identifiable {
         case friends = "Friends"
-        case newSets = "New Sets"
+        case newSets = "New & Revised"
         var id: String { rawValue }
     }
 
@@ -46,6 +46,7 @@ struct CommunityView: View {
             }
             .padding(.top, 8)
             .background(Color.raSurface)
+            .userProfileNavigation(hardcoreMode: $hardcoreMode)
             .navigationTitle("Community")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

@@ -4,12 +4,15 @@
 //
 //  This week's featured achievement, at the top of the Community tab.
 //
-//  A single row rather than a trading card: the AOTW payload carries no badge
-//  name, so there is no badge art to build a card face from — only the game
-//  icon, which the row shows instead.
+//  The AOTW payload names the achievement and its game but carries no badge
+//  name, so the art cannot come from that response alone. The card fetches the
+//  parent game's summary — a call the app already makes everywhere, and caches
+//  — and takes the badge from the achievement inside it. Until that lands the
+//  tile is a symbol rather than a broken image.
 //
 
 import SwiftUI
+import Kingfisher
 
 struct AchievementOfTheWeekCard: View {
     @EnvironmentObject var network: Network
@@ -17,6 +20,15 @@ struct AchievementOfTheWeekCard: View {
     @Binding var hardcoreMode: Bool
 
     private var featured: AchievementOfTheWeek? { network.achievementOfTheWeek }
+
+    /// The full achievement record, once the parent game's summary is cached.
+    /// Carries the badge name; the description comes from the AOTW payload
+    /// itself, so the text does not wait on this.
+    private var detail: Achievement? {
+        guard let featured else { return nil }
+        return network.gameSummaryCache[featured.game.id]?
+            .achievements["\(featured.achievement.id)"]
+    }
 
     /// Whether the signed-in user appears in the unlock list the API returned.
     ///
@@ -31,27 +43,25 @@ struct AchievementOfTheWeekCard: View {
     var body: some View {
         if let featured {
             Button {
-                selectedGameID.wrappedValue = GameSheetItem(id: featured.game.id)
+                // Straight to the achievement rather than the top of the game.
+                selectedGameID.wrappedValue = GameSheetItem(
+                    id: featured.game.id, achievementID: featured.achievement.id)
             } label: {
                 content(featured)
             }
             .buttonStyle(.plain)
+            .task(id: featured.game.id) {
+                guard network.gameSummaryCache[featured.game.id] == nil else { return }
+                await network.getGameSummary(gameID: featured.game.id)
+            }
         }
     }
 
     private func content(_ featured: AchievementOfTheWeek) -> some View {
         HStack(spacing: 12) {
-            // No art to load: the AOTW payload names the game and console but
-            // carries no badge or icon path, so the tile is a symbol rather
-            // than an image request that would 404.
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color.raSurfaceSunken)
-                .frame(width: 44, height: 44)
-                .overlay(
-                    Image(systemName: "star.circle.fill")
-                        .font(.system(size: 20))
-                        .foregroundStyle(Color.raAccent)
-                )
+            badge
+                .frame(width: 52, height: 52)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
 
             VStack(alignment: .leading, spacing: 3) {
                 Text("ACHIEVEMENT OF THE WEEK")
@@ -63,9 +73,19 @@ struct AchievementOfTheWeekCard: View {
                     .foregroundStyle(Color.raTextPrimary)
                     .lineLimit(1)
 
+                if let description = featured.achievement.description,
+                   !description.isEmpty {
+                    Text(description)
+                        .font(.raCaption)
+                        .foregroundStyle(Color.raTextSecondary)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
                 Text(featured.game.title)
-                    .font(.raCaption)
-                    .foregroundStyle(Color.raTextSecondary)
+                    .font(.raStatSmall)
+                    .foregroundStyle(Color.raTextTertiary)
                     .lineLimit(1)
             }
 
@@ -91,5 +111,29 @@ struct AchievementOfTheWeekCard: View {
                 .strokeBorder(Color.raAccent.opacity(0.35), lineWidth: 1)
         )
         .padding(.horizontal, 16)
+    }
+
+    @ViewBuilder
+    private var badge: some View {
+        if let badgeName = detail?.badgeName {
+            // Locked art when the reader hasn't earned it, matching every
+            // other badge in the app.
+            KFImage(RAImageURL.badge(badgeName, locked: !isUnlocked))
+                .resizable()
+                .placeholder { placeholderTile }
+                .aspectRatio(contentMode: .fit)
+        } else {
+            placeholderTile
+        }
+    }
+
+    private var placeholderTile: some View {
+        RoundedRectangle(cornerRadius: 8)
+            .fill(Color.raSurfaceSunken)
+            .overlay(
+                Image(systemName: "star.circle.fill")
+                    .font(.system(size: 22))
+                    .foregroundStyle(Color.raAccent)
+            )
     }
 }

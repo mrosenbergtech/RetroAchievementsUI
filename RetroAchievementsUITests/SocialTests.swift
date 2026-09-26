@@ -364,3 +364,42 @@ struct SetClaimTests {
     }
 }
 
+@Suite("Achievement of the Week presentation")
+struct AchievementOfTheWeekPresentationTests {
+
+    /// The card pairs the AOTW payload with the parent game's summary: the
+    /// payload has the description, the summary has the badge.
+    @Test("The description comes straight from the AOTW payload")
+    func descriptionIsInThePayload() throws {
+        let featured = try JSONDecoder().decode(
+            AchievementOfTheWeek.self, from: Fixtures.achievementOfTheWeek)
+
+        #expect(featured.achievement.description == "Defeat the Flower and let Summer Get Busy")
+    }
+
+    @Test("The badge comes from the parent game's achievement, keyed by ID")
+    func badgeComesFromTheGameSummary() throws {
+        // The AOTW payload has no BadgeName, so the card looks the achievement
+        // up in the game summary by its stringified ID — the same keying the
+        // rest of the app uses for that dictionary.
+        let summary = try JSONDecoder().decode(
+            GameSummary.self, from: Fixtures.gameInfoAndUserProgress)
+        let achievement = try #require(summary.achievements["12345"])
+
+        #expect(!achievement.badgeName.isEmpty)
+        #expect(RAImageURL.badge(achievement.badgeName, locked: false) != nil)
+        // Locked art is a different URL, so an unearned AOTW does not show as
+        // earned.
+        #expect(RAImageURL.badge(achievement.badgeName, locked: true)
+                != RAImageURL.badge(achievement.badgeName, locked: false))
+    }
+
+    @Test("A game the summary has not reached yet yields no badge rather than a wrong one")
+    func missingSummaryYieldsNoBadge() throws {
+        let summary = try JSONDecoder().decode(
+            GameSummary.self, from: Fixtures.gameInfoAndUserProgress)
+
+        #expect(summary.achievements["999999"] == nil)
+    }
+}
+

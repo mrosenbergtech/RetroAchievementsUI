@@ -106,58 +106,68 @@ struct NewSetsFeedView: View {
         .listRowBackground(Color.clear)
     }
 
+    /// The game half is the tap target; the byline sits outside it.
+    ///
+    /// A username inside a row-sized Button cannot be tapped — the outer
+    /// button swallows it — so the developer's name lives on its own line
+    /// below, indented to the title, where it is a link in its own right.
     private func row(_ claim: SetClaim) -> some View {
-        Button {
-            selectedGameID.wrappedValue = GameSheetItem(id: claim.gameID)
-        } label: {
-            HStack(spacing: 12) {
-                KFImage(RAImageURL.gameIcon(claim.gameIcon))
-                    .resizable()
-                    .placeholder {
-                        RoundedRectangle(cornerRadius: 8).fill(Color.raSurfaceSunken)
-                    }
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: 44, height: 44)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(claim.gameTitle)
-                        .font(.raBody.weight(.semibold))
-                        .foregroundStyle(Color.raTextPrimary)
-                        .lineLimit(2)
-                        .multilineTextAlignment(.leading)
-
-                    Text(claim.consoleName)
-                        .font(.raCaption)
-                        .foregroundStyle(Color.raTextSecondary)
-
-                    HStack(spacing: 6) {
-                        Text(claim.kind.label)
-                            .font(.raStatSmall)
-                            .foregroundStyle(claim.isRevision ? Color.raTextSecondary : Color.raAccent)
-                        Text("·")
-                            .font(.raStatSmall)
-                            .foregroundStyle(Color.raTextTertiary)
-                        Text(claim.user)
-                            .font(.raStatSmall)
-                            .foregroundStyle(Color.raTextTertiary)
-                        if let relative = claim.relativeNewsDate {
-                            Text("·")
-                                .font(.raStatSmall)
-                                .foregroundStyle(Color.raTextTertiary)
-                            Text(relative)
-                                .font(.raStatSmall)
-                                .foregroundStyle(Color.raTextTertiary)
+        VStack(alignment: .leading, spacing: 4) {
+            Button {
+                selectedGameID.wrappedValue = GameSheetItem(id: claim.gameID)
+            } label: {
+                HStack(spacing: 12) {
+                    KFImage(RAImageURL.gameIcon(claim.gameIcon))
+                        .resizable()
+                        .placeholder {
+                            RoundedRectangle(cornerRadius: 8).fill(Color.raSurfaceSunken)
                         }
-                    }
-                }
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: 44, height: 44)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
 
-                Spacer(minLength: 4)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(claim.gameTitle)
+                            .font(.raBody.weight(.semibold))
+                            .foregroundStyle(Color.raTextPrimary)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.leading)
+
+                        Text(claim.consoleName)
+                            .font(.raCaption)
+                            .foregroundStyle(Color.raTextSecondary)
+                    }
+
+                    Spacer(minLength: 4)
+                }
+                .contentShape(Rectangle())
             }
-            .padding(.vertical, 2)
-            .contentShape(Rectangle())
+            .buttonStyle(.plain)
+
+            HStack(spacing: 6) {
+                Text(claim.kind.label)
+                    .font(.raStatSmall)
+                    .foregroundStyle(claim.isRevision ? Color.raTextSecondary : Color.raAccent)
+                separator
+                RAUsernameLink(claim.user, font: .raStatSmall)
+                if let relative = claim.relativeNewsDate {
+                    separator
+                    Text(relative)
+                        .font(.raStatSmall)
+                        .foregroundStyle(Color.raTextTertiary)
+                }
+                Spacer(minLength: 0)
+            }
+            // Aligned with the title above: icon width plus the stack spacing.
+            .padding(.leading, 56)
         }
-        .buttonStyle(.plain)
+        .padding(.vertical, 2)
+    }
+
+    private var separator: some View {
+        Text("·")
+            .font(.raStatSmall)
+            .foregroundStyle(Color.raTextTertiary)
     }
 
     private func load(force: Bool) async {

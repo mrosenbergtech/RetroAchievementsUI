@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A7936132046C87AC0AC0E9A2 /* RAUsernameLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39208E23FE926D58D9FCFADA /* RAUsernameLink.swift */; };
 		55C85F61D1A28661B0334C6A /* NewSetsFeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4685DC9A67ACE8345192AC5F /* NewSetsFeedView.swift */; };
 		1ED8F49A3F25B69DCCF6984C /* CommunityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566726AC0A5CF9D2DD790C37 /* CommunityView.swift */; };
 		085B81437F7E6D93AEB48FD1 /* SetClaim.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95258F573E13C5D48A51B484 /* SetClaim.swift */; };
@@ -101,6 +102,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		39208E23FE926D58D9FCFADA /* RAUsernameLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RAUsernameLink.swift; sourceTree = "<group>"; };
 		4685DC9A67ACE8345192AC5F /* NewSetsFeedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewSetsFeedView.swift; sourceTree = "<group>"; };
 		566726AC0A5CF9D2DD790C37 /* CommunityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityView.swift; sourceTree = "<group>"; };
 		95258F573E13C5D48A51B484 /* SetClaim.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetClaim.swift; sourceTree = "<group>"; };
@@ -208,6 +210,7 @@
 		1EB479DB81651B2943E31696 /* DesignSystem */ = {
 			isa = PBXGroup;
 			children = (
+				39208E23FE926D58D9FCFADA /* RAUsernameLink.swift */,
 				19851F8CEEAACE7B8432E1BE /* RACardShowcase.swift */,
 				857367D87BCA1C4DDB79AE56 /* RAErrorView.swift */,
 				9B1C168B1AE16649E6A58403 /* RAAlphabetIndex.swift */,
@@ -491,6 +494,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A7936132046C87AC0AC0E9A2 /* RAUsernameLink.swift in Sources */,
 				55C85F61D1A28661B0334C6A /* NewSetsFeedView.swift in Sources */,
 				1ED8F49A3F25B69DCCF6984C /* CommunityView.swift in Sources */,
 				085B81437F7E6D93AEB48FD1 /* SetClaim.swift in Sources */,
@@ -716,7 +720,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "\"RetroAchievementsUI/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -750,7 +754,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "\"RetroAchievementsUI/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
