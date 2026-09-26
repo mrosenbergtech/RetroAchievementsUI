@@ -85,7 +85,10 @@ struct SettingsView: View {
             }
 
             if tips.hasTipped {
-                RAChip("CONTRIBUTED", systemImage: "heart.fill", tint: Color.raAccent)
+                // Icon only, matching the profile header: the word clipped to
+                // "CONTRI" beside the account chip and the Log Out button.
+                RAIconChip(systemImage: "heart.fill", tint: Color.raAccent,
+                           accessibilityLabel: "Contributed")
             }
         }
     }
@@ -104,7 +107,7 @@ struct SettingsView: View {
                         Task { await tips.purchase(product) }
                     } label: {
                         HStack {
-                            Label(product.displayName, systemImage: "heart")
+                            Label(product.displayName, systemImage: product.symbolName)
                                 .font(.raBody)
                                 .foregroundStyle(Color.raTextPrimary)
                             Spacer(minLength: 8)

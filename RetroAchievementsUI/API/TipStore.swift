@@ -46,6 +46,27 @@ final class TipStore: ObservableObject {
         let displayName: String
         /// Already localised by StoreKit: a reader in Japan sees yen.
         let displayPrice: String
+
+        /// One symbol per tier, so the rows read as a ladder rather than
+        /// three of the same thing. Keyed on the product ID rather than on
+        /// position, because StoreKit's ordering is not guaranteed and a
+        /// fourth tier would silently shift a positional mapping.
+        var symbolName: String { TipStore.symbolName(for: id) }
+    }
+
+    /// Falls back to a heart for an ID this build does not know — a tier
+    /// added in App Store Connect before the app ships should still draw.
+    ///
+    /// `nonisolated` because it is a pure lookup and TipProduct — a plain
+    /// value type — reads it synchronously; the enclosing class is
+    /// @MainActor, which would otherwise make this unreachable from there.
+    nonisolated static func symbolName(for productID: String) -> String {
+        switch productID {
+        case productIDs[0]: return "centsign.circle.fill"   // Insert Coin
+        case productIDs[1]: return "play.circle.fill"       // Continue
+        case productIDs[2]: return "crown.fill"             // High Score
+        default:            return "heart.fill"
+        }
     }
 
     /// Empty until StoreKit answers — and it stays empty if the products are

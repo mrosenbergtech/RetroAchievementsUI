@@ -97,6 +97,23 @@ struct TipStoreTests {
         #expect(TipStore(defaults: makeDefaults(), syncsToKeychain: true).hasTipped)
     }
 
+    @Test("Each tier draws its own symbol")
+    func tiersHaveDistinctSymbols() {
+        let symbols = TipStore.productIDs.map(TipStore.symbolName(for:))
+
+        // Three of the same icon reads as one repeated row rather than a
+        // ladder, which is the whole point of having tiers.
+        #expect(Set(symbols).count == 3)
+        #expect(symbols.allSatisfy { !$0.isEmpty })
+    }
+
+    @Test("An unknown product still draws something")
+    func unknownProductFallsBack() {
+        // A tier added in App Store Connect before the app ships would
+        // otherwise render a blank row.
+        #expect(TipStore.symbolName(for: "com.example.unknown.tier") == "heart.fill")
+    }
+
     @Test("The three products are the ones created in App Store Connect")
     func productIDsMatchTheStore() {
         // A typo here is invisible until the tip jar silently fails to load
