@@ -8,7 +8,7 @@
       "internalID": "TIP-SMALL",
       "localizations": [
         {
-          "description": "Drop a coin in the jar. Nothing unlocks.",
+          "description": "Drop a coin in the jar.",
           "displayName": "Insert Coin",
           "locale": "en_US"
         }
@@ -23,7 +23,7 @@
       "internalID": "TIP-MEDIUM",
       "localizations": [
         {
-          "description": "Keep the project running. Nothing unlocks.",
+          "description": "Keep the project running.",
           "displayName": "Continue",
           "locale": "en_US"
         }
@@ -38,7 +38,7 @@
       "internalID": "TIP-LARGE",
       "localizations": [
         {
-          "description": "Go all out. Nothing unlocks, just thanks.",
+          "description": "Go all out \u2014 hugely appreciated.",
           "displayName": "High Score",
           "locale": "en_US"
         }
