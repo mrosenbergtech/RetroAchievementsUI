@@ -129,10 +129,6 @@ struct SettingsView: View {
                 }
             } header: {
                 Text("Tip Jar")
-            } footer: {
-                Text(tips.hasTipped
-                     ? "Thank you — you’ve contributed. Tips unlock nothing; the app is free and stays that way."
-                     : "Entirely optional. Tips unlock nothing; the app is free and stays that way.")
             }
         }
     }
