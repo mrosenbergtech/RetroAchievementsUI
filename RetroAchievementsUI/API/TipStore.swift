@@ -79,6 +79,8 @@ final class TipStore: ObservableObject {
     @Published private(set) var isLoading = false
     @Published private(set) var purchasing: Product.ID?
     @Published private(set) var hasTipped: Bool
+    /// Product ID of the highest tier tipped, if known. Drives the badge.
+    @Published private(set) var topTipTier: String?
     /// Set after a successful purchase so the sheet can say thank you.
     @Published var justTipped = false
     @Published var failureMessage: String?
@@ -89,12 +91,44 @@ final class TipStore: ObservableObject {
     private let syncsToKeychain: Bool
 
     static let hasTippedKey = "hasTipped"
+    static let topTipTierKey = "topTipTier"
 
     init(defaults: UserDefaults = .standard, syncsToKeychain: Bool = true) {
         self.defaults = defaults
         self.syncsToKeychain = syncsToKeychain
         self.hasTipped = Self.readHasTipped(defaults: defaults,
                                             syncsToKeychain: syncsToKeychain)
+        self.topTipTier = Self.readTopTier(defaults: defaults,
+                                           syncsToKeychain: syncsToKeychain)
+    }
+
+    private static func readTopTier(defaults: UserDefaults,
+                                    syncsToKeychain: Bool) -> String? {
+        if let local = defaults.string(forKey: topTipTierKey), !local.isEmpty {
+            return local
+        }
+        return syncsToKeychain ? KeychainStore.read(.topTipTier) : nil
+    }
+
+    /// The badge's symbol: the highest tier tipped.
+    ///
+    /// Falls back to a heart when someone tipped on a build that recorded
+    /// only the boolean — they contributed, and the badge should say so even
+    /// though this build cannot know at which tier.
+    nonisolated static func badgeSymbol(forTopTier tier: String?) -> String {
+        guard let tier, productIDs.contains(tier) else { return "heart.fill" }
+        return symbolName(for: tier)
+    }
+
+    var badgeSymbol: String { Self.badgeSymbol(forTopTier: topTipTier) }
+
+    /// Ranked by position in `productIDs`, which is price order.
+    nonisolated static func isHigherTier(_ candidate: String, than current: String?) -> Bool {
+        guard let current, let currentRank = productIDs.firstIndex(of: current)
+        else { return true }
+        guard let candidateRank = productIDs.firstIndex(of: candidate)
+        else { return false }
+        return candidateRank > currentRank
     }
 
     /// True if either store says so. Either may be the only one that knows:
@@ -146,7 +180,7 @@ final class TipStore: ObservableObject {
                 switch verification {
                 case .verified(let transaction):
                     await transaction.finish()
-                    recordTip()
+                    recordTip(tier: tip.id)
                     justTipped = true
                 case .unverified:
                     // Unverified means the receipt failed StoreKit's own
@@ -169,15 +203,27 @@ final class TipStore: ObservableObject {
 
     /// Consumables are finished immediately and never re-delivered, so this is
     /// the only record that a tip happened.
-    func recordTip() {
+    func recordTip(tier: String? = nil) {
         hasTipped = true
         defaults.set(true, forKey: Self.hasTippedKey)
         if syncsToKeychain { KeychainStore.save("1", for: .hasTipped) }
+
+        // The badge shows the best tier someone has ever given, so a later
+        // smaller tip never demotes it.
+        guard let tier, Self.isHigherTier(tier, than: topTipTier) else { return }
+        topTipTier = tier
+        defaults.set(tier, forKey: Self.topTipTierKey)
+        if syncsToKeychain { KeychainStore.save(tier, for: .topTipTier) }
     }
 
     /// Picks up a tip made on another device, and caches it locally so the
     /// badge still shows if iCloud Keychain is later switched off.
     func refreshFromCloud() {
+        if let tier = Self.readTopTier(defaults: defaults, syncsToKeychain: syncsToKeychain),
+           Self.isHigherTier(tier, than: topTipTier) {
+            topTipTier = tier
+            defaults.set(tier, forKey: Self.topTipTierKey)
+        }
         guard Self.readHasTipped(defaults: defaults, syncsToKeychain: syncsToKeychain)
         else { return }
         hasTipped = true

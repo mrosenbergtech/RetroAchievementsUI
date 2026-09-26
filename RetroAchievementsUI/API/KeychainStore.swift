@@ -32,10 +32,12 @@ enum KeychainStore {
     enum Key: String {
         case webAPIKey = "webAPIKey"
         case webAPIUsername = "webAPIUsername"
-        /// Not a secret — it rides here because a synchronizable Keychain
+        /// Not secrets — they ride here because a synchronizable Keychain
         /// item is the only cross-device store that needs no entitlement,
         /// and the tip badge should survive a reinstall. See TipStore.
         case hasTipped = "hasTipped"
+        /// Product ID of the highest tier tipped, which chooses the badge.
+        case topTipTier = "topTipTier"
     }
 
     // MARK: - Read / Write / Delete

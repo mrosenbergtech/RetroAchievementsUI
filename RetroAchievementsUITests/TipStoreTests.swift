@@ -97,6 +97,47 @@ struct TipStoreTests {
         #expect(TipStore(defaults: makeDefaults(), syncsToKeychain: true).hasTipped)
     }
 
+    @Test("The badge shows the highest tier tipped")
+    @MainActor
+    func badgeFollowsTopTier() {
+        let store = TipStore(defaults: makeDefaults(), syncsToKeychain: false)
+
+        store.recordTip(tier: TipStore.productIDs[0])
+        #expect(store.badgeSymbol == TipStore.symbolName(for: TipStore.productIDs[0]))
+
+        store.recordTip(tier: TipStore.productIDs[2])
+        #expect(store.badgeSymbol == TipStore.symbolName(for: TipStore.productIDs[2]))
+    }
+
+    @Test("A smaller later tip does not demote the badge")
+    @MainActor
+    func smallerTipDoesNotDemote() {
+        // Someone who gave the top tier once and a small one later should
+        // keep the better badge; anything else punishes tipping again.
+        let store = TipStore(defaults: makeDefaults(), syncsToKeychain: false)
+
+        store.recordTip(tier: TipStore.productIDs[2])
+        store.recordTip(tier: TipStore.productIDs[0])
+
+        #expect(store.topTipTier == TipStore.productIDs[2])
+    }
+
+    @Test("A tip recorded before tiers existed still earns a badge")
+    func legacyTipFallsBackToHeart() {
+        // Builds before this one stored only the boolean, so the tier is
+        // unknown — they contributed and the badge must still say so.
+        #expect(TipStore.badgeSymbol(forTopTier: nil) == "heart.fill")
+        #expect(TipStore.badgeSymbol(forTopTier: "com.example.unknown") == "heart.fill")
+    }
+
+    @Test("Tier ranking follows price order")
+    func ranksTiers() {
+        #expect(TipStore.isHigherTier(TipStore.productIDs[1], than: TipStore.productIDs[0]))
+        #expect(!TipStore.isHigherTier(TipStore.productIDs[0], than: TipStore.productIDs[1]))
+        // Anything beats nothing.
+        #expect(TipStore.isHigherTier(TipStore.productIDs[0], than: nil))
+    }
+
     @Test("Each tier draws its own symbol")
     func tiersHaveDistinctSymbols() {
         let symbols = TipStore.productIDs.map(TipStore.symbolName(for:))

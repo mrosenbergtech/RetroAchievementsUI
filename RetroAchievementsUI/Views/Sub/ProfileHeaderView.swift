@@ -109,7 +109,9 @@ struct ProfileHeaderView: View {
                 // Icon only: the avatar, three chips and the settings button
                 // share one row, and the full word gets clipped to "CONTRIB".
                 // Settings has the space and carries the word in full.
-                RAIconChip(systemImage: "heart.fill", tint: Color.raAccent,
+                // The badge is the highest tier tipped — coin, play, crown —
+                // so it says what someone gave, not just that they gave.
+                RAIconChip(systemImage: tips.badgeSymbol, tint: Color.raAccent,
                            accessibilityLabel: "Contributed")
             }
         }

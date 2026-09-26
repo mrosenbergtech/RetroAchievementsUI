@@ -87,7 +87,7 @@ struct SettingsView: View {
             if tips.hasTipped {
                 // Icon only, matching the profile header: the word clipped to
                 // "CONTRI" beside the account chip and the Log Out button.
-                RAIconChip(systemImage: "heart.fill", tint: Color.raAccent,
+                RAIconChip(systemImage: tips.badgeSymbol, tint: Color.raAccent,
                            accessibilityLabel: "Contributed")
             }
         }
