@@ -42,9 +42,15 @@ struct GameSummary: Codable {
     let numDistinctPlayersHardcore: Int
     let userCompletion: String
     let userCompletionHardcore: String
-    /// Minutes this user has spent in the game, as RetroAchievements
+    /// **Seconds** this user has spent in the game, as RetroAchievements
     /// measures it. Optional: absent on games the user has never opened,
     /// and the field itself postdates some of the API's own examples.
+    ///
+    /// The unit is not documented and the docs' sample value is 60, which
+    /// reads equally well as either. It is seconds: Super Mario 64 returns
+    /// 98232 for an account with 59/114 unlocked — 27h, not 1637h. Shipped
+    /// as minutes in 5.0.0 and reported by a user within a day (issue #8):
+    /// 36 minutes of play displayed as 36 hours.
     let userTotalPlaytime: Int?
     let highestAwardKind: String?
     let highestAwardDate: String?
@@ -108,15 +114,21 @@ extension GameSummary {
     /// caller can leave the stat out entirely instead of printing a zero that
     /// looks like a measurement.
     var playtimeDescription: String? {
-        Self.playtimeDescription(minutes: userTotalPlaytime)
+        Self.playtimeDescription(seconds: userTotalPlaytime)
     }
 
-    static func playtimeDescription(minutes: Int?) -> String? {
-        guard let minutes, minutes > 0 else { return nil }
-        let hours = minutes / 60
-        let remainder = minutes % 60
-        if hours == 0 { return "\(remainder)m" }
-        if remainder == 0 { return "\(hours)h" }
-        return "\(hours)h \(remainder)m"
+    /// The parameter is named for its unit deliberately: reading this field
+    /// as minutes is the bug in issue #8, and an unlabelled Int invited it.
+    static func playtimeDescription(seconds: Int?) -> String? {
+        guard let seconds, seconds > 0 else { return nil }
+
+        let hours = seconds / 3600
+        let minutes = (seconds % 3600) / 60
+        if hours == 0 {
+            // Under a minute is still time played — "0m" would read as none.
+            return minutes == 0 ? "<1m" : "\(minutes)m"
+        }
+        if minutes == 0 { return "\(hours)h" }
+        return "\(hours)h \(minutes)m"
     }
 }

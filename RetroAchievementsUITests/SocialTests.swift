@@ -127,13 +127,15 @@ struct AchievementOfTheWeekTests {
 @Suite("Playtime")
 struct PlaytimeTests {
 
-    @Test("Decodes UserTotalPlaytime from the game payload")
+    @Test("Decodes UserTotalPlaytime from the game payload, in seconds")
     func decodesPlaytime() throws {
         let summary = try JSONDecoder().decode(
             GameSummary.self, from: Fixtures.gameInfoAndUserProgress)
 
+        // 195 seconds, not 195 minutes. Reading this field as minutes shipped
+        // in 5.0.0 and multiplied every figure by 60 — issue #8.
         #expect(summary.userTotalPlaytime == 195)
-        #expect(summary.playtimeDescription == "3h 15m")
+        #expect(summary.playtimeDescription == "3m")
     }
 
     @Test("A payload without the field decodes rather than failing")
@@ -149,18 +151,41 @@ struct PlaytimeTests {
 
     @Test("Reads as a human would say it")
     func formatsPlaytime() {
-        #expect(GameSummary.playtimeDescription(minutes: 45) == "45m")
-        #expect(GameSummary.playtimeDescription(minutes: 60) == "1h")
-        #expect(GameSummary.playtimeDescription(minutes: 195) == "3h 15m")
-        #expect(GameSummary.playtimeDescription(minutes: 1_500) == "25h")
+        #expect(GameSummary.playtimeDescription(seconds: 45 * 60) == "45m")
+        #expect(GameSummary.playtimeDescription(seconds: 3_600) == "1h")
+        #expect(GameSummary.playtimeDescription(seconds: 11_700) == "3h 15m")
+        #expect(GameSummary.playtimeDescription(seconds: 90_000) == "25h")
+    }
+
+    @Test("The reported case: 36 minutes reads as 36 minutes, not 36 hours")
+    func rendersTheReportedCase() {
+        // Issue #8, opened the day after 5.0.0 shipped: "I've played Pokemon
+        // blue for 36 minutes, on the app it registers as 36 hours."
+        #expect(GameSummary.playtimeDescription(seconds: 36 * 60) == "36m")
+    }
+
+    @Test("A real payload lands in a plausible range")
+    func realValueIsPlausible() {
+        // Super Mario 64 returns 98232 for an account with 59/114 unlocked.
+        // 27h is a person playing a game; 1637h is nine weeks of continuous
+        // play and was what the app printed.
+        #expect(GameSummary.playtimeDescription(seconds: 98_232) == "27h 17m")
+    }
+
+    @Test("Under a minute still reads as time played")
+    func showsSubMinutePlaytime() {
+        // "0m" reads as never played, which is a different fact.
+        #expect(GameSummary.playtimeDescription(seconds: 30) == "<1m")
+        #expect(GameSummary.playtimeDescription(seconds: 59) == "<1m")
+        #expect(GameSummary.playtimeDescription(seconds: 60) == "1m")
     }
 
     @Test("Nothing played reads as nothing at all, not as zero")
     func omitsEmptyPlaytime() {
         // "0m" on a game the player has never opened looks like a measurement.
-        #expect(GameSummary.playtimeDescription(minutes: 0) == nil)
-        #expect(GameSummary.playtimeDescription(minutes: nil) == nil)
-        #expect(GameSummary.playtimeDescription(minutes: -5) == nil)
+        #expect(GameSummary.playtimeDescription(seconds: 0) == nil)
+        #expect(GameSummary.playtimeDescription(seconds: nil) == nil)
+        #expect(GameSummary.playtimeDescription(seconds: -5) == nil)
     }
 }
 
