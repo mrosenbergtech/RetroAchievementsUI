@@ -1,0 +1,60 @@
+{
+  "identifier": "RA-TIPS-LOCAL",
+  "nonRenewingSubscriptions": [],
+  "products": [
+    {
+      "displayPrice": "0.99",
+      "familyShareable": false,
+      "internalID": "TIP-SMALL",
+      "localizations": [
+        {
+          "description": "Drop a coin in the jar.",
+          "displayName": "Insert Coin",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "com.mrosenbergtech.RetroAchievementsUI.tip.small",
+      "referenceName": "Tip Small",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "4.99",
+      "familyShareable": false,
+      "internalID": "TIP-MEDIUM",
+      "localizations": [
+        {
+          "description": "Keep the project running.",
+          "displayName": "Continue",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "com.mrosenbergtech.RetroAchievementsUI.tip.medium",
+      "referenceName": "Tip Medium",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "9.99",
+      "familyShareable": false,
+      "internalID": "TIP-LARGE",
+      "localizations": [
+        {
+          "description": "Go all out \u2014 hugely appreciated.",
+          "displayName": "High Score",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "com.mrosenbergtech.RetroAchievementsUI.tip.large",
+      "referenceName": "Tip Large",
+      "type": "Consumable"
+    }
+  ],
+  "settings": {
+    "_failTransactionsEnabled": false,
+    "_storeKitErrors": []
+  },
+  "subscriptionGroups": [],
+  "version": {
+    "major": 3,
+    "minor": 0
+  }
+}

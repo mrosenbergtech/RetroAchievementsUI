@@ -19,6 +19,7 @@ import SwiftUI
 
 struct ProfileView: View {
     @EnvironmentObject var network: Network
+    @EnvironmentObject var tips: TipStore
     @Environment(\.selectedGameID) var selectedGameID: Binding<GameSheetItem?>
     @Binding var hardcoreMode: Bool
     @Binding var showUnofficial: Bool
@@ -28,11 +29,14 @@ struct ProfileView: View {
     @Binding var webAPIUsername: String
     @Binding var webAPIKey: String
     @Binding var shouldShowLoginSheet: Bool
+    /// So the Games Played stat can hand over to the Games tab.
+    @Binding var selectedTab: Int
 
     @Environment(\.scenePhase) private var scenePhase
     @State private var forceSkeleton: Bool = false
     @State private var showSettings: Bool = false
     @State private var showAllAwards: Bool = false
+    @State private var showAllAchievements: Bool = false
 
     /// Below this the decks stop shrinking and the page starts scrolling.
     private let minimumCardHeight: CGFloat = 132
@@ -66,9 +70,11 @@ struct ProfileView: View {
             GeometryReader { geo in
                 ScrollView {
                     VStack(spacing: 10) {
-                        ProfileHeaderView(hardcoreMode: $hardcoreMode) {
-                            showSettings = true
-                        }
+                        ProfileHeaderView(
+                            hardcoreMode: $hardcoreMode,
+                            onOpenSettings: { showSettings = true },
+                            onOpenGames: { selectedTab = 2 },
+                            onOpenAchievements: { showAllAchievements = true })
 
                         if isLoading {
                             skeletonDecks
@@ -118,6 +124,10 @@ struct ProfileView: View {
             .navigationDestination(isPresented: $showAllAwards) {
                 AwardsCollectionView(hardcoreMode: $hardcoreMode)
             }
+            .navigationDestination(isPresented: $showAllAchievements) {
+                RecentAchievementsListView(hardcoreMode: $hardcoreMode,
+                                           showUnofficial: $showUnofficial)
+            }
         }
         .animation(.easeInOut(duration: 0.35), value: isLoading)
         .sheet(isPresented: $showSettings) {
@@ -127,6 +137,7 @@ struct ProfileView: View {
                          showUnofficial: $showUnofficial,
                          shouldShowLoginSheet: $shouldShowLoginSheet)
                 .environmentObject(network)
+                .environmentObject(tips)
         }
         .task {
             if network.profile == nil {
@@ -149,7 +160,10 @@ struct ProfileView: View {
         // Omitted entirely for a user with no awards — an empty trophy shelf is
         // worse than no shelf, and the other two decks get the space.
         if hasAwards {
-            deck("Awards", icon: "trophy") {
+            // Fixed height, unlike the two decks below: awards are a strip of
+            // badges now, and the height they no longer need goes to the card
+            // rows rather than being divided three ways.
+            compactSection("Awards", icon: "trophy") {
                 Button {
                     showAllAwards = true
                 } label: {
@@ -162,8 +176,9 @@ struct ProfileView: View {
                     .foregroundStyle(Color.raAccent)
                 }
                 .buttonStyle(.plain)
-            } content: { width in
-                AwardsShelfView(hardcoreMode: $hardcoreMode, cardWidth: width)
+            } content: {
+                AwardsStripView(hardcoreMode: $hardcoreMode,
+                                diameter: awardsStripDiameter)
             }
         }
 
@@ -181,7 +196,7 @@ struct ProfileView: View {
     }
 
     private var skeletonDecks: some View {
-        ForEach(["Awards", "Recently Played", "Recent Achievements"], id: \.self) { title in
+        ForEach(["Recently Played", "Recent Achievements"], id: \.self) { title in
             deck(title, icon: "square.dashed") { width in
                 HStack(spacing: 12) {
                     ForEach(0..<3, id: \.self) { _ in
@@ -193,6 +208,31 @@ struct ProfileView: View {
             }
         }
         .skeleton()
+    }
+
+    /// Badge size for the awards strip. A third of the card decks' minimum,
+    /// which is what buys them their extra height.
+    private let awardsStripDiameter: CGFloat = 52
+
+    /// A titled row of fixed height, for content that does not need to grow.
+    private func compactSection<Trailing: View, Content: View>(
+        _ title: String,
+        icon: String,
+        @ViewBuilder trailing: () -> Trailing = { EmptyView() },
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .firstTextBaseline) {
+                Label(title, systemImage: icon)
+                    .font(.raTitle)
+                    .foregroundStyle(Color.raTextPrimary)
+                Spacer(minLength: 8)
+                trailing()
+            }
+            .padding(.horizontal, 16)
+
+            content()
+        }
     }
 
     /// A titled row whose card width is derived from the height it is given.
@@ -252,6 +292,7 @@ struct ProfileView: View {
     }
     return ProfileView(hardcoreMode: $hardcoreMode, showUnofficial: $showUnofficial,
                        webAPIUsername: $username, webAPIKey: $key,
-                       shouldShowLoginSheet: $showLogin)
+                       shouldShowLoginSheet: $showLogin, selectedTab: .constant(1))
         .environmentObject(network)
+        .environmentObject(TipStore())
 }

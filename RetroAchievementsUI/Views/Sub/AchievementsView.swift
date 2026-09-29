@@ -192,7 +192,7 @@ extension Achievement: Identifiable {}
         numAchievements: 3, achievements: set, numAwardedToUser: 1,
         numAwardedToUserHardcore: 1, numDistinctPlayersCasual: 1, numDistinctPlayersHardcore: 1,
         userCompletion: "33%", userCompletionHardcore: "33%",
-        highestAwardKind: "beaten-hardcore", highestAwardDate: nil)
+        userTotalPlaytime: nil, highestAwardKind: "beaten-hardcore", highestAwardDate: nil)
 
     return List {
         AchievementsView(hardcoreMode: $hardcoreMode, gameSummary: summary,

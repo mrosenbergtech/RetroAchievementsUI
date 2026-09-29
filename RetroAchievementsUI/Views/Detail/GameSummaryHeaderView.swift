@@ -67,6 +67,12 @@ struct GameSummaryHeaderView: View {
                             if let points = summary.pointsTotal {
                                 RAMeta(systemImage: "command.circle.fill", text: "\(points)")
                             }
+                            // Only when the player has actually played it —
+                            // "0m" on an untouched game reads as a measurement
+                            // rather than an absence.
+                            if let playtime = summary.playtimeDescription {
+                                RAMeta(systemImage: "clock.fill", text: playtime)
+                            }
                             Text("\(Int((fraction * 100).rounded()))%")
                                 .font(.raStatSmall)
                                 .foregroundStyle(tier.map { RarityMaterial.of($0).ink }

@@ -38,6 +38,10 @@ final class GameListStore {
         case rarityIndex = "rarityindex.json"
         /// username → index into Network.recentAchievementWindows.
         case recentWindow = "recentwindow.json"
+        /// Usernames the reader pinned to the top of the Friends tab. The API
+        /// has no way to follow anyone, so pins are how you watch a player
+        /// without a trip to the website.
+        case pinnedUsers = "pinnedusers.json"
 
         /// Legacy UserDefaults key this slot was migrated away from.
         var legacyDefaultsKey: String {
@@ -46,6 +50,7 @@ final class GameListStore {
             case .consoleList: return "completeRetroAchievementsConsoleListJSONData"
             case .rarityIndex: return ""      // never lived in UserDefaults
             case .recentWindow: return ""     // never lived in UserDefaults
+            case .pinnedUsers: return ""      // never lived in UserDefaults
             }
         }
     }
@@ -127,8 +132,12 @@ final class GameListStore {
         try? fileManager.removeItem(at: url(for: slot))
     }
 
+    /// Clears the cache slots only.
+    ///
+    /// `pinnedUsers` is the reader's own list rather than anything fetched, so
+    /// "Refresh Game List" — which calls this — must not throw it away.
     func clearAll() {
-        Slot.allCases.forEach(clear)
+        Slot.allCases.filter { $0 != .pinnedUsers }.forEach(clear)
     }
 
     // MARK: - Migration

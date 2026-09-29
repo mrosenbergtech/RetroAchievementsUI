@@ -38,7 +38,7 @@ struct AchievementOrderingTests {
             numAwardedToUser: 0, numAwardedToUserHardcore: 0,
             numDistinctPlayersCasual: 0, numDistinctPlayersHardcore: 0,
             userCompletion: "", userCompletionHardcore: "",
-            highestAwardKind: nil, highestAwardDate: nil)
+            userTotalPlaytime: nil, highestAwardKind: nil, highestAwardDate: nil)
     }
 
     @Test("Achievements follow DisplayOrder, not the stringified dictionary key")
@@ -74,7 +74,7 @@ struct AchievementOrderingTests {
             achievements: achievements, numAwardedToUser: 0,
             numAwardedToUserHardcore: 0, numDistinctPlayersCasual: 0,
             numDistinctPlayersHardcore: 0, userCompletion: "",
-            userCompletionHardcore: "", highestAwardKind: nil, highestAwardDate: nil)
+            userCompletionHardcore: "", userTotalPlaytime: nil, highestAwardKind: nil, highestAwardDate: nil)
 
         #expect(base.orderedAchievements.map(\.id) == [10, 20, 30])
     }
@@ -265,7 +265,7 @@ struct AchievementRaritySortingTests {
             numAchievements: 3, achievements: set, numAwardedToUser: 0,
             numAwardedToUserHardcore: 0, numDistinctPlayersCasual: 0,
             numDistinctPlayersHardcore: 0, userCompletion: "",
-            userCompletionHardcore: "", highestAwardKind: nil, highestAwardDate: nil)
+            userCompletionHardcore: "", userTotalPlaytime: nil, highestAwardKind: nil, highestAwardDate: nil)
     }
 
     @Test("Rarest first inverts the set's display order here")

@@ -38,6 +38,8 @@ struct NetworkTests {
             "API_GetConsoleIDs":             Fixtures.consoleIDs,
             "API_GetGameList":               Fixtures.gameList,
             "API_GetGameInfoAndUserProgress": Fixtures.gameInfoAndUserProgress,
+            // Fetched alongside the profile, for the card on that screen.
+            "API_GetAchievementOfTheWeek":   Fixtures.achievementOfTheWeek,
         ]
     }
 
@@ -1091,6 +1093,167 @@ struct NetworkTests {
 
         #expect(subject.buildUserStatusMessage() == "Offline")
         #expect(subject.isUserOnline == false)
+    }
+
+    // MARK: - Other users, friends, Achievement of the Week
+
+    @Test("Another user's profile is fetched by name and cached under it")
+    func fetchesOtherUserProfile() async {
+        let subject = makeSubject()
+        MockURLProtocol.route(fullRoutes)
+        await subject.authenticateCredentials(webAPIUsername: "mrosen97", webAPIKey: "key")
+        await subject.awaitGameListSyncForTesting()
+        await subject.awaitRarityPrefetchForTesting()
+
+        MockURLProtocol.reset()
+        MockURLProtocol.route(["API_GetUserProfile": Fixtures.otherUserProfile])
+        let error = await subject.getUserProfile(username: "Pawlie_")
+
+        #expect(error == nil)
+        #expect(subject.otherProfileCache["pawlie_"]?.user == "Pawlie_")
+        // The signed-in user's own profile must not be overwritten by a visit.
+        #expect(subject.profile?.user == "mrosen97")
+        #expect(MockURLProtocol.recordedURLs.map(\.absoluteString)
+            .contains { $0.contains("u=Pawlie_") })
+    }
+
+    @Test("A failed visit is returned to the caller, not raised app-wide")
+    func otherUserFailureIsScoped() async {
+        let subject = makeSubject()
+        MockURLProtocol.route(fullRoutes)
+        await subject.authenticateCredentials(webAPIUsername: "mrosen97", webAPIKey: "key")
+        await subject.awaitGameListSyncForTesting()
+        await subject.awaitRarityPrefetchForTesting()
+
+        MockURLProtocol.reset()
+        MockURLProtocol.route(["API_GetUserProfile": Fixtures.malformed])
+        let error = await subject.getUserProfile(username: "Pawlie_")
+
+        #expect(error == .decoding)
+        // Somebody else's profile failing is no reason to tell the reader
+        // their own account is broken.
+        #expect(subject.lastError == nil)
+    }
+
+    @Test("The follow list populates the friends tab")
+    func fetchesFollowedUsers() async {
+        let subject = makeSubject()
+        MockURLProtocol.route(fullRoutes)
+        await subject.authenticateCredentials(webAPIUsername: "mrosen97", webAPIKey: "key")
+        await subject.awaitGameListSyncForTesting()
+        await subject.awaitRarityPrefetchForTesting()
+
+        MockURLProtocol.reset()
+        MockURLProtocol.route(["API_GetUsersIFollow": Fixtures.usersIFollow])
+        let error = await subject.getFollowedUsers()
+
+        #expect(error == nil)
+        #expect(subject.followedUsersLoaded)
+        #expect(subject.followedUsers.map(\.user) == ["zuliman92", "Pawlie_", "David_io"])
+    }
+
+    @Test("Achievement of the Week arrives with the profile load")
+    func fetchesAchievementOfTheWeek() async {
+        let subject = makeSubject()
+        MockURLProtocol.route(fullRoutes)
+
+        await subject.authenticateCredentials(webAPIUsername: "mrosen97", webAPIKey: "key")
+        await subject.awaitGameListSyncForTesting()
+        await subject.awaitRarityPrefetchForTesting()
+
+        #expect(subject.achievementOfTheWeek?.achievement.title == "Saved Summer")
+        #expect(MockURLProtocol.callCount(containing: "API_GetAchievementOfTheWeek") == 1)
+    }
+
+    @Test("The new-sets feed asks for completed and active claims")
+    func fetchesSetClaims() async {
+        let subject = makeSubject()
+        MockURLProtocol.route(fullRoutes)
+        await subject.authenticateCredentials(webAPIUsername: "mrosen97", webAPIKey: "key")
+        await subject.awaitGameListSyncForTesting()
+        await subject.awaitRarityPrefetchForTesting()
+
+        MockURLProtocol.reset()
+        MockURLProtocol.route([
+            "API_GetClaims":       Fixtures.completedClaims,
+            "API_GetActiveClaims": Fixtures.activeClaims,
+        ])
+        let error = await subject.getSetClaims()
+
+        #expect(error == nil)
+        #expect(subject.setClaimsLoaded)
+        // Three completed claims, two games — the collaboration is folded in.
+        #expect(subject.completedSetClaims.count == 2)
+        #expect(subject.activeSetClaims.count == 1)
+
+        let urls = MockURLProtocol.recordedURLs.map(\.absoluteString)
+        // k=1 is "completed": dropped and expired claims are sets that never
+        // shipped, so they are not news.
+        #expect(urls.contains { $0.contains("API_GetClaims.php") && $0.contains("k=1") })
+        #expect(urls.contains { $0.contains("API_GetActiveClaims.php") })
+    }
+
+    @Test("A claims outage stays in its own tab")
+    func setClaimsFailureIsScoped() async {
+        let subject = makeSubject()
+        MockURLProtocol.route(fullRoutes)
+        await subject.authenticateCredentials(webAPIUsername: "mrosen97", webAPIKey: "key")
+        await subject.awaitGameListSyncForTesting()
+        await subject.awaitRarityPrefetchForTesting()
+
+        MockURLProtocol.reset()
+        MockURLProtocol.route(["API_GetClaims": Fixtures.malformed,
+                               "API_GetActiveClaims": Fixtures.malformed])
+        let error = await subject.getSetClaims()
+
+        #expect(error == .decoding)
+        #expect(!subject.setClaimsLoaded)
+        #expect(subject.lastError == nil)
+    }
+
+    @Test("Another user's game progress is asked for by name and cached apart from yours")
+    func fetchesOtherUserGameProgress() async {
+        let subject = makeSubject()
+        MockURLProtocol.route(fullRoutes)
+        await subject.authenticateCredentials(webAPIUsername: "mrosen97", webAPIKey: "key")
+        await subject.awaitGameListSyncForTesting()
+        await subject.awaitRarityPrefetchForTesting()
+
+        // Your own progress on the same game, for comparison.
+        await subject.getGameSummary(gameID: 11278)
+        #expect(subject.gameSummaryCache[11278] != nil)
+
+        MockURLProtocol.reset()
+        MockURLProtocol.route(["API_GetGameInfoAndUserProgress": Fixtures.gameInfoAndUserProgress])
+        let error = await subject.getGameSummary(gameID: 11278, username: "Pawlie_")
+
+        #expect(error == nil)
+        // Theirs lands under their key; yours is untouched. Sharing one cache
+        // would put the reader's unlocks on somebody else's profile.
+        #expect(subject.otherGameSummaryCache["pawlie_"]?[11278] != nil)
+        #expect(subject.otherGameSummaryCache["mrosen97"] == nil)
+        #expect(MockURLProtocol.recordedURLs.map(\.absoluteString)
+            .contains { $0.contains("u=Pawlie_") && $0.contains("g=11278") })
+    }
+
+    @Test("Signing out drops other users' data with everything else")
+    func logoutClearsSocialCaches() async {
+        let subject = makeSubject()
+        MockURLProtocol.route(fullRoutes)
+        await subject.authenticateCredentials(webAPIUsername: "mrosen97", webAPIKey: "key")
+        await subject.awaitGameListSyncForTesting()
+        await subject.awaitRarityPrefetchForTesting()
+
+        MockURLProtocol.route(["API_GetUsersIFollow": Fixtures.usersIFollow])
+        await subject.getFollowedUsers()
+        await subject.getUserProfile(username: "Pawlie_")
+
+        subject.logout()
+
+        #expect(subject.followedUsers.isEmpty)
+        #expect(!subject.followedUsersLoaded)
+        #expect(subject.otherProfileCache.isEmpty)
+        #expect(subject.achievementOfTheWeek == nil)
     }
 }
 

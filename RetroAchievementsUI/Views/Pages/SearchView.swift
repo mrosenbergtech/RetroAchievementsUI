@@ -4,16 +4,20 @@
 //
 //  Created by Michael Rosenberg on 6/7/24.
 //
+//  Catalogue search results. Content only: this lives inside BrowseView,
+//  which owns the navigation stack and the search field — searching and
+//  browsing by console are the same job, so they share one tab.
 
 import SwiftUI
 
-struct SearchView: View {
+struct SearchResultsView: View {
     @EnvironmentObject var network: Network
     @Environment(\.selectedGameID) var selectedGameID: Binding<GameSheetItem?>
     @Binding var hardcoreMode: Bool
     @Binding var showUnofficial: Bool
 
-    @State private var searchQuery = ""
+    /// Supplied by BrowseView's search field.
+    let searchQuery: String
 
     /// The catalogue runs to tens of thousands of games. Showing all of them
     /// for an empty query meant building a vast array on every render for a
@@ -42,23 +46,16 @@ struct SearchView: View {
     private var isCatalogueReady: Bool { !network.gameList.isEmpty }
 
     var body: some View {
-        NavigationStack {
-            Group {
-                if !isCatalogueReady {
-                    syncing
-                } else if searchQuery.trimmingCharacters(in: .whitespaces).count < 2 {
-                    prompt
-                } else if searchResults.isEmpty {
-                    ContentUnavailableView.search(text: searchQuery)
-                } else {
-                    results
-                }
+        Group {
+            if !isCatalogueReady {
+                syncing
+            } else if searchResults.isEmpty {
+                ContentUnavailableView.search(text: searchQuery)
+            } else {
+                results
             }
-            .background(Color.raSurface)
-            .navigationTitle("Search")
-            .navigationBarTitleDisplayMode(.large)
-            .searchable(text: $searchQuery, prompt: "Search all supported games")
         }
+        .background(Color.raSurface)
     }
 
     // MARK: - States
@@ -89,14 +86,6 @@ struct SearchView: View {
         .scrollContentBackground(.hidden)
     }
 
-    private var prompt: some View {
-        ContentUnavailableView(
-            "Search Games",
-            systemImage: "magnifyingglass",
-            description: Text("Type at least two characters to search \(network.gameList.count) supported games.")
-        )
-    }
-
     private var syncing: some View {
         VStack(spacing: 16) {
             ProgressView().controlSize(.large)
@@ -124,6 +113,8 @@ struct SearchView: View {
         await network.authenticateCredentials(webAPIUsername: debugWebAPIUsername, webAPIKey: debugWebAPIKey)
     }
 
-    return SearchView(hardcoreMode: $hardcoreMode, showUnofficial: $showUnofficial)
+    return SearchResultsView(hardcoreMode: $hardcoreMode,
+                             showUnofficial: $showUnofficial,
+                             searchQuery: "mario")
         .environmentObject(network)
 }

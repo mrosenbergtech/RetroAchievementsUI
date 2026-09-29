@@ -30,6 +30,8 @@ struct AchievementSheetView: View {
     /// Comments routinely spell out how to earn the achievement, so they stay
     /// behind a tap until the reader asks for them.
     @State private var commentsRevealed = false
+    @State private var copyConfirmation = ""
+    @State private var showCopyConfirmation = false
 
     private var unlockedDate: String? {
         hardcoreMode ? achievement.dateEarnedHardcore : achievement.dateEarned
@@ -54,6 +56,8 @@ struct AchievementSheetView: View {
             .listStyle(.insetGrouped)
             .scrollContentBackground(.hidden)
             .background(Color.raSurface)
+            .toast(isShowing: $showCopyConfirmation, message: copyConfirmation)
+            .userProfileNavigation(hardcoreMode: $hardcoreMode)
             .navigationTitle("Achievement")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -121,7 +125,7 @@ struct AchievementSheetView: View {
             detailRow("Unlocks", "\(achievement.numAwarded)")
             detailRow("Hardcore Unlocks", "\(achievement.numAwardedHardcore)")
             detailRow("RetroPoints", "\(achievement.trueRatio)")
-            detailRow("Author", achievement.author)
+            authorRow(achievement.author)
             if let created = Self.shortDate(achievement.dateCreated) {
                 detailRow("Created", created)
             }
@@ -140,6 +144,17 @@ struct AchievementSheetView: View {
         guard let totalPlayers, totalPlayers > 0 else { return nil }
         let share = Double(achievement.numAwarded) / Double(totalPlayers) * 100
         return String(format: "%.1f%% of players", min(share, 100))
+    }
+
+    /// Same shape as detailRow, with the value as a link to that developer.
+    private func authorRow(_ author: String) -> some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text("Author")
+                .font(.raBody)
+                .foregroundStyle(Color.raTextSecondary)
+            Spacer(minLength: 12)
+            RAUsernameLink(author)
+        }
     }
 
     private func detailRow(_ label: String, _ value: String) -> some View {
@@ -243,12 +258,17 @@ struct AchievementSheetView: View {
         .buttonStyle(.plain)
     }
 
+    /// Threads are where players paste video guides, so the body renders its
+    /// URLs as links and the whole comment is selectable — previously the only
+    /// way to follow a guide was to retype it off the screen. The context menu
+    /// covers the same ground without a long-press-and-drag selection, which is
+    /// fiddly on a scrolling list.
     private func commentRow(_ comment: Comment) -> some View {
         VStack(alignment: .leading, spacing: 5) {
             HStack(spacing: 6) {
-                Text(comment.user)
-                    .font(.raBody.weight(.semibold))
-                    .foregroundStyle(Color.raTextPrimary)
+                // The author is a real player — automated "Server" entries
+                // are filtered out before the thread is drawn.
+                RAUsernameLink(comment.user)
                 Spacer(minLength: 8)
                 if let relative = comment.relativeSubmitted {
                     Text(relative)
@@ -257,12 +277,40 @@ struct AchievementSheetView: View {
                 }
             }
 
-            Text(comment.text)
+            Text(comment.linkedText)
                 .font(.raBody)
                 .foregroundStyle(Color.raTextSecondary)
+                .tint(Color.raAccent)
+                .textSelection(.enabled)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(.vertical, 3)
+        .contextMenu {
+            Button {
+                copy(comment.text, confirmation: "Comment copied")
+            } label: {
+                Label("Copy Comment", systemImage: "doc.on.doc")
+            }
+
+
+            // Indexed rather than keyed on the URL: a comment that pastes the
+            // same link twice would otherwise collapse to one menu item.
+            ForEach(Array(comment.links.enumerated()), id: \.offset) { _, link in
+                Button {
+                    copy(link.absoluteString, confirmation: "Link copied")
+                } label: {
+                    Label(comment.links.count == 1 ? "Copy Link"
+                                                   : "Copy \(link.host ?? link.absoluteString)",
+                          systemImage: "link")
+                }
+            }
+        }
+    }
+
+    private func copy(_ value: String, confirmation: String) {
+        UIPasteboard.general.string = value
+        copyConfirmation = confirmation
+        showCopyConfirmation = true
     }
 
     /// The API dates these "yyyy-MM-dd HH:mm:ss".
@@ -303,3 +351,4 @@ struct AchievementSheetView: View {
                                 hardcoreMode: $hardcoreMode)
         .environmentObject(Network())
 }
+

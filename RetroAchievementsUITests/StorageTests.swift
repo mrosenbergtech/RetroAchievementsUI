@@ -238,4 +238,42 @@ struct KeychainStoreTests {
 
         #expect(KeychainStore.migrateLegacyAPIKeyIfNeeded(defaults: suite) == nil)
     }
+
+    @Test("Both credentials round-trip under their own keys")
+    func storesUsernameAndKey() {
+        KeychainStore.save("mrosen97", for: .webAPIUsername)
+        KeychainStore.save("secret-key", for: .webAPIKey)
+
+        // Separate items: writing one must not disturb the other.
+        #expect(KeychainStore.read(.webAPIUsername) == "mrosen97")
+        #expect(KeychainStore.read(.webAPIKey) == "secret-key")
+
+        KeychainStore.delete(.webAPIUsername)
+        #expect(KeychainStore.read(.webAPIUsername) == nil)
+        #expect(KeychainStore.read(.webAPIKey) == "secret-key")
+        KeychainStore.delete(.webAPIKey)
+    }
+
+    @Test("A synchronizable item can be written and read back")
+    func writesSynchronizableItems() {
+        // Items are now written with kSecAttrSynchronizable so iCloud Keychain
+        // carries them between devices. If the platform ever rejected that
+        // attribute the app could not store a credential at all — a total
+        // sign-in failure, not a missing nicety.
+        KeychainStore.delete(.webAPIKey)
+        #expect(KeychainStore.save("synced-key", for: .webAPIKey))
+        #expect(KeychainStore.read(.webAPIKey) == "synced-key")
+        KeychainStore.delete(.webAPIKey)
+    }
+
+    @Test("Signing out removes the credential for good")
+    func deleteClearsBothKinds() {
+        // delete() queries with SynchronizableAny: a leftover device-only item
+        // from before syncing would otherwise sign the user back in.
+        KeychainStore.save("bye", for: .webAPIKey)
+        KeychainStore.delete(.webAPIKey)
+
+        #expect(KeychainStore.read(.webAPIKey) == nil)
+    }
+
 }
