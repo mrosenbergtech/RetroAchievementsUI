@@ -26,3 +26,6 @@ Screenshots/
 
 # macOS
 .DS_Store
+
+# Machine-lock / build tooling — deliberately untracked, machine-local only.
+Tools/
