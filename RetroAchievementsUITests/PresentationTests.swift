@@ -287,3 +287,50 @@ struct AchievementRaritySortingTests {
         #expect(game.achievementsByRarity.map(\.id) == game.achievementsByRarity.map(\.id))
     }
 }
+
+@Suite("Appearance preference")
+struct AppearancePreferenceTests {
+
+    /// The whole feature is this mapping: `nil` must mean "don't override",
+    /// because that is what keeps every pre-existing install following the
+    /// phone. A `.light` default here would flip the app for everyone.
+    @Test func systemDoesNotOverride() {
+        #expect(AppearancePreference.system.colorScheme == nil)
+        #expect(AppearancePreference.light.colorScheme == .light)
+        #expect(AppearancePreference.dark.colorScheme == .dark)
+    }
+
+    /// Raw values are a persistence contract, not an implementation detail:
+    /// they are what sits in UserDefaults under `appearance`. Renaming a case
+    /// without migrating silently resets the user's choice to System, which
+    /// reads as the setting not sticking rather than as a data change.
+    @Test func rawValuesAreStable() {
+        #expect(AppearancePreference.system.rawValue == "system")
+        #expect(AppearancePreference.light.rawValue == "light")
+        #expect(AppearancePreference.dark.rawValue == "dark")
+    }
+
+    /// A value written by a future build, or a corrupted one, must not fail
+    /// to decode into something unexpected — @AppStorage falls back to the
+    /// declared default, and that default has to be System.
+    @Test func unknownStoredValueIsNotADecodableCase() {
+        #expect(AppearancePreference(rawValue: "midnight") == nil)
+        #expect(AppearancePreference(rawValue: "") == nil)
+    }
+
+    /// Order is what the picker shows. System first because it is the default
+    /// and the one most people should stay on.
+    @Test func casesAreOrderedSystemLightDark() {
+        #expect(AppearancePreference.allCases == [.system, .light, .dark])
+    }
+
+    /// Each row needs its own label and icon; two cases sharing either makes
+    /// the picker ambiguous at a glance.
+    @Test func labelsAndSymbolsAreDistinct() {
+        let labels = AppearancePreference.allCases.map(\.label)
+        let symbols = AppearancePreference.allCases.map(\.symbolName)
+        #expect(Set(labels).count == labels.count)
+        #expect(Set(symbols).count == symbols.count)
+        #expect(labels == ["System", "Light", "Dark"])
+    }
+}
