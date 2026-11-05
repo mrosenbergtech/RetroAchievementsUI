@@ -15,6 +15,10 @@ struct RetroAchievementsUIApp: App {
     @AppStorage("webAPIUsername") var webAPIUsername: String = ""
     @AppStorage("hardcoreMode") var hardcoreMode: Bool = true
     @AppStorage("showUnofficial") var showUnofficial: Bool = false
+    /// Settings reads this same key directly rather than taking a binding
+    /// threaded down through ContentView and the profile header, neither of
+    /// which has any other interest in it. @AppStorage keeps the two in sync.
+    @AppStorage(AppearancePreference.storageKey) var appearance: AppearancePreference = .system
 
     /// The API key is a secret, so unlike the other settings it lives in the
     /// Keychain rather than UserDefaults. Seeded once at launch, migrating any
@@ -60,6 +64,10 @@ struct RetroAchievementsUIApp: App {
         ContentView(webAPIUsername: webAPIUsernameBinding, webAPIKey: webAPIKeyBinding, hardcoreMode: $hardcoreMode, showUnofficial: $showUnofficial)
             .environmentObject(network)
             .environmentObject(tips)
+            // One override, at the root. Every RATheme colour is a dynamic
+            // UIColor, so this repaints the palette without touching a
+            // single call site.
+            .preferredColorScheme(appearance.colorScheme)
             .task {
                 // A new device gets the username from iCloud Keychain, where
                 // @AppStorage — which is per-device — has nothing.

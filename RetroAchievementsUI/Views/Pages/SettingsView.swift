@@ -14,6 +14,10 @@ struct SettingsView: View {
     @Binding var showUnofficial: Bool
     @Binding var shouldShowLoginSheet: Bool
 
+    /// Read straight from storage rather than threaded down as a binding —
+    /// see the note on the same key in RetroAchievementsUIApp.
+    @AppStorage(AppearancePreference.storageKey) private var appearance: AppearancePreference = .system
+
     @State private var showingLogoutAlert = false
     @State private var showCacheClearedToast = false
     @EnvironmentObject var tips: TipStore
@@ -220,6 +224,27 @@ struct SettingsView: View {
                     Image(systemName: "wrench.and.screwdriver.fill").foregroundStyle(.purple)
                 }
             }
+
+            // A menu picker, not segmented: this screen is already close to a
+            // screenful and three segments under a two-line label would push
+            // it over. The icon tracks the choice so the row reads at a glance.
+            Picker(selection: $appearance) {
+                ForEach(AppearancePreference.allCases) { option in
+                    Text(option.label).tag(option)
+                }
+            } label: {
+                Label {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Appearance")
+                        Text("Follow the phone, or stay light or dark")
+                            .font(.raCaption)
+                            .foregroundStyle(Color.raTextSecondary)
+                    }
+                } icon: {
+                    Image(systemName: appearance.symbolName).foregroundStyle(.indigo)
+                }
+            }
+            .pickerStyle(.menu)
         } header: {
             Text("Preferences")
         }

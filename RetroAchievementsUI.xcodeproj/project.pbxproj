@@ -14,6 +14,7 @@
 		91E82EE1A4AB887C3065B26F /* BrowseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73672FD82ADC4E750B0F2271 /* BrowseView.swift */; };
 		CED64A178548C859E633C772 /* UserGameProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CB2DD2FD083DEDB9303E190 /* UserGameProgressView.swift */; };
 		A7936132046C87AC0AC0E9A2 /* RAUsernameLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39208E23FE926D58D9FCFADA /* RAUsernameLink.swift */; };
+		A14C4F1F6CE64630B8786EB2 /* AppearancePreference.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE7ACAD474D4675BA6DAF30 /* AppearancePreference.swift */; };
 		55C85F61D1A28661B0334C6A /* NewSetsFeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4685DC9A67ACE8345192AC5F /* NewSetsFeedView.swift */; };
 		1ED8F49A3F25B69DCCF6984C /* CommunityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566726AC0A5CF9D2DD790C37 /* CommunityView.swift */; };
 		085B81437F7E6D93AEB48FD1 /* SetClaim.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95258F573E13C5D48A51B484 /* SetClaim.swift */; };
@@ -116,6 +117,7 @@
 		73672FD82ADC4E750B0F2271 /* BrowseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowseView.swift; sourceTree = "<group>"; };
 		1CB2DD2FD083DEDB9303E190 /* UserGameProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserGameProgressView.swift; sourceTree = "<group>"; };
 		39208E23FE926D58D9FCFADA /* RAUsernameLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RAUsernameLink.swift; sourceTree = "<group>"; };
+		BBE7ACAD474D4675BA6DAF30 /* AppearancePreference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppearancePreference.swift; sourceTree = "<group>"; };
 		4685DC9A67ACE8345192AC5F /* NewSetsFeedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewSetsFeedView.swift; sourceTree = "<group>"; };
 		566726AC0A5CF9D2DD790C37 /* CommunityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityView.swift; sourceTree = "<group>"; };
 		95258F573E13C5D48A51B484 /* SetClaim.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetClaim.swift; sourceTree = "<group>"; };
@@ -224,6 +226,7 @@
 			isa = PBXGroup;
 			children = (
 				39208E23FE926D58D9FCFADA /* RAUsernameLink.swift */,
+				BBE7ACAD474D4675BA6DAF30 /* AppearancePreference.swift */,
 				19851F8CEEAACE7B8432E1BE /* RACardShowcase.swift */,
 				857367D87BCA1C4DDB79AE56 /* RAErrorView.swift */,
 				9B1C168B1AE16649E6A58403 /* RAAlphabetIndex.swift */,
@@ -520,6 +523,7 @@
 				91E82EE1A4AB887C3065B26F /* BrowseView.swift in Sources */,
 				CED64A178548C859E633C772 /* UserGameProgressView.swift in Sources */,
 				A7936132046C87AC0AC0E9A2 /* RAUsernameLink.swift in Sources */,
+				A14C4F1F6CE64630B8786EB2 /* AppearancePreference.swift in Sources */,
 				55C85F61D1A28661B0334C6A /* NewSetsFeedView.swift in Sources */,
 				1ED8F49A3F25B69DCCF6984C /* CommunityView.swift in Sources */,
 				085B81437F7E6D93AEB48FD1 /* SetClaim.swift in Sources */,
